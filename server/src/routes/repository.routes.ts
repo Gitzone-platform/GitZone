@@ -19,7 +19,12 @@ import {
   update as updateIssueComment,
   remove as deleteIssueComment,
 } from '../controllers/issues/issue-comment.controller.js';
-import { create as createIssue, list as listIssues, getOne as getIssue, update as updateIssue } from '../controllers/issues/issue.controller.js';
+import {
+  create as createIssue,
+  list as listIssues,
+  getOne as getIssue,
+  update as updateIssue,
+} from '../controllers/issues/issue.controller.js';
 import { Router } from 'express';
 import {
   create as createPullRequest,
@@ -46,6 +51,11 @@ import {
   submitReview as submitPullRequestReview,
 } from '../controllers/pull-requests/pull-request-review.controller.js';
 
+import {
+  getStarCount,
+  star,
+  unstar,
+} from '../controllers/repositories/repository-star.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { optionalAuthMiddleware } from '../middleware/optional-auth.middleware.js';
 import { getRefs } from '../controllers/repositories/repository-content.controller.js';
@@ -118,7 +128,11 @@ router.get('/:username/:name/milestones/:milestoneId', optionalAuthMiddleware, g
 router.patch('/:username/:name/milestones/:milestoneId', authMiddleware, updateMilestone);
 router.delete('/:username/:name/milestones/:milestoneId', authMiddleware, deleteMilestone);
 router.patch('/:username/:name/issues/:number/milestone', authMiddleware, updateIssueMilestone);
-router.patch('/:username/:name/pulls/:number/milestone', authMiddleware, updatePullRequestMilestone);
+router.patch(
+  '/:username/:name/pulls/:number/milestone',
+  authMiddleware,
+  updatePullRequestMilestone,
+);
 router.post('/:username/:name/labels', authMiddleware, createLabel);
 router.get('/:username/:name/labels', optionalAuthMiddleware, listLabels);
 router.get('/:username/:name/labels/:labelId', optionalAuthMiddleware, getLabel);
@@ -126,7 +140,11 @@ router.patch('/:username/:name/labels/:labelId', authMiddleware, updateLabel);
 router.delete('/:username/:name/labels/:labelId', authMiddleware, deleteLabel);
 router.post('/:username/:name/issues/:number/assignees', authMiddleware, addIssueAssignee);
 router.get('/:username/:name/issues/:number/assignees', optionalAuthMiddleware, listIssueAssignees);
-router.delete('/:username/:name/issues/:number/assignees/:assigneeUsername', authMiddleware, removeIssueAssignee);
+router.delete(
+  '/:username/:name/issues/:number/assignees/:assigneeUsername',
+  authMiddleware,
+  removeIssueAssignee,
+);
 router.post('/:username/:name/issues/:number/labels', authMiddleware, createIssueLabel);
 router.delete('/:username/:name/issues/:number/labels/:labelId', authMiddleware, deleteIssueLabel);
 router.post('/:username/:name/issues', authMiddleware, createIssue);
@@ -134,17 +152,9 @@ router.get('/:username/:name/issues', optionalAuthMiddleware, listIssues);
 router.get('/:username/:name/issues/:number', optionalAuthMiddleware, getIssue);
 router.patch('/:username/:name/issues/:number', authMiddleware, updateIssue);
 
-router.post(
-  '/:username/:name/issues/:number/comments',
-  authMiddleware,
-  createIssueComment,
-);
+router.post('/:username/:name/issues/:number/comments', authMiddleware, createIssueComment);
 
-router.get(
-  '/:username/:name/issues/:number/comments',
-  optionalAuthMiddleware,
-  listIssueComments,
-);
+router.get('/:username/:name/issues/:number/comments', optionalAuthMiddleware, listIssueComments);
 
 router.patch(
   '/:username/:name/issues/:number/comments/:commentId',
@@ -159,7 +169,11 @@ router.delete(
 );
 
 router.post('/:username/:name/pulls/:number/labels', authMiddleware, createPullRequestLabel);
-router.delete('/:username/:name/pulls/:number/labels/:labelId', authMiddleware, deletePullRequestLabel);
+router.delete(
+  '/:username/:name/pulls/:number/labels/:labelId',
+  authMiddleware,
+  deletePullRequestLabel,
+);
 router.post('/:username/:name/pulls', authMiddleware, createPullRequest);
 router.get('/:username/:name/pulls', optionalAuthMiddleware, listPullRequests);
 router.get('/:username/:name/pulls/:number', optionalAuthMiddleware, getPullRequest);
@@ -195,6 +209,9 @@ router.get(
   optionalAuthMiddleware,
   listPullRequestConversations,
 );
+router.post('/:username/:name/star', authMiddleware, star);
+router.delete('/:username/:name/star', authMiddleware, unstar);
+router.get('/:username/:name/stars/count', optionalAuthMiddleware, getStarCount);
 router.get('/:username/:name', getOne);
 router.patch('/:username/:name', authMiddleware, update);
 router.delete('/:username/:name', authMiddleware, remove);

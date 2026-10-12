@@ -21,6 +21,7 @@ model User {
   sessions                         Session[]
   repositories                     Repository[]
   stars                            RepositoryStar[]
+  watches                          RepositoryWatch[]
   personalAccessTokens             PersonalAccessToken[]
   repositoryCollaborations         RepositoryCollaborator[]
   twoFactorAuthentication          TwoFactorAuthentication?
@@ -146,6 +147,7 @@ model Repository {
 
   collaborators RepositoryCollaborator[]
   stars         RepositoryStar[]
+  watches       RepositoryWatch[]
   pullRequests  PullRequest[]
   issues        Issue[]
   issueCounter  RepositoryIssueCounter?
@@ -454,6 +456,19 @@ model Milestone {
 }
 
 model RepositoryStar {
+  id           String   @id @default(cuid())
+  userId       String
+  repositoryId String
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, repositoryId])
+  @@index([repositoryId])
+}
+
+model RepositoryWatch {
   id           String   @id @default(cuid())
   userId       String
   repositoryId String

@@ -56,6 +56,7 @@ import {
   star,
   unstar,
 } from '../controllers/repositories/repository-star.controller.js';
+import { unwatch, watch } from '../controllers/repositories/repository-watch.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { optionalAuthMiddleware } from '../middleware/optional-auth.middleware.js';
 import { getRefs } from '../controllers/repositories/repository-content.controller.js';
@@ -210,6 +211,8 @@ router.get(
   listPullRequestConversations,
 );
 router.post('/:username/:name/star', authMiddleware, star);
+router.post('/:username/:name/watch', authMiddleware, watch);
+router.delete('/:username/:name/watch', authMiddleware, unwatch);
 router.delete('/:username/:name/star', authMiddleware, unstar);
 router.get('/:username/:name/stars/count', optionalAuthMiddleware, getStarCount);
 router.get('/:username/:name', getOne);

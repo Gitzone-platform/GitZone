@@ -15,6 +15,7 @@ import { gitHttpController } from './controllers/git/git-http.controller.js';
 import { getHealth, getLiveness, getReadiness } from './controllers/health/health.controller.js';
 import repositoryRoutes from './routes/repository.routes.js';
 import profileRoutes from './routes/profile.routes.js';
+import organizationRoutes from './routes/organization.routes.js';
 
 const corsOptions: CorsOptions = {
   origin(origin, callback) {
@@ -58,6 +59,7 @@ app.get('/api/health/ready', getReadiness);
 app.use('/api/auth', authRoutes);
 app.use('/api/repositories', repositoryRoutes);
 app.use('/api/users', profileRoutes);
+app.use('/api/organizations', organizationRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

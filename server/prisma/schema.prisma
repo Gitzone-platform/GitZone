@@ -18,6 +18,9 @@ model User {
   location  String?
   website   String?
 
+  organizationMemberships          OrganizationMember[]
+  organizationInvitationsSent       OrganizationInvitation[] @relation("OrganizationInvitationInviter")
+  organizationInvitationsReceived   OrganizationInvitation[] @relation("OrganizationInvitationInvitee")
   sessions                         Session[]
   repositories                     Repository[]
   stars                            RepositoryStar[]
@@ -491,4 +494,71 @@ model RepositoryWatch {
 
   @@unique([userId, repositoryId])
   @@index([repositoryId])
+}
+
+enum OrganizationRole {
+  OWNER
+  MEMBER
+}
+
+enum OrganizationVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum OrganizationInvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+model Organization {
+  id          String                 @id @default(cuid())
+  slug        String                 @unique
+  name        String
+  description String?
+  avatarUrl   String?
+  website     String?
+  visibility  OrganizationVisibility @default(PUBLIC)
+
+  members     OrganizationMember[]
+  invitations OrganizationInvitation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationMember {
+  id             String           @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrganizationRole @default(MEMBER)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model OrganizationInvitation {
+  id             String                       @id @default(cuid())
+  organizationId String
+  inviteeId      String
+  invitedById    String
+  status         OrganizationInvitationStatus @default(PENDING)
+  expiresAt      DateTime
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitee      User         @relation("OrganizationInvitationInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  invitedBy     User         @relation("OrganizationInvitationInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, status])
+  @@index([inviteeId, status])
 }

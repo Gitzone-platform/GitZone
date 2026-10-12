@@ -3,13 +3,48 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import prisma from '../../../src/config/prisma.js';
 import { forkRepository } from '../../../src/services/repositories/repository-fork.service.js';
 import { resolveGitRepositoryPath } from '../../../src/utils/git/repository-path.js';
 
 const enabled = process.env.RUN_FORK_DATABASE_TEST === '1';
+
+const isolatedStorage = vi.hoisted(() => ({
+  root: '',
+}));
+
+vi.mock('../../../src/utils/git/repository-path.js', async () => {
+  const path = await import('node:path');
+
+  return {
+    resolveGitRepositoryPath: (username: string, repositoryName: string) => {
+      if (!isolatedStorage.root) {
+        throw new Error('Fork test Git storage is not initialized');
+      }
+
+      const safeSegment = /^[a-zA-Z0-9._-]+$/;
+
+      if (
+        !safeSegment.test(username) ||
+        !safeSegment.test(repositoryName) ||
+        username === '.' ||
+        username === '..' ||
+        repositoryName === '.' ||
+        repositoryName === '..'
+      ) {
+        throw new Error('Invalid isolated Git repository path');
+      }
+
+      return path.resolve(
+        isolatedStorage.root,
+        username,
+        `${repositoryName}.git`,
+      );
+    },
+  };
+});
 
 describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
   const suffix = randomUUID().replaceAll('-', '').slice(0, 16);
@@ -38,7 +73,7 @@ describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
   beforeAll(async () => {
     previousStorage = process.env.GIT_STORAGE_PATH;
     testRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'gitzone-fork-db-'));
-    process.env.GIT_STORAGE_PATH = path.join(testRoot, 'repositories');
+    isolatedStorage.root = path.join(testRoot, 'repositories');
 
     const sourceOwner = await prisma.user.create({
       data: {
@@ -141,6 +176,8 @@ describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
       if (testRoot) {
         await fs.rm(testRoot, { recursive: true, force: true });
       }
+
+      isolatedStorage.root = '';
     }
   });
 

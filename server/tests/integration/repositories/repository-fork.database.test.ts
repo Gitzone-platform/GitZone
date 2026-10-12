@@ -37,11 +37,7 @@ vi.mock('../../../src/utils/git/repository-path.js', async () => {
         throw new Error('Invalid isolated Git repository path');
       }
 
-      return path.resolve(
-        isolatedStorage.root,
-        username,
-        `${repositoryName}.git`,
-      );
+      return path.resolve(isolatedStorage.root, username, `${repositoryName}.git`);
     },
   };
 });
@@ -67,8 +63,7 @@ describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
   let testRoot = '';
   let previousStorage: string | undefined;
 
-  const git = (...args: string[]) =>
-    execFileSync('git', args, { encoding: 'utf8' }).trim();
+  const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8' }).trim();
 
   beforeAll(async () => {
     previousStorage = process.env.GIT_STORAGE_PATH;
@@ -139,10 +134,7 @@ describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
     git('-C', working, 'commit', '-m', 'test: fork fixture');
     git('-C', working, 'branch', 'feature/test');
 
-    const sourceGitPath = resolveGitRepositoryPath(
-      sourceUsername,
-      sourceName,
-    );
+    const sourceGitPath = resolveGitRepositoryPath(sourceUsername, sourceName);
 
     await fs.mkdir(path.dirname(sourceGitPath), { recursive: true });
     git('clone', '--bare', '--no-hardlinks', '--', working, sourceGitPath);
@@ -182,12 +174,9 @@ describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
   });
 
   it('creates a fork with correct database relationship and Git refs', async () => {
-    const result = await forkRepository(
-      targetOwnerId,
-      sourceUsername,
-      sourceName,
-      { name: forkName },
-    );
+    const result = await forkRepository(targetOwnerId, sourceUsername, sourceName, {
+      name: forkName,
+    });
 
     repositoryIds.push(result.id);
 
@@ -208,9 +197,9 @@ describe.skipIf(!enabled)('repository fork real PostgreSQL + Git', () => {
       git('--git-dir', sourceGit, 'rev-parse', 'main'),
     );
 
-    expect(
-      git('--git-dir', forkGit, 'show-ref', '--verify', 'refs/heads/feature/test'),
-    ).toContain('refs/heads/feature/test');
+    expect(git('--git-dir', forkGit, 'show-ref', '--verify', 'refs/heads/feature/test')).toContain(
+      'refs/heads/feature/test',
+    );
   });
 
   it('rejects a public fork of private source', async () => {

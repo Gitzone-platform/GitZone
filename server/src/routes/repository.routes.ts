@@ -1,3 +1,4 @@
+import { getForkNetwork } from '../controllers/repositories/repository-fork-network.controller.js';
 import {
   updateIssueMilestone,
   updatePullRequestMilestone,
@@ -216,6 +217,7 @@ router.get(
   optionalAuthMiddleware,
   listPullRequestConversations,
 );
+router.get('/:username/:name/forks/network', optionalAuthMiddleware, getForkNetwork);
 router.post('/:username/:name/fork', authMiddleware, fork);
 router.post('/:username/:name/star', authMiddleware, star);
 router.post('/:username/:name/watch', authMiddleware, watch);

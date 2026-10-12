@@ -142,6 +142,10 @@ model Repository {
   description   String?
   isPrivate     Boolean @default(false)
   defaultBranch String  @default("main")
+  forkedFromId  String?
+
+  forkedFrom Repository?  @relation("RepositoryForks", fields: [forkedFromId], references: [id], onDelete: SetNull)
+  forks      Repository[] @relation("RepositoryForks")
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
@@ -157,6 +161,7 @@ model Repository {
 
   @@unique([ownerId, name])
   @@index([ownerId])
+  @@index([forkedFromId])
 }
 
 enum RepositoryPermission {
@@ -468,11 +473,18 @@ model RepositoryStar {
   @@index([repositoryId])
 }
 
+enum RepositoryWatchPreference {
+  ALL
+  PARTICIPATING
+  IGNORE
+}
+
 model RepositoryWatch {
-  id           String   @id @default(cuid())
+  id           String                    @id @default(cuid())
   userId       String
   repositoryId String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime                  @default(now())
+  preference   RepositoryWatchPreference @default(ALL)
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)

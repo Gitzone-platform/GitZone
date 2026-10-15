@@ -1,7 +1,7 @@
 import type { OptionalAuthenticatedRequest } from '../../middleware/optional-auth.middleware.js';import type { Request, Response } from 'express';
 import type { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
 import { AppError } from '../../errors/app.error.js';
-import { createOrganization, getOrganizationProfile, updateOrganizationProfile } from '../../services/organizations/organization.service.js';
+import { createOrganization, getOrganizationProfile, listOrganizationMembers, listOrganizationOwners, updateOrganizationProfile } from '../../services/organizations/organization.service.js';
 import { createOrganizationSchema, organizationSlugSchema, updateOrganizationProfileSchema } from '../../validations/organizations/organization.validation.js';
 
 export const create = async (req: Request, res: Response): Promise<void> => {
@@ -72,5 +72,53 @@ export const updateProfile = async (
   res.status(200).json({
     success: true,
     data: { organization },
+  });
+};
+
+export const getOwners = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const parsed = organizationSlugSchema.safeParse(req.params.slug);
+
+  if (!parsed.success) {
+    throw new AppError(
+      'Invalid organization slug',
+      400,
+      'INVALID_ORGANIZATION_SLUG',
+    );
+  }
+
+  const userId = (req as OptionalAuthenticatedRequest).userId;
+
+  const owners = await listOrganizationOwners(parsed.data, userId);
+
+  res.status(200).json({
+    success: true,
+    data: { owners },
+  });
+};
+
+export const getMembers = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const parsed = organizationSlugSchema.safeParse(req.params.slug);
+
+  if (!parsed.success) {
+    throw new AppError(
+      'Invalid organization slug',
+      400,
+      'INVALID_ORGANIZATION_SLUG',
+    );
+  }
+
+  const userId = (req as OptionalAuthenticatedRequest).userId;
+
+  const members = await listOrganizationMembers(parsed.data, userId);
+
+  res.status(200).json({
+    success: true,
+    data: { members },
   });
 };

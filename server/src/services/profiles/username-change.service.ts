@@ -10,10 +10,7 @@ import {
 type UsernameProfileFields = Omit<UpdateProfileInput, 'username'>;
 
 const isUniqueConstraintError = (error: unknown): boolean =>
-  typeof error === 'object' &&
-  error !== null &&
-  'code' in error &&
-  error.code === 'P2002';
+  typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
 
 export const changeUsername = async (
   userId: string,
@@ -75,10 +72,16 @@ export const changeUsername = async (
       throw new AppError('Username is already taken', 409, 'USERNAME_TAKEN');
     }
 
-    const directoryMoved = await renameGitUserDirectory(
-      oldUsername,
-      newUsername,
-    );
+    const reservedName = await prisma.namespaceEntry.findUnique({
+      where: { name: newUsername.toLowerCase() },
+      select: { name: true },
+    });
+
+    if (reservedName) {
+      throw new AppError('Username is already taken', 409, 'USERNAME_TAKEN');
+    }
+
+    const directoryMoved = await renameGitUserDirectory(oldUsername, newUsername);
 
     if (!directoryMoved) {
       const repositoryCount = await prisma.repository.count({
@@ -109,16 +112,10 @@ export const changeUsername = async (
     } catch (error) {
       if (directoryMoved) {
         try {
-          const restored = await renameGitUserDirectory(
-            newUsername,
-            oldUsername,
-          );
+          const restored = await renameGitUserDirectory(newUsername, oldUsername);
 
           if (!restored) {
-            throw new Error(
-              'Git directory rollback did not restore the source',
-              { cause: error },
-            );
+            throw new Error('Git directory rollback did not restore the source', { cause: error });
           }
         } catch (rollbackError) {
           const failure = new AppError(
@@ -135,11 +132,7 @@ export const changeUsername = async (
       }
 
       if (isUniqueConstraintError(error)) {
-        throw new AppError(
-          'Username is already taken',
-          409,
-          'USERNAME_TAKEN',
-        );
+        throw new AppError('Username is already taken', 409, 'USERNAME_TAKEN');
       }
 
       throw error;

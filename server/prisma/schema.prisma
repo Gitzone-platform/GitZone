@@ -562,3 +562,14 @@ model OrganizationInvitation {
   @@index([organizationId, status])
   @@index([inviteeId, status])
 }
+
+/// Shared case-insensitive namespace for users and organizations.
+/// PostgreSQL triggers maintain this table.
+/// CHECK constraints are defined in the SQL migration.
+model NamespaceEntry {
+  name      String @id
+  ownerType String
+  ownerId   String
+
+  @@unique([ownerType, ownerId])
+}

@@ -20,6 +20,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    namespaceEntry: {
+      findUnique: vi.fn(),
+    },
     session: {
       create: vi.fn(),
     },
@@ -33,6 +36,7 @@ vi.mock('../../../src/utils/auth/tokens.js', () => ({
 
 const mockedUserFindFirst = vi.mocked(prisma.user.findFirst);
 const mockedUserCreate = vi.mocked(prisma.user.create);
+const mockedNamespaceFindUnique = vi.mocked(prisma.namespaceEntry.findUnique);
 const mockedSessionCreate = vi.mocked(prisma.session.create);
 
 const mockedBcryptHash = vi.mocked(bcrypt.hash);
@@ -60,6 +64,8 @@ const sessionMetadata = {
 describe('register service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    mockedNamespaceFindUnique.mockResolvedValue(null as never);
 
     mockedGenerateAccessToken.mockReturnValue('access-token');
 
@@ -148,5 +154,74 @@ describe('register service', () => {
     });
 
     expect(mockedSessionCreate).not.toHaveBeenCalled();
+  });
+});
+
+describe('shared namespace registration protection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedUserFindFirst.mockResolvedValue(null as never);
+    mockedNamespaceFindUnique.mockResolvedValue(null as never);
+    mockedBcryptHash.mockResolvedValue('hashed-password' as never);
+  });
+
+  const input = {
+    username: 'newdeveloper',
+    email: 'newdeveloper@example.com',
+    password: 'password123',
+    name: 'New Developer',
+  };
+
+  it('rejects an organization slug already reserved in the namespace', async () => {
+    mockedNamespaceFindUnique.mockResolvedValue({
+      name: 'newdeveloper',
+    } as never);
+
+    await expect(registerUser(input, sessionMetadata)).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'USERNAME_TAKEN',
+    });
+
+    expect(mockedNamespaceFindUnique).toHaveBeenCalledWith({
+      where: { name: 'newdeveloper' },
+      select: { name: true },
+    });
+
+    expect(mockedUserCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects an existing username regardless of letter case', async () => {
+    mockedUserFindFirst.mockResolvedValue({
+      ...baseUser,
+      username: 'NewDeveloper',
+    } as never);
+
+    await expect(registerUser(input, sessionMetadata)).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'USERNAME_TAKEN',
+    });
+
+    expect(mockedUserCreate).not.toHaveBeenCalled();
+  });
+
+  it('converts Prisma P2002 into HTTP 409', async () => {
+    mockedUserCreate.mockRejectedValue({
+      code: 'P2002',
+    });
+
+    await expect(registerUser(input, sessionMetadata)).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'REGISTRATION_CONFLICT',
+    });
+  });
+
+  it('does not hide unexpected database errors', async () => {
+    const databaseError = new Error('Unexpected database failure');
+
+    mockedUserCreate.mockRejectedValue(databaseError);
+
+    await expect(registerUser(input, sessionMetadata)).rejects.toBe(
+      databaseError,
+    );
   });
 });

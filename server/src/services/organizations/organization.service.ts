@@ -1,8 +1,22 @@
-import type { UpdateOrganizationProfileInput } from '../../validations/organizations/organization.validation.js';import prisma from '../../config/prisma.js';
+import type { UpdateOrganizationProfileInput } from '../../validations/organizations/organization.validation.js';
+import prisma from '../../config/prisma.js';
 import { AppError } from '../../errors/app.error.js';
 import type { CreateOrganizationInput } from '../../validations/organizations/organization.validation.js';
 
 export const createOrganization = async (userId: string, input: CreateOrganizationInput) => {
+  const reservedName = await prisma.namespaceEntry.findUnique({
+    where: { name: input.slug.toLowerCase() },
+    select: { name: true },
+  });
+
+  if (reservedName) {
+    throw new AppError(
+      'Organization slug already exists',
+      409,
+      'ORGANIZATION_ALREADY_EXISTS',
+    );
+  }
+
   try {
     return await prisma.organization.create({
       data: {
@@ -158,4 +172,151 @@ export const updateOrganizationProfile = async (
     data,
     select: organizationProfileSelect,
   });
+};
+export const listOrganizationOwners = async (
+  slug: string,
+  userId?: string,
+) => {
+  const organization = await prisma.organization.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      visibility: true,
+    },
+  });
+
+  if (!organization) {
+    throw new AppError(
+      'Organization not found',
+      404,
+      'ORGANIZATION_NOT_FOUND',
+    );
+  }
+
+  if (organization.visibility === 'PRIVATE') {
+    if (!userId) {
+      throw new AppError(
+        'Organization not found',
+        404,
+        'ORGANIZATION_NOT_FOUND',
+      );
+    }
+
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: organization.id,
+          userId,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!membership) {
+      throw new AppError(
+        'Organization not found',
+        404,
+        'ORGANIZATION_NOT_FOUND',
+      );
+    }
+  }
+
+  const owners = await prisma.organizationMember.findMany({
+    where: {
+      organizationId: organization.id,
+      role: 'OWNER',
+    },
+    select: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          avatarUrl: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
+
+  return owners.map(({ user }) => user);
+};
+
+export const listOrganizationMembers = async (
+  slug: string,
+  userId?: string,
+) => {
+  const organization = await prisma.organization.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      visibility: true,
+    },
+  });
+
+  if (!organization) {
+    throw new AppError(
+      'Organization not found',
+      404,
+      'ORGANIZATION_NOT_FOUND',
+    );
+  }
+
+  if (organization.visibility === 'PRIVATE') {
+    if (!userId) {
+      throw new AppError(
+        'Organization not found',
+        404,
+        'ORGANIZATION_NOT_FOUND',
+      );
+    }
+
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: organization.id,
+          userId,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!membership) {
+      throw new AppError(
+        'Organization not found',
+        404,
+        'ORGANIZATION_NOT_FOUND',
+      );
+    }
+  }
+
+  const members = await prisma.organizationMember.findMany({
+    where: {
+      organizationId: organization.id,
+    },
+    select: {
+      role: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          avatarUrl: true,
+        },
+      },
+    },
+    orderBy: [
+      { createdAt: 'asc' },
+      { id: 'asc' },
+    ],
+  });
+
+  return members.map(({ user, role, createdAt }) => ({
+    ...user,
+    role,
+    joinedAt: createdAt,
+  }));
 };

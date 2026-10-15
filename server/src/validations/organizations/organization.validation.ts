@@ -49,5 +49,15 @@ export const updateOrganizationProfileSchema = z
     'At least one organization profile field is required',
   );
 
-export type UpdateOrganizationProfileInput =
-  z.infer<typeof updateOrganizationProfileSchema>;
+export type UpdateOrganizationProfileInput = z.infer<typeof updateOrganizationProfileSchema>;
+
+export const inviteOrganizationMemberSchema = z.strictObject({
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_-]+$/),
+});
+
+export type InviteOrganizationMemberInput = z.infer<typeof inviteOrganizationMemberSchema>;

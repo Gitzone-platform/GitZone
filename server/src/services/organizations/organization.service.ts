@@ -320,3 +320,87 @@ export const listOrganizationMembers = async (
     joinedAt: createdAt,
   }));
 };
+
+export const removeOrganizationMember = async (
+  slug: string,
+  actorId: string,
+  targetUserId: string,
+) => {
+  const organization = await prisma.organization.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+
+  if (!organization) {
+    throw new AppError(
+      'Organization not found',
+      404,
+      'ORGANIZATION_NOT_FOUND',
+    );
+  }
+
+  const actorMembership = await prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId: organization.id,
+        userId: actorId,
+      },
+    },
+    select: { role: true },
+  });
+
+  if (!actorMembership || actorMembership.role !== 'OWNER') {
+    throw new AppError(
+      'Organization owner permission required',
+      403,
+      'ORGANIZATION_OWNER_REQUIRED',
+    );
+  }
+
+  const targetMembership = await prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId: organization.id,
+        userId: targetUserId,
+      },
+    },
+    select: { role: true },
+  });
+
+  if (!targetMembership) {
+    throw new AppError(
+      'Organization member not found',
+      404,
+      'ORGANIZATION_MEMBER_NOT_FOUND',
+    );
+  }
+
+  if (targetMembership.role === 'OWNER') {
+    throw new AppError(
+      'Organization owners cannot be removed through this endpoint',
+      409,
+      'ORGANIZATION_OWNER_REMOVAL_FORBIDDEN',
+    );
+  }
+
+  const result = await prisma.organizationMember.deleteMany({
+    where: {
+      organizationId: organization.id,
+      userId: targetUserId,
+      role: 'MEMBER',
+    },
+  });
+
+  if (result.count !== 1) {
+    throw new AppError(
+      'Organization membership changed during removal',
+      409,
+      'ORGANIZATION_MEMBERSHIP_CHANGED',
+    );
+  }
+
+  return {
+    organizationId: organization.id,
+    removedUserId: targetUserId,
+  };
+};

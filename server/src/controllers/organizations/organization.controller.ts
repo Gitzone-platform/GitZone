@@ -1,7 +1,7 @@
 import type { OptionalAuthenticatedRequest } from '../../middleware/optional-auth.middleware.js';import type { Request, Response } from 'express';
 import type { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
 import { AppError } from '../../errors/app.error.js';
-import { createOrganization, getOrganizationProfile, listOrganizationMembers, listOrganizationOwners, updateOrganizationProfile } from '../../services/organizations/organization.service.js';
+import { createOrganization, getOrganizationProfile, listOrganizationMembers, listOrganizationOwners, removeOrganizationMember, updateOrganizationProfile } from '../../services/organizations/organization.service.js';
 import { createOrganizationSchema, organizationSlugSchema, updateOrganizationProfileSchema } from '../../validations/organizations/organization.validation.js';
 
 export const create = async (req: Request, res: Response): Promise<void> => {
@@ -120,5 +120,48 @@ export const getMembers = async (
   res.status(200).json({
     success: true,
     data: { members },
+  });
+};
+
+export const removeMember = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const slug = organizationSlugSchema.safeParse(req.params.slug);
+
+  if (!slug.success) {
+    throw new AppError(
+      'Invalid organization slug',
+      400,
+      'INVALID_ORGANIZATION_SLUG',
+    );
+  }
+
+  const targetUserId = req.params.userId;
+
+  if (
+    typeof targetUserId !== 'string' ||
+    targetUserId.length === 0 ||
+    targetUserId.length > 128 ||
+    !/^[a-zA-Z0-9_-]+$/.test(targetUserId)
+  ) {
+    throw new AppError(
+      'Invalid organization member ID',
+      400,
+      'INVALID_ORGANIZATION_MEMBER_ID',
+    );
+  }
+
+  const actorId = (req as AuthenticatedRequest).userId;
+
+  const result = await removeOrganizationMember(
+    slug.data,
+    actorId,
+    targetUserId,
+  );
+
+  res.status(200).json({
+    success: true,
+    data: result,
   });
 };

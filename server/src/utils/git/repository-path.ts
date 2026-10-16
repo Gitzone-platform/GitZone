@@ -46,3 +46,40 @@ export const resolveGitRepositoryPath = (username: string, repositoryName: strin
 
   return repositoryPath;
 };
+
+/**
+ * Physical Git storage namespace.
+ *
+ * USER repositories retain their legacy storage layout.
+ * ORGANIZATION repositories use an internal reserved directory
+ * that cannot be registered as a username or organization slug.
+ *
+ * This function resolves paths only. Authorization must happen
+ * independently before any filesystem operation.
+ */
+export type GitRepositoryOwner =
+  | { type: 'USER'; username: string }
+  | { type: 'ORGANIZATION'; slug: string };
+
+export const resolveOwnedGitRepositoryPath = (
+  owner: GitRepositoryOwner,
+  repositoryName: string,
+): string => {
+  if (owner.type === 'USER') {
+    return resolveGitRepositoryPath(owner.username, repositoryName);
+  }
+
+  assertSafePathSegment(owner.slug, 'username');
+  assertSafePathSegment(repositoryName, 'repository');
+
+  const repositoryPath = path.resolve(
+    GIT_STORAGE_ROOT,
+    '.organizations',
+    owner.slug,
+    `${repositoryName}.git`,
+  );
+
+  assertInsideGitStorage(repositoryPath);
+
+  return repositoryPath;
+};

@@ -404,3 +404,202 @@ export const removeOrganizationMember = async (
     removedUserId: targetUserId,
   };
 };
+
+export const leaveOrganization = async (
+  slug: string,
+  actorId: string,
+) => {
+  const organization = await prisma.organization.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+
+  if (!organization) {
+    throw new AppError(
+      'Organization not found',
+      404,
+      'ORGANIZATION_NOT_FOUND',
+    );
+  }
+
+  const membership = await prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId: organization.id,
+        userId: actorId,
+      },
+    },
+    select: { role: true },
+  });
+
+  if (!membership) {
+    throw new AppError(
+      'Organization membership not found',
+      404,
+      'ORGANIZATION_MEMBER_NOT_FOUND',
+    );
+  }
+
+  if (membership.role === 'OWNER') {
+    throw new AppError(
+      'Organization owners cannot leave through this endpoint',
+      409,
+      'ORGANIZATION_OWNER_LEAVE_FORBIDDEN',
+    );
+  }
+
+  const result = await prisma.organizationMember.deleteMany({
+    where: {
+      organizationId: organization.id,
+      userId: actorId,
+      role: 'MEMBER',
+    },
+  });
+
+  if (result.count !== 1) {
+    throw new AppError(
+      'Organization membership changed during leave',
+      409,
+      'ORGANIZATION_MEMBERSHIP_CHANGED',
+    );
+  }
+
+  return {
+    organizationId: organization.id,
+    leftUserId: actorId,
+  };
+};
+
+export const transferOrganizationOwnership = async (
+  slug: string,
+  actorId: string,
+  targetUserId: string,
+) => {
+  if (actorId === targetUserId) {
+    throw new AppError(
+      'Cannot transfer organization ownership to yourself',
+      400,
+      'ORGANIZATION_OWNERSHIP_SELF_TRANSFER',
+    );
+  }
+
+  const organization = await prisma.organization.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+
+  if (!organization) {
+    throw new AppError(
+      'Organization not found',
+      404,
+      'ORGANIZATION_NOT_FOUND',
+    );
+  }
+
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        const actorMembership = await tx.organizationMember.findUnique({
+          where: {
+            organizationId_userId: {
+              organizationId: organization.id,
+              userId: actorId,
+            },
+          },
+          select: { role: true },
+        });
+
+        if (!actorMembership || actorMembership.role !== 'OWNER') {
+          throw new AppError(
+            'Organization owner permission required',
+            403,
+            'ORGANIZATION_OWNER_REQUIRED',
+          );
+        }
+
+        const targetMembership = await tx.organizationMember.findUnique({
+          where: {
+            organizationId_userId: {
+              organizationId: organization.id,
+              userId: targetUserId,
+            },
+          },
+          select: { role: true },
+        });
+
+        if (!targetMembership) {
+          throw new AppError(
+            'Organization member not found',
+            404,
+            'ORGANIZATION_MEMBER_NOT_FOUND',
+          );
+        }
+
+        if (targetMembership.role !== 'MEMBER') {
+          throw new AppError(
+            'Target user must be an organization member',
+            409,
+            'ORGANIZATION_OWNERSHIP_TARGET_NOT_MEMBER',
+          );
+        }
+
+        const promoted = await tx.organizationMember.updateMany({
+          where: {
+            organizationId: organization.id,
+            userId: targetUserId,
+            role: 'MEMBER',
+          },
+          data: { role: 'OWNER' },
+        });
+
+        if (promoted.count !== 1) {
+          throw new AppError(
+            'Organization membership changed during transfer',
+            409,
+            'ORGANIZATION_MEMBERSHIP_CHANGED',
+          );
+        }
+
+        const demoted = await tx.organizationMember.updateMany({
+          where: {
+            organizationId: organization.id,
+            userId: actorId,
+            role: 'OWNER',
+          },
+          data: { role: 'MEMBER' },
+        });
+
+        if (demoted.count !== 1) {
+          throw new AppError(
+            'Organization ownership changed during transfer',
+            409,
+            'ORGANIZATION_MEMBERSHIP_CHANGED',
+          );
+        }
+
+        return {
+          organizationId: organization.id,
+          previousOwnerId: actorId,
+          newOwnerId: targetUserId,
+        };
+      },
+      {
+        isolationLevel: 'Serializable',
+      },
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      error.code === 'P2034'
+    ) {
+      throw new AppError(
+        'Concurrent organization ownership change detected',
+        409,
+        'ORGANIZATION_OWNERSHIP_CONFLICT',
+      );
+    }
+
+    throw error;
+  }
+};

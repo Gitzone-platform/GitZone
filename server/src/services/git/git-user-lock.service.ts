@@ -128,3 +128,51 @@ export const withGitUserWriteLock = async <T>(
     release();
   }
 };
+
+/**
+ * Stable Git namespace identity.
+ *
+ * The owner ID, not the mutable username or slug, determines the lock.
+ */
+export type GitNamespaceLockOwner =
+  | { type: 'USER'; id: string }
+  | { type: 'ORGANIZATION'; id: string };
+
+const getGitNamespaceLockKey = (owner: GitNamespaceLockOwner): string => {
+  if (owner.id.length === 0) {
+    throw new Error('Git namespace owner ID is required');
+  }
+
+  // Preserve the exact legacy lock key for user repositories.
+  if (owner.type === 'USER') {
+    return owner.id;
+  }
+
+  return `ORGANIZATION:${owner.id}`;
+};
+
+export const withGitNamespaceReadLock = async <T>(
+  owner: GitNamespaceLockOwner,
+  operation: () => Promise<T>,
+): Promise<T> => {
+  const release = await acquireLock(getGitNamespaceLockKey(owner), 'read');
+
+  try {
+    return await operation();
+  } finally {
+    release();
+  }
+};
+
+export const withGitNamespaceWriteLock = async <T>(
+  owner: GitNamespaceLockOwner,
+  operation: () => Promise<T>,
+): Promise<T> => {
+  const release = await acquireLock(getGitNamespaceLockKey(owner), 'write');
+
+  try {
+    return await operation();
+  } finally {
+    release();
+  }
+};

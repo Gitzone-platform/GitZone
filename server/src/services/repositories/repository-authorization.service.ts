@@ -28,6 +28,7 @@ export const authorizeRepositoryAccess = async (
       name: true,
       isPrivate: true,
       ownerId: true,
+      organizationId: true,
       owner: {
         select: {
           username: true,
@@ -49,6 +50,14 @@ export const authorizeRepositoryAccess = async (
 
   if (!repository) {
     throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+  }
+
+  if (repository.organizationId) {
+    throw new AppError(
+      'Organization repository requires organization authorization',
+      403,
+      'ORGANIZATION_REPOSITORY_AUTHORIZATION_REQUIRED',
+    );
   }
 
   if (userId && repository.ownerId === userId) {

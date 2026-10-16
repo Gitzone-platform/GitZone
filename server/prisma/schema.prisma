@@ -141,6 +141,7 @@ model Repository {
 
   id            String  @id @default(cuid())
   ownerId       String
+  organizationId String?
   name          String
   description   String?
   isPrivate     Boolean @default(false)
@@ -151,6 +152,7 @@ model Repository {
   forks      Repository[] @relation("RepositoryForks")
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   collaborators RepositoryCollaborator[]
   stars         RepositoryStar[]
@@ -163,6 +165,7 @@ model Repository {
   updatedAt DateTime @updatedAt
 
   @@unique([ownerId, name])
+  @@unique([organizationId, name])
   @@index([ownerId])
   @@index([forkedFromId])
 }
@@ -522,6 +525,7 @@ model Organization {
   visibility  OrganizationVisibility @default(PUBLIC)
 
   members     OrganizationMember[]
+  repositories Repository[]
   invitations OrganizationInvitation[]
 
   createdAt DateTime @default(now())

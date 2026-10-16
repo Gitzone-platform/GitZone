@@ -15,6 +15,7 @@ import { verifyPersonalAccessToken } from '../../../src/services/auth/pat.servic
 
 import { authorizeRepositoryAccess } from '../../../src/services/repositories/repository-authorization.service.js';
 import { withGitUserWriteLock } from '../../../src/services/git/git-user-lock.service.js';
+import { lookupGitRepository } from '../../../src/services/git/git-repository-lookup.service.js';
 
 vi.mock('../../../src/config/prisma.js', () => ({
   default: {
@@ -25,6 +26,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
+vi.mock('../../../src/services/git/git-repository-lookup.service.js', () => ({
+  lookupGitRepository: vi.fn(),
+}));
 vi.mock('../../../src/services/auth/pat.service.js', () => ({
   verifyPersonalAccessToken: vi.fn(),
 }));
@@ -50,6 +54,7 @@ const mockedVerifyPersonalAccessToken = vi.mocked(verifyPersonalAccessToken);
 const mockedAuthorizeRepositoryAccess = vi.mocked(authorizeRepositoryAccess);
 
 const mockedSpawn = vi.mocked(spawn);
+const mockedLookupGitRepository = vi.mocked(lookupGitRepository);
 
 const gitRepository = {
   id: 'repo-1',
@@ -109,8 +114,36 @@ describe('Git HTTP username locking', () => {
 
     mockedFindRepository.mockResolvedValue(gitRepository as never);
     mockedFindRepositoryById.mockResolvedValue(gitRepository as never);
+    mockedLookupGitRepository.mockImplementation(async () => {
+      const lookupNumber = mockedLookupGitRepository.mock.calls.length;
+      const source =
+        lookupNumber % 2 === 1
+          ? await mockedFindRepository({} as never)
+          : await mockedFindRepositoryById({} as never);
+
+      if (!source) {
+        throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+      }
+
+      const legacyRepository = source as unknown as typeof gitRepository;
+
+      return {
+        id: legacyRepository.id,
+        name: legacyRepository.name,
+        isPrivate: legacyRepository.isPrivate,
+        defaultBranch: legacyRepository.defaultBranch,
+        owner: {
+          type: 'USER',
+          id: legacyRepository.owner.id,
+          name: legacyRepository.owner.username,
+        },
+      };
+    });
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
   });
 
@@ -255,6 +288,32 @@ describe('Git HTTP integration', () => {
     mockedFindRepositoryById.mockImplementation(() => {
       return mockedFindRepository.mock.results.at(-1)?.value ?? null;
     });
+
+    mockedLookupGitRepository.mockImplementation(async () => {
+      const lookupNumber = mockedLookupGitRepository.mock.calls.length;
+      const source =
+        lookupNumber % 2 === 1
+          ? await mockedFindRepository({} as never)
+          : await mockedFindRepositoryById({} as never);
+
+      if (!source) {
+        throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+      }
+
+      const legacyRepository = source as unknown as typeof gitRepository;
+
+      return {
+        id: legacyRepository.id,
+        name: legacyRepository.name,
+        isPrivate: legacyRepository.isPrivate,
+        defaultBranch: legacyRepository.defaultBranch,
+        owner: {
+          type: 'USER',
+          id: legacyRepository.owner.id,
+          name: legacyRepository.owner.username,
+        },
+      };
+    });
   });
 
   it('allows anonymous read access to a public repository', async () => {
@@ -262,6 +321,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -272,7 +334,7 @@ describe('Git HTTP integration', () => {
 
     expect(mockedVerifyPersonalAccessToken).not.toHaveBeenCalled();
 
-    expect(mockedAuthorizeRepositoryAccess).toHaveBeenCalledWith('repo-1', 'READ');
+    expect(mockedAuthorizeRepositoryAccess).toHaveBeenCalledWith('repo-1', 'READ', undefined);
 
     expect(mockedSpawn).toHaveBeenCalledOnce();
   });
@@ -311,6 +373,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'READ',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -358,6 +423,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'WRITE',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -429,6 +497,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -516,6 +587,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -529,7 +603,7 @@ describe('Git HTTP integration', () => {
 
     expect(mockedVerifyPersonalAccessToken).not.toHaveBeenCalled();
 
-    expect(mockedAuthorizeRepositoryAccess).toHaveBeenCalledWith('repo-1', 'READ');
+    expect(mockedAuthorizeRepositoryAccess).toHaveBeenCalledWith('repo-1', 'READ', undefined);
 
     expect(mockedSpawn).toHaveBeenCalledWith(
       env.GIT_HTTP_BACKEND_PATH,
@@ -553,6 +627,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'WRITE',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -588,6 +665,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockedSpawn.mockImplementation(() => {
@@ -623,6 +703,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     const binaryData = Buffer.from([0x00, 0x01, 0x7f, 0x80, 0xfe, 0xff]);
@@ -659,6 +742,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockedSpawn.mockImplementation(() => {
@@ -686,6 +772,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockedSpawn.mockImplementation(() => {
@@ -732,6 +821,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockedSpawn.mockImplementation(() => {
@@ -778,6 +870,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'PUBLIC',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();
@@ -828,6 +923,9 @@ describe('Git HTTP integration', () => {
 
     mockedAuthorizeRepositoryAccess.mockResolvedValue({
       permission: 'READ',
+      repositoryId: 'repo-1',
+      repositoryOwnerId: 'owner-1',
+      repositoryOwnerUsername: 'asil',
     } as never);
 
     mockSuccessfulGitBackend();

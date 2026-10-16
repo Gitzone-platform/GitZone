@@ -28,6 +28,32 @@ describe('authorizeRepositoryAccess', () => {
     });
   });
 
+  it('rejects organization repositories through legacy authorization', async () => {
+    mockedFindUnique.mockResolvedValue({
+      id: 'repo-org-1',
+      name: 'demo',
+      ownerId: 'legacy-user',
+      organizationId: 'org-1',
+      isPrivate: false,
+      owner: { username: 'legacy-user' },
+      collaborators: [],
+    } as never);
+
+    await expect(
+      authorizeRepositoryAccess('repo-org-1', 'WRITE', 'legacy-user'),
+    ).rejects.toMatchObject({
+      statusCode: 403,
+      code: 'ORGANIZATION_REPOSITORY_AUTHORIZATION_REQUIRED',
+    });
+
+    await expect(
+      authorizeRepositoryAccess('repo-org-1', 'READ', 'legacy-user'),
+    ).rejects.toMatchObject({
+      statusCode: 403,
+      code: 'ORGANIZATION_REPOSITORY_AUTHORIZATION_REQUIRED',
+    });
+  });
+
   it('allows repository owner to read', async () => {
     mockedFindUnique.mockResolvedValue({
       id: 'repo-1',

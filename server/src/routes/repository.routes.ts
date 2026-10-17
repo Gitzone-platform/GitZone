@@ -1,3 +1,4 @@
+import { transferRepositoryToOrganization } from '../controllers/repositories/repository-transfer.controller.js';
 import { getForkNetwork } from '../controllers/repositories/repository-fork-network.controller.js';
 import {
   updateIssueMilestone,
@@ -227,6 +228,7 @@ router.patch('/:username/:name/watch/preferences', authMiddleware, updateWatchPr
 router.delete('/:username/:name/star', authMiddleware, unstar);
 router.get('/:username/:name/stars/count', optionalAuthMiddleware, getStarCount);
 router.get('/:username/:name', getOne);
+router.post('/:username/:name/transfer', authMiddleware, transferRepositoryToOrganization);
 router.patch('/:username/:name', authMiddleware, update);
 router.delete('/:username/:name', authMiddleware, remove);
 

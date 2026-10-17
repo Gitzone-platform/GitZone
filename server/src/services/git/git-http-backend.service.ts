@@ -19,6 +19,7 @@ type ExecuteGitHttpBackendInput = {
   remoteUser: string | null;
   repositoryOwner: string;
   repositoryName: string;
+  signal?: AbortSignal;
 };
 
 const createGitBackendEnvironment = (
@@ -102,11 +103,25 @@ export const executeGitHttpBackend = async ({
   remoteUser,
   repositoryOwner,
   repositoryName,
+  signal,
 }: ExecuteGitHttpBackendInput): Promise<void> => {
   await new Promise<void>((resolve) => {
     const child = spawn(env.GIT_HTTP_BACKEND_PATH, [], {
       env: createGitBackendEnvironment(req, pathInfo, remoteUser),
     });
+
+    let lockLost = signal?.aborted ?? false;
+
+    const abortBackend = (): void => {
+      lockLost = true;
+      child.kill('SIGKILL');
+    };
+
+    if (lockLost) {
+      abortBackend();
+    } else {
+      signal?.addEventListener('abort', abortBackend, { once: true });
+    }
 
     let completed = false;
     let headersSent = false;
@@ -120,6 +135,8 @@ export const executeGitHttpBackend = async ({
 
       completed = true;
 
+      signal?.removeEventListener('abort', abortBackend);
+
       resolve();
     };
 
@@ -130,7 +147,7 @@ export const executeGitHttpBackend = async ({
     };
 
     child.stdout.on('data', (chunk: Buffer) => {
-      if (completed) {
+      if (completed || lockLost) {
         return;
       }
 
@@ -281,6 +298,22 @@ export const executeGitHttpBackend = async ({
 
     child.on('close', (code) => {
       if (completed) {
+        return;
+      }
+
+      if (lockLost) {
+        if (res.headersSent) {
+          res.destroy();
+        } else {
+          sendBackendError(
+            res,
+            503,
+            'GIT_DISTRIBUTED_LOCK_LOST',
+            'Git repository lock connection lost',
+          );
+        }
+
+        complete();
         return;
       }
 

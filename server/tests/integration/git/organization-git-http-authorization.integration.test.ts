@@ -12,6 +12,9 @@ import { lookupGitRepository } from '../../../src/services/git/git-repository-lo
 
 vi.mock('../../../src/config/prisma.js', () => ({
   default: {
+    repositoryTransfer: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
     repository: { findUnique: vi.fn() },
     organizationMember: { findUnique: vi.fn() },
   },

@@ -5,11 +5,13 @@ import { AppError } from '../../errors/app.error.js';
 
 import { verifyPersonalAccessToken } from '../../services/auth/pat.service.js';
 import { executeGitHttpBackend } from '../../services/git/git-http-backend.service.js';
+import { withGitDistributedLock } from '../../services/git/git-distributed-lock.service.js';
 import { assertGitRepositoryIdentity } from '../../services/git/git-repository-identity.service.js';
 import { lookupGitRepository } from '../../services/git/git-repository-lookup.service.js';
 import { withGitNamespaceReadLock } from '../../services/git/git-user-lock.service.js';
 import { authorizeOrganizationRepositoryAccess } from '../../services/repositories/organization-repository-authorization.service.js';
 import { authorizeRepositoryAccess } from '../../services/repositories/repository-authorization.service.js';
+import { assertRepositoryTransferAllowsGitWrite } from '../../services/repositories/repository-transfer-write-guard.service.js';
 
 import { parseGitBasicAuthorization } from '../../utils/git/basic-auth.js';
 import { buildOwnedGitHttpPathInfo } from '../../utils/git/http-path.js';
@@ -46,7 +48,13 @@ export const gitHttpController = async (req: Request, res: Response): Promise<vo
       type: initialRepository.owner.type,
       id: initialRepository.owner.id,
     },
-    async () => {
+    async () => withGitDistributedLock(
+      {
+        type: initialRepository.owner.type,
+        id: initialRepository.owner.id,
+      },
+      'read',
+      async ({ signal }) => {
       const gitRepository = await lookupGitRepository(username, repository);
 
       assertGitRepositoryIdentity(initialRepository, gitRepository);
@@ -153,6 +161,23 @@ export const gitHttpController = async (req: Request, res: Response): Promise<vo
         throw error;
       }
 
+      if (requestInfo.accessType === 'WRITE') {
+        try {
+          await assertRepositoryTransferAllowsGitWrite(gitRepository.id);
+        } catch (error) {
+          if (error instanceof AppError) {
+            res.status(error.statusCode).json({
+              success: false,
+              message: error.message,
+              code: error.code,
+            });
+            return;
+          }
+
+          throw error;
+        }
+      }
+
       await executeGitHttpBackend({
         req,
         res,
@@ -160,7 +185,9 @@ export const gitHttpController = async (req: Request, res: Response): Promise<vo
         remoteUser,
         repositoryOwner,
         repositoryName,
+        signal,
       });
-    },
+      },
+    ),
   );
 };

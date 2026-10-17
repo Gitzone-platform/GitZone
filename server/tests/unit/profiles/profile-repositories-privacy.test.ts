@@ -40,6 +40,7 @@ describe('public profile repository privacy', () => {
           username: 'asil',
         },
         isPrivate: false,
+        organizationId: null,
       },
       orderBy: {
         createdAt: 'desc',

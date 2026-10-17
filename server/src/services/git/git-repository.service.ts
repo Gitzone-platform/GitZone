@@ -270,3 +270,34 @@ export const deleteGitRepository = async (
     throw new AppError('Failed to delete Git repository', 500, 'GIT_REPOSITORY_DELETE_FAILED');
   }
 };
+
+/**
+ * Repository transfer is intentionally disabled until a safe,
+ * cross-platform no-overwrite strategy and rollback protocol
+ * are implemented and tested.
+ *
+ * Never move repository data with an unchecked fs.rename().
+ */
+export const transferGitRepositoryToOrganization = async (
+  _username: string,
+  _organizationSlug: string,
+  _repositoryName: string,
+): Promise<never> => {
+  throw new AppError(
+    'Repository transfer is not available yet',
+    501,
+    'GIT_REPOSITORY_TRANSFER_NOT_IMPLEMENTED',
+  );
+};
+
+export const rollbackGitRepositoryTransfer = async (
+  _username: string,
+  _organizationSlug: string,
+  _repositoryName: string,
+): Promise<never> => {
+  throw new AppError(
+    'Repository transfer rollback is not available yet',
+    501,
+    'GIT_REPOSITORY_TRANSFER_ROLLBACK_NOT_IMPLEMENTED',
+  );
+};

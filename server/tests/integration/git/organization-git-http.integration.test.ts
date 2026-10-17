@@ -1,3 +1,8 @@
+const transferGuardMock = vi.hoisted(() => vi.fn());
+
+vi.mock('../../../src/services/repositories/repository-transfer-write-guard.service.js', () => ({
+  assertRepositoryTransferAllowsGitWrite: transferGuardMock,
+}));
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
@@ -103,6 +108,11 @@ const mockSuccessfulBackend = () => {
 };
 
 describe('Organization Git HTTP integration', () => {
+  beforeEach(() => {
+    transferGuardMock.mockReset();
+    transferGuardMock.mockResolvedValue(undefined);
+  });
+
   beforeEach(() => {
     vi.resetAllMocks();
 
@@ -303,5 +313,39 @@ describe('Organization Git HTTP integration', () => {
 
     expect(response.status).toBe(404);
     expect(mockedSpawn).not.toHaveBeenCalled();
+  });
+  it('blocks organization push when transfer is active', async () => {
+    const { AppError } = await import('../../../src/errors/app.error.js');
+
+    transferGuardMock.mockRejectedValueOnce(
+      new AppError(
+        'Repository transfer is in progress',
+        409,
+        'GIT_REPOSITORY_TRANSFER_WRITE_BLOCKED',
+      ),
+    );
+
+    const { authorizeOrganizationRepositoryAccess } = await import(
+      '../../../src/services/repositories/organization-repository-authorization.service.js'
+    );
+
+    vi.mocked(authorizeOrganizationRepositoryAccess).mockResolvedValueOnce({
+      repositoryId: 'org-repo-1',
+      repositoryName: 'platform',
+      organizationId: 'org-1',
+      organizationSlug: 'engineering',
+      isPrivate: true,
+      permission: 'OWNER',
+    });
+
+    const response = await request(app)
+      .get('/engineering/platform.git/info/refs?service=git-receive-pack')
+      .set('Authorization', basicAuthorization);
+
+    expect(response.status).toBe(409);
+    expect(response.body.code).toBe(
+      'GIT_REPOSITORY_TRANSFER_WRITE_BLOCKED',
+    );
+    expect(transferGuardMock).toHaveBeenCalledWith('org-repo-1');
   });
 });

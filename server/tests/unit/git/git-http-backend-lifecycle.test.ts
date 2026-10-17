@@ -38,6 +38,7 @@ const createFixture = () => {
     end: vi.fn(),
     write: vi.fn(),
     setHeader: vi.fn(),
+    destroy: vi.fn(),
   };
 
   const child = new EventEmitter() as EventEmitter & {
@@ -59,7 +60,7 @@ const createFixture = () => {
 
   mockedSpawn.mockReturnValue(child as never);
 
-  const execute = () =>
+  const execute = (signal?: AbortSignal) =>
     executeGitHttpBackend({
       req: req as unknown as Request,
       res: res as unknown as Response,
@@ -67,6 +68,7 @@ const createFixture = () => {
       remoteUser: null,
       repositoryOwner: 'asil',
       repositoryName: 'demo',
+      ...(signal ? { signal } : {}),
     });
 
   return { req, res, child, execute };
@@ -139,6 +141,79 @@ describe('Git HTTP backend lifecycle', () => {
     await operation;
 
     expect(settled).toBe(true);
+  });
+
+  it('kills the child and waits for close after distributed lock loss', async () => {
+    const { child, res, execute } = createFixture();
+    const controller = new AbortController();
+
+    let settled = false;
+
+    const operation = execute(controller.signal).then(() => {
+      settled = true;
+    });
+
+    controller.abort();
+
+    await Promise.resolve();
+
+    expect(child.kill).toHaveBeenCalledWith('SIGKILL');
+    expect(settled).toBe(false);
+
+    child.emit('close', null);
+
+    await operation;
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.objectContaining({
+          code: 'GIT_DISTRIBUTED_LOCK_LOST',
+        }),
+      }),
+    );
+  });
+
+  it('does not forward backend output after distributed lock loss', async () => {
+    const { child, res, execute } = createFixture();
+    const controller = new AbortController();
+
+    const operation = execute(controller.signal);
+
+    controller.abort();
+
+    child.stdout.write(
+      Buffer.from('Status: 200 OK\r\nContent-Type: text/plain\r\n\r\nsuccess'),
+    );
+
+    child.emit('close', null);
+
+    await operation;
+
+    expect(res.write).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(503);
+  });
+
+  it('destroys an already-started response after distributed lock loss', async () => {
+    const { child, res, execute } = createFixture();
+    const controller = new AbortController();
+
+    res.headersSent = true;
+
+    const operation = execute(controller.signal);
+
+    controller.abort();
+
+    expect(child.kill).toHaveBeenCalledWith('SIGKILL');
+
+    child.emit('close', null);
+
+    await operation;
+
+    expect(res.destroy).toHaveBeenCalledOnce();
+    expect(res.end).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalledWith(503);
   });
 
   it('settles after normal process close', async () => {

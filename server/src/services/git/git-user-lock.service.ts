@@ -176,3 +176,29 @@ export const withGitNamespaceWriteLock = async <T>(
     release();
   }
 };
+
+/**
+ * Acquire two namespace write locks in deterministic order.
+ * Prevents deadlocks when transferring repositories between owners.
+ */
+export const withGitNamespacePairWriteLock = async <T>(
+  firstOwner: GitNamespaceLockOwner,
+  secondOwner: GitNamespaceLockOwner,
+  operation: () => Promise<T>,
+): Promise<T> => {
+  const firstKey = getGitNamespaceLockKey(firstOwner);
+  const secondKey = getGitNamespaceLockKey(secondOwner);
+
+  if (firstKey === secondKey) {
+    return withGitNamespaceWriteLock(firstOwner, operation);
+  }
+
+  const [first, second] =
+    firstKey < secondKey
+      ? [firstOwner, secondOwner]
+      : [secondOwner, firstOwner];
+
+  return withGitNamespaceWriteLock(first, () =>
+    withGitNamespaceWriteLock(second, operation),
+  );
+};

@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id        String  @id @default(cuid())
-  username  String  @unique
-  email     String  @unique
-  password  String
-  name      String?
-  avatarUrl String?
-  bio       String?
-  location  String?
-  website   String?
+  outgoingRepositoryTransfers RepositoryTransfer[] @relation("RepositoryTransferSourceOwner")
+  id                          String               @id @default(cuid())
+  username                    String               @unique
+  email                       String               @unique
+  password                    String
+  name                        String?
+  avatarUrl                   String?
+  bio                         String?
+  location                    String?
+  website                     String?
 
   organizationMemberships          OrganizationMember[]
-  organizationInvitationsSent       OrganizationInvitation[] @relation("OrganizationInvitationInviter")
-  organizationInvitationsReceived   OrganizationInvitation[] @relation("OrganizationInvitationInvitee")
+  organizationInvitationsSent      OrganizationInvitation[]   @relation("OrganizationInvitationInviter")
+  organizationInvitationsReceived  OrganizationInvitation[]   @relation("OrganizationInvitationInvitee")
   sessions                         Session[]
   repositories                     Repository[]
   stars                            RepositoryStar[]
@@ -136,22 +137,23 @@ model PersonalAccessToken {
 }
 
 model Repository {
-  labels     Label[]
-  milestones Milestone[]
+  repositoryTransfer RepositoryTransfer?
+  labels             Label[]
+  milestones         Milestone[]
 
-  id            String  @id @default(cuid())
-  ownerId       String?
+  id             String  @id @default(cuid())
+  ownerId        String?
   organizationId String?
-  name          String
-  description   String?
-  isPrivate     Boolean @default(false)
-  defaultBranch String  @default("main")
-  forkedFromId  String?
+  name           String
+  description    String?
+  isPrivate      Boolean @default(false)
+  defaultBranch  String  @default("main")
+  forkedFromId   String?
 
   forkedFrom Repository?  @relation("RepositoryForks", fields: [forkedFromId], references: [id], onDelete: SetNull)
   forks      Repository[] @relation("RepositoryForks")
 
-  owner User? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner        User?         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   collaborators RepositoryCollaborator[]
@@ -516,17 +518,18 @@ enum OrganizationInvitationStatus {
 }
 
 model Organization {
-  id          String                 @id @default(cuid())
-  slug        String                 @unique
-  name        String
-  description String?
-  avatarUrl   String?
-  website     String?
-  visibility  OrganizationVisibility @default(PUBLIC)
+  incomingRepositoryTransfers RepositoryTransfer[]   @relation("RepositoryTransferTargetOrganization")
+  id                          String                 @id @default(cuid())
+  slug                        String                 @unique
+  name                        String
+  description                 String?
+  avatarUrl                   String?
+  website                     String?
+  visibility                  OrganizationVisibility @default(PUBLIC)
 
-  members     OrganizationMember[]
+  members      OrganizationMember[]
   repositories Repository[]
-  invitations OrganizationInvitation[]
+  invitations  OrganizationInvitation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -558,7 +561,7 @@ model OrganizationInvitation {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invitee      User         @relation("OrganizationInvitationInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
-  invitedBy     User         @relation("OrganizationInvitationInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("OrganizationInvitationInviter", fields: [invitedById], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -576,4 +579,28 @@ model NamespaceEntry {
   ownerId   String
 
   @@unique([ownerType, ownerId])
+}
+
+/// Persistent journal for personal-to-organization repository transfers.
+/// Recovery must inspect both this record and the filesystem.
+model RepositoryTransfer {
+  id             String @id @default(cuid())
+  repositoryId   String @unique
+  sourceOwnerId  String
+  sourceUsername String
+  targetOrgId    String
+  targetOrgSlug  String
+  repositoryName String
+
+  repository         Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  sourceOwner        User         @relation("RepositoryTransferSourceOwner", fields: [sourceOwnerId], references: [id], onDelete: Cascade)
+  targetOrganization Organization @relation("RepositoryTransferTargetOrganization", fields: [targetOrgId], references: [id], onDelete: Cascade)
+
+  status    String   @default("PENDING")
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([targetOrgId])
 }

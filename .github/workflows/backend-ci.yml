@@ -1,0 +1,84 @@
+name: GitZone Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: server
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: gitzone
+          POSTGRES_PASSWORD: gitzone
+          POSTGRES_DB: gitzone_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gitzone -d gitzone_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://gitzone:gitzone@localhost:5432/gitzone_test
+      JWT_SECRET: github-actions-test-secret-not-for-production
+      GIT_STORAGE_PATH: storage/repositories
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Test TypeScript typecheck
+        run: npm run typecheck:tests
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Run backend tests
+        run: npx vitest run tests/unit/repositories tests/unit/git tests/integration/organizations/organization-repository-create.integration.test.ts
+
+      - name: Production build
+        run: npm run build

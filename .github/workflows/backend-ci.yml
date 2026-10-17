@@ -42,7 +42,11 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://gitzone:gitzone@localhost:5432/gitzone_test
-      JWT_SECRET: github-actions-test-secret-not-for-production
+      JWT_ACCESS_SECRET: github-actions-test-access-secret-not-for-production-123456
+      JWT_REFRESH_SECRET: github-actions-test-refresh-secret-not-for-production-123456
+      TWO_FACTOR_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
       GIT_STORAGE_PATH: storage/repositories
 
     steps:

@@ -70,6 +70,7 @@ const findRepository = async (
   const repository = await prisma.repository.findFirst({
     where: {
       name: repositoryName,
+      organizationId: null,
       owner: {
         username,
       },
@@ -86,11 +87,16 @@ const findRepository = async (
     },
   });
 
-  if (!repository) {
+  if (!repository || !repository.ownerId || !repository.owner) {
     throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
   }
 
-  return repository;
+  return {
+    id: repository.id,
+    name: repository.name,
+    ownerId: repository.ownerId,
+    owner: repository.owner,
+  };
 };
 
 const validatePullRequestBranches = async (

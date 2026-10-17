@@ -140,7 +140,7 @@ model Repository {
   milestones Milestone[]
 
   id            String  @id @default(cuid())
-  ownerId       String
+  ownerId       String?
   organizationId String?
   name          String
   description   String?
@@ -151,7 +151,7 @@ model Repository {
   forkedFrom Repository?  @relation("RepositoryForks", fields: [forkedFromId], references: [id], onDelete: SetNull)
   forks      Repository[] @relation("RepositoryForks")
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   collaborators RepositoryCollaborator[]

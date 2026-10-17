@@ -14,6 +14,7 @@ export const forkRepository = async (
   const source = await prisma.repository.findFirst({
     where: {
       name: sourceRepositoryName,
+      organizationId: null,
       owner: { username: sourceUsername },
     },
   });

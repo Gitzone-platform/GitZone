@@ -16,7 +16,7 @@ import type { RepositoryResponse, RepositoryWithOwner } from '../../types/reposi
 
 const toRepositoryResponse = (repository: {
   id: string;
-  ownerId: string;
+  ownerId: string | null;
   name: string;
   description: string | null;
   isPrivate: boolean;
@@ -24,6 +24,9 @@ const toRepositoryResponse = (repository: {
   createdAt: Date;
   updatedAt: Date;
 }): RepositoryResponse => {
+  if (!repository.ownerId) {
+    throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+  }
   return {
     id: repository.id,
     ownerId: repository.ownerId,
@@ -119,6 +122,7 @@ export const getUserRepositories = async (username: string): Promise<RepositoryR
       owner: {
         username,
       },
+      organizationId: null,
       isPrivate: false,
     },
     orderBy: {
@@ -136,6 +140,7 @@ export const getRepositoryByUsernameAndName = async (
   const repository = await prisma.repository.findFirst({
     where: {
       name,
+      organizationId: null,
       isPrivate: false,
       owner: {
         username,
@@ -153,7 +158,7 @@ export const getRepositoryByUsernameAndName = async (
     },
   });
 
-  if (!repository) {
+  if (!repository || !repository.ownerId || !repository.owner) {
     throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
   }
 
@@ -179,6 +184,7 @@ export const updateRepository = async (
   const repository = await prisma.repository.findFirst({
     where: {
       name,
+      organizationId: null,
       owner: {
         username,
       },
@@ -280,6 +286,7 @@ export const deleteRepository = async (
   const repository = await prisma.repository.findFirst({
     where: {
       name,
+      organizationId: null,
       owner: {
         username,
       },

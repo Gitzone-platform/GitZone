@@ -199,6 +199,7 @@ describe('repository service', () => {
 
     expect(mockedRepositoryFindMany).toHaveBeenCalledWith({
       where: {
+        organizationId: null,
         owner: {
           username: 'asil',
         },
@@ -221,6 +222,7 @@ describe('repository service', () => {
     expect(mockedRepositoryFindFirst).toHaveBeenCalledWith({
       where: {
         name: 'private-demo',
+        organizationId: null,
         isPrivate: false,
         owner: {
           username: 'asil',

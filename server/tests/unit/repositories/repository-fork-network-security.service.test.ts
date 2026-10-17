@@ -91,6 +91,7 @@ describe('repository fork network privacy', () => {
       expect.objectContaining({
         where: {
           forkedFromId: 'repo-1',
+          organizationId: null,
           isPrivate: false,
         },
       }),
@@ -99,6 +100,7 @@ describe('repository fork network privacy', () => {
     expect(count).toHaveBeenCalledWith({
       where: {
         forkedFromId: 'repo-1',
+        organizationId: null,
         isPrivate: false,
       },
     });
@@ -119,6 +121,7 @@ describe('repository fork network privacy', () => {
       expect.objectContaining({
         where: {
           forkedFromId: 'repo-1',
+          organizationId: null,
           OR: [
             { isPrivate: false },
             { ownerId: 'user-1' },

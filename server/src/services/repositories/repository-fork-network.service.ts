@@ -8,7 +8,7 @@ export const getRepositoryForkNetwork = async (
   userId?: string,
 ) => {
   const repository = await prisma.repository.findFirst({
-    where: { name, owner: { username } },
+    where: { name, organizationId: null, owner: { username } },
     select: {
       id: true,
       name: true,
@@ -38,7 +38,7 @@ export const getRepositoryForkNetwork = async (
 
   let visibleParent = null;
 
-  if (parent) {
+  if (parent && parent.owner) {
     try {
       await authorizeRepositoryAccess(parent.id, 'READ', userId);
       visibleParent = {
@@ -59,6 +59,7 @@ export const getRepositoryForkNetwork = async (
   const children = await prisma.repository.findMany({
     where: {
       forkedFromId: repository.id,
+      organizationId: null,
       ...(userId
         ? {
             OR: [
@@ -81,6 +82,7 @@ export const getRepositoryForkNetwork = async (
   const visibleForkCount = await prisma.repository.count({
     where: {
       forkedFromId: repository.id,
+      organizationId: null,
       ...(userId
         ? {
             OR: [
@@ -102,11 +104,11 @@ export const getRepositoryForkNetwork = async (
       : visibleParent !== null,
     forkCount: children.length,
     totalForkCount: visibleForkCount,
-    forks: children.map((child) => ({
-      id: child.id,
-      name: child.name,
-      owner: child.owner.username,
-    })),
+    forks: children.flatMap((child) =>
+      child.owner
+        ? [{ id: child.id, name: child.name, owner: child.owner.username }]
+        : [],
+    ),
     hasMore: visibleForkCount > children.length,
   };
 };

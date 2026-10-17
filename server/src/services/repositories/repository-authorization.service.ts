@@ -52,7 +52,7 @@ export const authorizeRepositoryAccess = async (
     throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
   }
 
-  if (repository.organizationId) {
+  if (repository.organizationId || !repository.ownerId || !repository.owner) {
     throw new AppError(
       'Organization repository requires organization authorization',
       403,

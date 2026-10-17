@@ -1,10 +1,14 @@
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import { promisify } from 'node:util';
 
 import { AppError } from '../../errors/app.error.js';
-import { resolveGitRepositoryPath } from '../../utils/git/repository-path.js';
+import {
+  resolveGitRepositoryPath,
+  resolveOwnedGitRepositoryPath,
+} from '../../utils/git/repository-path.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -70,6 +74,94 @@ export const createGitRepository = async (
   return repositoryPath;
 };
 
+const ensureOrganizationStorageDirectory = async (directoryPath: string): Promise<void> => {
+  try {
+    await fs.mkdir(directoryPath, { recursive: false });
+  } catch (error) {
+    if (!hasErrorCode(error, 'EEXIST')) {
+      throw new AppError(
+        'Failed to prepare organization Git storage',
+        500,
+        'ORGANIZATION_GIT_STORAGE_PREPARATION_FAILED',
+      );
+    }
+  }
+
+  let stats;
+
+  try {
+    stats = await fs.lstat(directoryPath);
+  } catch {
+    throw new AppError(
+      'Failed to inspect organization Git storage',
+      500,
+      'ORGANIZATION_GIT_STORAGE_INSPECTION_FAILED',
+    );
+  }
+
+  if (!stats.isDirectory() || stats.isSymbolicLink()) {
+    throw new AppError(
+      'Unsafe organization Git storage directory',
+      500,
+      'UNSAFE_ORGANIZATION_GIT_STORAGE',
+    );
+  }
+};
+export const createOrganizationGitRepository = async (
+  organizationSlug: string,
+  repositoryName: string,
+): Promise<string> => {
+  const repositoryPath = resolveOwnedGitRepositoryPath(
+    { type: 'ORGANIZATION', slug: organizationSlug },
+    repositoryName,
+  );
+
+  const organizationDirectory = path.dirname(repositoryPath);
+  const namespaceDirectory = path.dirname(organizationDirectory);
+  const storageDirectory = path.dirname(namespaceDirectory);
+
+  await ensureOrganizationStorageDirectory(storageDirectory);
+  await ensureOrganizationStorageDirectory(namespaceDirectory);
+  await ensureOrganizationStorageDirectory(organizationDirectory);
+
+  try {
+    await fs.mkdir(repositoryPath, { recursive: false });
+  } catch (error) {
+    if (hasErrorCode(error, 'EEXIST')) {
+      throw new AppError(
+        'Git repository path already exists',
+        409,
+        'GIT_REPOSITORY_ALREADY_EXISTS',
+      );
+    }
+
+    throw new AppError(
+      'Failed to reserve Git repository path',
+      500,
+      'GIT_REPOSITORY_INSPECTION_FAILED',
+    );
+  }
+
+  try {
+    await execFileAsync('git', ['init', '--bare', '--initial-branch=main', repositoryPath]);
+
+    await execFileAsync('git', ['--git-dir', repositoryPath, 'config', 'http.receivepack', 'true']);
+  } catch {
+    try {
+      await fs.rm(repositoryPath, { recursive: true, force: true });
+    } catch {
+      throw new AppError(
+        'Failed to clean up partially created Git repository',
+        500,
+        'GIT_REPOSITORY_CREATE_CLEANUP_FAILED',
+      );
+    }
+
+    throw new AppError('Failed to create Git repository', 500, 'GIT_REPOSITORY_CREATE_FAILED');
+  }
+
+  return repositoryPath;
+};
 export const renameGitRepository = async (
   username: string,
   oldRepositoryName: string,

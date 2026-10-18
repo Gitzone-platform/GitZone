@@ -1,10 +1,6 @@
-import {
-  inspectGitRepositoryTransferRecovery,
-} from '../git/git-repository-transfer-recovery.service.js';
+import { inspectGitRepositoryTransferRecovery } from '../git/git-repository-transfer-recovery.service.js';
 
-import {
-  listUnfinishedRepositoryTransfers,
-} from './repository-transfer-journal.service.js';
+import { listUnfinishedRepositoryTransfers } from './repository-transfer-journal.service.js';
 
 export const inspectUnfinishedRepositoryTransfers = async () => {
   const transfers = await listUnfinishedRepositoryTransfers();

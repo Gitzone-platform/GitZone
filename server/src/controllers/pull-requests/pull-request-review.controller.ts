@@ -55,20 +55,13 @@ const getPullRequestNumber = (req: Request): number => {
   const parsed = pullRequestNumberSchema.safeParse(req.params.number);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid pull request number',
-      400,
-      'INVALID_PULL_REQUEST_NUMBER',
-    );
+    throw new AppError('Invalid pull request number', 400, 'INVALID_PULL_REQUEST_NUMBER');
   }
 
   return parsed.data;
 };
 
-export const submitReview = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const submitReview = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
@@ -76,11 +69,7 @@ export const submitReview = async (
   const parsed = submitPullRequestReviewSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid pull request review data',
-      400,
-      'INVALID_PULL_REQUEST_REVIEW_DATA',
-    );
+    throw new AppError('Invalid pull request review data', 400, 'INVALID_PULL_REQUEST_REVIEW_DATA');
   }
 
   const review = await submitPullRequestReview(
@@ -99,20 +88,12 @@ export const submitReview = async (
   });
 };
 
-export const listReviews = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const listReviews = async (req: Request, res: Response): Promise<void> => {
   const optionalReq = req as OptionalAuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
 
-  const reviews = await listPullRequestReviews(
-    username,
-    name,
-    number,
-    optionalReq.userId,
-  );
+  const reviews = await listPullRequestReviews(username, name, number, optionalReq.userId);
 
   res.status(200).json({
     success: true,
@@ -122,16 +103,12 @@ export const listReviews = async (
   });
 };
 
-export const createGeneralComment = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const createGeneralComment = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
 
-  const parsed =
-    createGeneralPullRequestCommentSchema.safeParse(req.body);
+  const parsed = createGeneralPullRequestCommentSchema.safeParse(req.body);
 
   if (!parsed.success) {
     throw new AppError(
@@ -157,10 +134,7 @@ export const createGeneralComment = async (
   });
 };
 
-export const listConversations = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const listConversations = async (req: Request, res: Response): Promise<void> => {
   const optionalReq = req as OptionalAuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
@@ -180,20 +154,12 @@ export const listConversations = async (
   });
 };
 
-export const getReviewState = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const getReviewState = async (req: Request, res: Response): Promise<void> => {
   const optionalReq = req as OptionalAuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
 
-  const reviewState = await getPullRequestReviewState(
-    username,
-    name,
-    number,
-    optionalReq.userId,
-  );
+  const reviewState = await getPullRequestReviewState(username, name, number, optionalReq.userId);
 
   res.status(200).json({
     success: true,
@@ -220,20 +186,13 @@ const getCommentId = (req: Request): string => {
   const parsed = reviewCommentIdSchema.safeParse(req.params.commentId);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid pull request comment id',
-      400,
-      'INVALID_PULL_REQUEST_COMMENT_ID',
-    );
+    throw new AppError('Invalid pull request comment id', 400, 'INVALID_PULL_REQUEST_COMMENT_ID');
   }
 
   return parsed.data;
 };
 
-export const createInlineComment = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const createInlineComment = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
@@ -264,10 +223,7 @@ export const createInlineComment = async (
   });
 };
 
-export const editComment = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const editComment = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
@@ -300,37 +256,24 @@ export const editComment = async (
   });
 };
 
-export const deleteComment = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const deleteComment = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
   const commentId = getCommentId(req);
 
-  await deletePullRequestReviewComment(
-    authenticatedReq.userId,
-    username,
-    name,
-    number,
-    commentId,
-  );
+  await deletePullRequestReviewComment(authenticatedReq.userId, username, name, number, commentId);
 
   res.status(204).send();
 };
 
-export const createConversationComment = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const createConversationComment = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
   const conversationId = getConversationId(req);
 
-  const parsed =
-    createGeneralPullRequestCommentSchema.safeParse(req.body);
+  const parsed = createGeneralPullRequestCommentSchema.safeParse(req.body);
 
   if (!parsed.success) {
     throw new AppError(
@@ -357,10 +300,7 @@ export const createConversationComment = async (
   });
 };
 
-export const resolveConversation = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const resolveConversation = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);
@@ -382,10 +322,7 @@ export const resolveConversation = async (
   });
 };
 
-export const reopenConversation = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const reopenConversation = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = getRepositoryParams(req);
   const number = getPullRequestNumber(req);

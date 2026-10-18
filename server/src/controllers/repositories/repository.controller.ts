@@ -32,9 +32,8 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     throw new AppError('Invalid repository data', 400, 'INVALID_REPOSITORY_DATA');
   }
 
-  const repository = await withGitUserWriteLock(
-    authenticatedReq.userId,
-    () => createRepository(authenticatedReq.userId, parsed.data),
+  const repository = await withGitUserWriteLock(authenticatedReq.userId, () =>
+    createRepository(authenticatedReq.userId, parsed.data),
   );
 
   res.status(201).json({
@@ -101,9 +100,8 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     throw new AppError('Invalid repository data', 400, 'INVALID_REPOSITORY_DATA');
   }
 
-  const repository = await withGitUserWriteLock(
-    authenticatedReq.userId,
-    () => updateRepository(authenticatedReq.userId, username, name, parsed.data),
+  const repository = await withGitUserWriteLock(authenticatedReq.userId, () =>
+    updateRepository(authenticatedReq.userId, username, name, parsed.data),
   );
 
   res.status(200).json({
@@ -126,9 +124,8 @@ export const remove = async (req: Request, res: Response): Promise<void> => {
     );
   }
 
-  await withGitUserWriteLock(
-    authenticatedReq.userId,
-    () => deleteRepository(authenticatedReq.userId, username, name),
+  await withGitUserWriteLock(authenticatedReq.userId, () =>
+    deleteRepository(authenticatedReq.userId, username, name),
   );
 
   res.status(200).json({

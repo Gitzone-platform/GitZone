@@ -58,9 +58,7 @@ const mockedSubmitReview = vi.mocked(submitPullRequestReview);
 const mockedListReviews = vi.mocked(listPullRequestReviews);
 const mockedCreateGeneral = vi.mocked(createGeneralPullRequestComment);
 const mockedCreateInline = vi.mocked(createInlinePullRequestComment);
-const mockedCreateConversationComment = vi.mocked(
-  createPullRequestConversationComment,
-);
+const mockedCreateConversationComment = vi.mocked(createPullRequestConversationComment);
 const mockedListConversations = vi.mocked(listPullRequestConversationsWithOutdatedState);
 const mockedReviewState = vi.mocked(getPullRequestReviewState);
 const mockedResolve = vi.mocked(resolvePullRequestConversation);
@@ -290,22 +288,16 @@ describe('repository pull request review API', () => {
 
   it('adds a comment to an existing conversation', async () => {
     const response = await request(app)
-      .post(
-        '/api/repositories/asil/demo/pulls/1/conversations/conversation-1/comments',
-      )
+      .post('/api/repositories/asil/demo/pulls/1/conversations/conversation-1/comments')
       .send({
         body: 'Reply to discussion',
       })
       .expect(201);
 
     expect(response.body.success).toBe(true);
-    expect(response.body.data.comment.body).toBe(
-      'Reply to discussion',
-    );
+    expect(response.body.data.comment.body).toBe('Reply to discussion');
 
-    expect(
-      mockedCreateConversationComment,
-    ).toHaveBeenCalledWith(
+    expect(mockedCreateConversationComment).toHaveBeenCalledWith(
       'user-1',
       'asil',
       'demo',
@@ -319,17 +311,13 @@ describe('repository pull request review API', () => {
 
   it('rejects an invalid conversation reply body', async () => {
     await request(app)
-      .post(
-        '/api/repositories/asil/demo/pulls/1/conversations/conversation-1/comments',
-      )
+      .post('/api/repositories/asil/demo/pulls/1/conversations/conversation-1/comments')
       .send({
         body: '',
       })
       .expect(400);
 
-    expect(
-      mockedCreateConversationComment,
-    ).not.toHaveBeenCalled();
+    expect(mockedCreateConversationComment).not.toHaveBeenCalled();
   });
 
   it('lists conversations', async () => {

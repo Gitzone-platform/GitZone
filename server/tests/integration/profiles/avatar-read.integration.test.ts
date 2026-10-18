@@ -18,11 +18,7 @@ const mockedReadAvatar = vi.mocked(readStoredAvatar);
 const filename = '123e4567-e89b-42d3-a456-426614174000.webp';
 const endpoint = `/api/users/avatars/${filename}`;
 
-const image = Buffer.from([
-  0x52, 0x49, 0x46, 0x46,
-  0x04, 0x00, 0x00, 0x00,
-  0x57, 0x45, 0x42, 0x50,
-]);
+const image = Buffer.from([0x52, 0x49, 0x46, 0x46, 0x04, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50]);
 
 describe('avatar read API integration', () => {
   beforeEach(() => {
@@ -70,29 +66,17 @@ describe('avatar read API integration', () => {
 
   it('rejects invalid avatar filenames', async () => {
     mockedReadAvatar.mockRejectedValue(
-      new AppError(
-        'Invalid avatar filename',
-        400,
-        'INVALID_AVATAR_FILENAME',
-      ),
+      new AppError('Invalid avatar filename', 400, 'INVALID_AVATAR_FILENAME'),
     );
 
-    const response = await request(app).get(
-      '/api/users/avatars/not-a-uuid.webp',
-    );
+    const response = await request(app).get('/api/users/avatars/not-a-uuid.webp');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_AVATAR_FILENAME');
   });
 
   it('returns 404 for a missing avatar', async () => {
-    mockedReadAvatar.mockRejectedValue(
-      new AppError(
-        'Avatar not found',
-        404,
-        'AVATAR_NOT_FOUND',
-      ),
-    );
+    mockedReadAvatar.mockRejectedValue(new AppError('Avatar not found', 404, 'AVATAR_NOT_FOUND'));
 
     const response = await request(app).get(endpoint);
 
@@ -102,11 +86,7 @@ describe('avatar read API integration', () => {
 
   it('returns a controlled error for unsafe storage', async () => {
     mockedReadAvatar.mockRejectedValue(
-      new AppError(
-        'Unsafe avatar storage directory',
-        500,
-        'AVATAR_STORAGE_UNSAFE',
-      ),
+      new AppError('Unsafe avatar storage directory', 500, 'AVATAR_STORAGE_UNSAFE'),
     );
 
     const response = await request(app).get(endpoint);
@@ -117,13 +97,7 @@ describe('avatar read API integration', () => {
   });
 
   it('does not expose filesystem paths in missing-file errors', async () => {
-    mockedReadAvatar.mockRejectedValue(
-      new AppError(
-        'Avatar not found',
-        404,
-        'AVATAR_NOT_FOUND',
-      ),
-    );
+    mockedReadAvatar.mockRejectedValue(new AppError('Avatar not found', 404, 'AVATAR_NOT_FOUND'));
 
     const response = await request(app).get(endpoint);
 

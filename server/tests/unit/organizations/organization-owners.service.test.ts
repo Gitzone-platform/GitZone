@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  mockedOrganizationFindUnique,
-  mockedMemberFindUnique,
-  mockedMemberFindMany,
-} = vi.hoisted(() => ({
-  mockedOrganizationFindUnique: vi.fn(),
-  mockedMemberFindUnique: vi.fn(),
-  mockedMemberFindMany: vi.fn(),
-}));
+const { mockedOrganizationFindUnique, mockedMemberFindUnique, mockedMemberFindMany } = vi.hoisted(
+  () => ({
+    mockedOrganizationFindUnique: vi.fn(),
+    mockedMemberFindUnique: vi.fn(),
+    mockedMemberFindMany: vi.fn(),
+  }),
+);
 
 vi.mock('../../../src/config/prisma.js', () => ({
   default: {
@@ -41,15 +39,11 @@ describe('Organization owners service', () => {
       visibility: 'PUBLIC',
     });
 
-    mockedMemberFindMany.mockResolvedValue([
-      { user: owner },
-    ]);
+    mockedMemberFindMany.mockResolvedValue([{ user: owner }]);
   });
 
   it('lists owners of a public organization without authentication', async () => {
-    await expect(
-      listOrganizationOwners('gitzone-platform'),
-    ).resolves.toEqual([owner]);
+    await expect(listOrganizationOwners('gitzone-platform')).resolves.toEqual([owner]);
 
     expect(mockedMemberFindUnique).not.toHaveBeenCalled();
 
@@ -84,9 +78,7 @@ describe('Organization owners service', () => {
       id: 'membership-1',
     });
 
-    await expect(
-      listOrganizationOwners('private-org', 'user-2'),
-    ).resolves.toEqual([owner]);
+    await expect(listOrganizationOwners('private-org', 'user-2')).resolves.toEqual([owner]);
 
     expect(mockedMemberFindUnique).toHaveBeenCalledWith({
       where: {
@@ -105,9 +97,7 @@ describe('Organization owners service', () => {
       visibility: 'PRIVATE',
     });
 
-    await expect(
-      listOrganizationOwners('private-org'),
-    ).rejects.toMatchObject({
+    await expect(listOrganizationOwners('private-org')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -123,9 +113,7 @@ describe('Organization owners service', () => {
 
     mockedMemberFindUnique.mockResolvedValue(null);
 
-    await expect(
-      listOrganizationOwners('private-org', 'outsider'),
-    ).rejects.toMatchObject({
+    await expect(listOrganizationOwners('private-org', 'outsider')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -136,9 +124,7 @@ describe('Organization owners service', () => {
   it('returns 404 for an unknown organization', async () => {
     mockedOrganizationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      listOrganizationOwners('missing-org'),
-    ).rejects.toMatchObject({
+    await expect(listOrganizationOwners('missing-org')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -151,9 +137,7 @@ describe('Organization owners service', () => {
 
     mockedOrganizationFindUnique.mockRejectedValue(error);
 
-    await expect(
-      listOrganizationOwners('gitzone-platform'),
-    ).rejects.toBe(error);
+    await expect(listOrganizationOwners('gitzone-platform')).rejects.toBe(error);
 
     expect(mockedMemberFindMany).not.toHaveBeenCalled();
   });

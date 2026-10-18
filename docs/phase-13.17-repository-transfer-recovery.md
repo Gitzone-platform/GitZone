@@ -24,6 +24,7 @@
 Publication is not atomic.
 
 A failure can leave:
+
 - The original source repository intact.
 - A partially populated destination directory.
 - A staging directory containing remaining entries.
@@ -36,6 +37,7 @@ Never assume that a destination or staging directory can be safely deleted.
 Recovery inspection is read-only.
 
 It may inspect:
+
 - Source directory state.
 - Staging directory state.
 - Destination directory state.

@@ -147,10 +147,7 @@ export const getMilestone = async (
 
   const milestone = await resolveMilestone(repository.id, milestoneId);
 
-  const progress = await calculateMilestoneProgress(
-    repository.id,
-    milestone.id,
-  );
+  const progress = await calculateMilestoneProgress(repository.id, milestone.id);
 
   return {
     ...milestone,
@@ -206,12 +203,7 @@ export const deleteMilestone = async (
   repositoryName: string,
   milestoneId: string,
 ) => {
-  const repository = await resolveRepository(
-    username,
-    repositoryName,
-    userId,
-    'WRITE',
-  );
+  const repository = await resolveRepository(username, repositoryName, userId, 'WRITE');
 
   await resolveMilestone(repository.id, milestoneId);
 

@@ -10,14 +10,9 @@ const AVATAR_FILENAME_PATTERN =
 
 const MAX_STORED_AVATAR_BYTES = 5 * 1024 * 1024;
 
-const assertSafeAvatarDirectory = async (
-  directory: string,
-): Promise<void> => {
+const assertSafeAvatarDirectory = async (directory: string): Promise<void> => {
   const parsed = path.parse(directory);
-  const segments = path
-    .relative(parsed.root, directory)
-    .split(path.sep)
-    .filter(Boolean);
+  const segments = path.relative(parsed.root, directory).split(path.sep).filter(Boolean);
 
   let current = parsed.root;
 
@@ -29,39 +24,21 @@ const assertSafeAvatarDirectory = async (
     try {
       stats = await lstat(current);
     } catch (error) {
-      if (
-        error instanceof Error &&
-        'code' in error &&
-        error.code === 'ENOENT'
-      ) {
-        throw new AppError(
-          'Avatar not found',
-          404,
-          'AVATAR_NOT_FOUND',
-        );
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        throw new AppError('Avatar not found', 404, 'AVATAR_NOT_FOUND');
       }
 
       throw error;
     }
 
     if (!stats.isDirectory() || stats.isSymbolicLink()) {
-      throw new AppError(
-        'Unsafe avatar storage directory',
-        500,
-        'AVATAR_STORAGE_UNSAFE',
-      );
+      throw new AppError('Unsafe avatar storage directory', 500, 'AVATAR_STORAGE_UNSAFE');
     }
   }
 };
-export const readStoredAvatar = async (
-  filename: string,
-): Promise<Buffer> => {
+export const readStoredAvatar = async (filename: string): Promise<Buffer> => {
   if (!AVATAR_FILENAME_PATTERN.test(filename)) {
-    throw new AppError(
-      'Invalid avatar filename',
-      400,
-      'INVALID_AVATAR_FILENAME',
-    );
+    throw new AppError('Invalid avatar filename', 400, 'INVALID_AVATAR_FILENAME');
   }
 
   assertAvatarStorageIsolated();
@@ -79,29 +56,16 @@ export const readStoredAvatar = async (
     entry = await lstat(absolutePath);
 
     if (!entry.isFile() || entry.isSymbolicLink()) {
-      throw new AppError(
-        'Avatar not found',
-        404,
-        'AVATAR_NOT_FOUND',
-      );
+      throw new AppError('Avatar not found', 404, 'AVATAR_NOT_FOUND');
     }
-    file = await open(
-      absolutePath,
-      constants.O_RDONLY | noFollow,
-    );
+    file = await open(absolutePath, constants.O_RDONLY | noFollow);
   } catch (error) {
     if (
       error instanceof Error &&
       'code' in error &&
-      (error.code === 'ENOENT' ||
-        error.code === 'ELOOP' ||
-        error.code === 'EACCES')
+      (error.code === 'ENOENT' || error.code === 'ELOOP' || error.code === 'EACCES')
     ) {
-      throw new AppError(
-        'Avatar not found',
-        404,
-        'AVATAR_NOT_FOUND',
-      );
+      throw new AppError('Avatar not found', 404, 'AVATAR_NOT_FOUND');
     }
 
     throw error;
@@ -119,21 +83,13 @@ export const readStoredAvatar = async (
       stats.size <= 0 ||
       stats.size > MAX_STORED_AVATAR_BYTES
     ) {
-      throw new AppError(
-        'Invalid stored avatar',
-        404,
-        'AVATAR_NOT_FOUND',
-      );
+      throw new AppError('Invalid stored avatar', 404, 'AVATAR_NOT_FOUND');
     }
 
     const buffer = await file.readFile();
 
     if (buffer.length !== stats.size) {
-      throw new AppError(
-        'Invalid stored avatar',
-        404,
-        'AVATAR_NOT_FOUND',
-      );
+      throw new AppError('Invalid stored avatar', 404, 'AVATAR_NOT_FOUND');
     }
 
     return buffer;

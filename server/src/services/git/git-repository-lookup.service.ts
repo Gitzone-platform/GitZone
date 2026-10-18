@@ -22,18 +22,14 @@ export type GitRepositoryLookupResult = {
   owner: GitRepositoryIdentity;
 };
 
-const notFound = (): AppError =>
-  new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+const notFound = (): AppError => new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
 
 export const lookupGitRepository = async (
   namespace: string,
   repositoryName: string,
 ): Promise<GitRepositoryLookupResult> => {
   // Reject unsafe path components before any database lookup.
-  resolveOwnedGitRepositoryPath(
-    { type: 'USER', username: namespace },
-    repositoryName,
-  );
+  resolveOwnedGitRepositoryPath({ type: 'USER', username: namespace }, repositoryName);
 
   const entry = await prisma.namespaceEntry.findUnique({
     where: { name: namespace },

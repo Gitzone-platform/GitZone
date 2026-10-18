@@ -141,16 +141,12 @@ describe.skipIf(!runDatabaseTests)('repository star count real PostgreSQL integr
       data: { isPrivate: true },
     });
 
-    await expect(
-      getRepositoryStarCount(username, repositoryName),
-    ).rejects.toMatchObject({
+    await expect(getRepositoryStarCount(username, repositoryName)).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
     });
 
-    await expect(
-      getRepositoryStarCount(username, repositoryName, ownerId),
-    ).resolves.toEqual({
+    await expect(getRepositoryStarCount(username, repositoryName, ownerId)).resolves.toEqual({
       repositoryId,
       starCount: 0,
     });

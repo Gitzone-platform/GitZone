@@ -108,10 +108,7 @@ describe('getUserPublicActivity', () => {
   });
 
   it('sorts activities by creation date descending', async () => {
-    repositoriesMock.mockResolvedValue([
-      repository('repo-old', 1),
-      repository('repo-new', 5),
-    ]);
+    repositoriesMock.mockResolvedValue([repository('repo-old', 1), repository('repo-new', 5)]);
     issuesMock.mockResolvedValue([issue('issue-middle', 3)]);
 
     const result = await getUserPublicActivity('asil');
@@ -128,15 +125,11 @@ describe('getUserPublicActivity', () => {
       Array.from({ length: 30 }, (_, index) => ({
         id: `repo-${index}`,
         name: `repository-${index}`,
-        createdAt: new Date(
-          Date.UTC(2026, 9, 1, 0, index),
-        ),
+        createdAt: new Date(Date.UTC(2026, 9, 1, 0, index)),
       })),
     );
 
-    issuesMock.mockResolvedValue([
-      issue('issue-1', 8),
-    ]);
+    issuesMock.mockResolvedValue([issue('issue-1', 8)]);
 
     const result = await getUserPublicActivity('asil');
 
@@ -183,13 +176,9 @@ describe('getUserPublicActivity', () => {
   });
 
   it('does not query activities when the user does not exist', async () => {
-    profileMock.mockRejectedValue(
-      new AppError('User not found', 404, 'USER_NOT_FOUND'),
-    );
+    profileMock.mockRejectedValue(new AppError('User not found', 404, 'USER_NOT_FOUND'));
 
-    await expect(
-      getUserPublicActivity('missinguser'),
-    ).rejects.toMatchObject({
+    await expect(getUserPublicActivity('missinguser')).rejects.toMatchObject({
       statusCode: 404,
       code: 'USER_NOT_FOUND',
     });
@@ -202,8 +191,6 @@ describe('getUserPublicActivity', () => {
   it('propagates database query errors', async () => {
     issuesMock.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      getUserPublicActivity('asil'),
-    ).rejects.toThrow('Database unavailable');
+    await expect(getUserPublicActivity('asil')).rejects.toThrow('Database unavailable');
   });
 });

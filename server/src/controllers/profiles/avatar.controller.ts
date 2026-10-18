@@ -8,19 +8,11 @@ export const uploadProfileAvatar: RequestHandler = async (req, res) => {
   const userId = (req as AuthenticatedRequest).userId;
 
   if (!userId) {
-    throw new AppError(
-      'Authentication is required',
-      401,
-      'AUTHENTICATION_REQUIRED',
-    );
+    throw new AppError('Authentication is required', 401, 'AUTHENTICATION_REQUIRED');
   }
 
   if (!req.file) {
-    throw new AppError(
-      'Avatar image is required',
-      400,
-      'AVATAR_FILE_REQUIRED',
-    );
+    throw new AppError('Avatar image is required', 400, 'AVATAR_FILE_REQUIRED');
   }
 
   const user = await updateUserAvatar(userId, req.file.buffer, req.file.mimetype);

@@ -22,19 +22,11 @@ const getParams = (req: Request) => {
   const number = issueNumberSchema.safeParse(req.params.number);
 
   if (typeof username !== 'string' || typeof name !== 'string') {
-    throw new AppError(
-      'Invalid repository parameters',
-      400,
-      'INVALID_REPOSITORY_PARAMS',
-    );
+    throw new AppError('Invalid repository parameters', 400, 'INVALID_REPOSITORY_PARAMS');
   }
 
   if (!number.success) {
-    throw new AppError(
-      'Invalid issue number',
-      400,
-      'INVALID_ISSUE_NUMBER',
-    );
+    throw new AppError('Invalid issue number', 400, 'INVALID_ISSUE_NUMBER');
   }
 
   return {
@@ -44,19 +36,12 @@ const getParams = (req: Request) => {
   };
 };
 
-export const create = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const parsed = addIssueAssigneeSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid issue assignee data',
-      400,
-      'INVALID_ISSUE_ASSIGNEE_DATA',
-    );
+    throw new AppError('Invalid issue assignee data', 400, 'INVALID_ISSUE_ASSIGNEE_DATA');
   }
 
   const userId = (req as AuthenticatedRequest).userId;
@@ -75,10 +60,7 @@ export const create = async (
   });
 };
 
-export const list = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const list = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const userId = (req as OptionalAuthenticatedRequest).userId;
 
@@ -95,22 +77,13 @@ export const list = async (
   });
 };
 
-export const remove = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const remove = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
 
-  const parsed = issueAssigneeUsernameSchema.safeParse(
-    req.params.assigneeUsername,
-  );
+  const parsed = issueAssigneeUsernameSchema.safeParse(req.params.assigneeUsername);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid assignee username',
-      400,
-      'INVALID_ISSUE_ASSIGNEE_USERNAME',
-    );
+    throw new AppError('Invalid assignee username', 400, 'INVALID_ISSUE_ASSIGNEE_USERNAME');
   }
 
   const userId = (req as AuthenticatedRequest).userId;

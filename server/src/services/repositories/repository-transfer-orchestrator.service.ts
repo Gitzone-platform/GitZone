@@ -1,19 +1,9 @@
 import { AppError } from '../../errors/app.error.js';
-import {
-  withGitDistributedLocks,
-} from '../git/git-distributed-lock.service.js';
-import {
-  prepareGitRepositoryTransfer,
-} from '../git/git-repository-transfer-filesystem.service.js';
-import {
-  verifyGitRepositoryIntegrity,
-} from '../git/git-repository-transfer-integrity.service.js';
-import {
-  withGitNamespacePairWriteLock,
-} from '../git/git-user-lock.service.js';
-import {
-  resolveGitRepositoryPath,
-} from '../../utils/git/repository-path.js';
+import { withGitDistributedLocks } from '../git/git-distributed-lock.service.js';
+import { prepareGitRepositoryTransfer } from '../git/git-repository-transfer-filesystem.service.js';
+import { verifyGitRepositoryIntegrity } from '../git/git-repository-transfer-integrity.service.js';
+import { withGitNamespacePairWriteLock } from '../git/git-user-lock.service.js';
+import { resolveGitRepositoryPath } from '../../utils/git/repository-path.js';
 import {
   authorizeRepositoryTransfer,
   advanceRepositoryTransferState,
@@ -22,14 +12,11 @@ import {
   createRepositoryTransferJournal,
   type CreateRepositoryTransferInput,
 } from './repository-transfer-journal.service.js';
-import {
-  switchRepositoryTransferOwnership,
-} from './repository-transfer-ownership.service.js';
+import { switchRepositoryTransferOwnership } from './repository-transfer-ownership.service.js';
 
-export type PrepareRepositoryTransferInput =
-  CreateRepositoryTransferInput & {
-    actorId: string;
-  };
+export type PrepareRepositoryTransferInput = CreateRepositoryTransferInput & {
+  actorId: string;
+};
 
 const assertLockAlive = (signal: AbortSignal): void => {
   if (signal.aborted) {
@@ -63,11 +50,7 @@ export const prepareRepositoryTransferOrchestration = async (
         async ({ signal }) => {
           assertLockAlive(signal);
 
-          await authorizeRepositoryTransfer(
-            input.repositoryId,
-            input.actorId,
-            input.targetOrgId,
-          );
+          await authorizeRepositoryTransfer(input.repositoryId, input.actorId, input.targetOrgId);
 
           if (input.actorId !== input.sourceOwnerId) {
             throw new AppError(
@@ -81,19 +64,12 @@ export const prepareRepositoryTransferOrchestration = async (
 
           const journal = await createRepositoryTransferJournal(input);
 
-          await advanceRepositoryTransferState(
-            journal.id,
-            'PENDING',
-            'MOVING',
-          );
+          await advanceRepositoryTransferState(journal.id, 'PENDING', 'MOVING');
 
           assertLockAlive(signal);
 
           const source = await verifyGitRepositoryIntegrity(
-            resolveGitRepositoryPath(
-              input.sourceUsername,
-              input.repositoryName,
-            ),
+            resolveGitRepositoryPath(input.sourceUsername, input.repositoryName),
           );
 
           if (!source.valid) {
@@ -115,9 +91,7 @@ export const prepareRepositoryTransferOrchestration = async (
 
           assertLockAlive(signal);
 
-          const destination = await verifyGitRepositoryIntegrity(
-            paths.destinationPath,
-          );
+          const destination = await verifyGitRepositoryIntegrity(paths.destinationPath);
 
           if (!destination.valid) {
             throw new AppError(
@@ -129,11 +103,7 @@ export const prepareRepositoryTransferOrchestration = async (
 
           assertLockAlive(signal);
 
-          await advanceRepositoryTransferState(
-            journal.id,
-            'MOVING',
-            'MOVED',
-          );
+          await advanceRepositoryTransferState(journal.id, 'MOVING', 'MOVED');
 
           assertLockAlive(signal);
 

@@ -83,13 +83,7 @@ describe('Issue comment service', () => {
       body: 'Hello',
     } as never);
 
-    const result = await createIssueComment(
-      'user-1',
-      'owner',
-      'demo',
-      1,
-      { body: 'Hello' },
-    );
+    const result = await createIssueComment('user-1', 'owner', 'demo', 1, { body: 'Hello' });
 
     expect(result.body).toBe('Hello');
     expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
@@ -124,18 +118,9 @@ describe('Issue comment service', () => {
     findComments.mockResolvedValue([{ id: 'comment-1' }] as never);
     countComments.mockResolvedValue(11 as never);
 
-    transaction.mockResolvedValue([
-      [{ id: 'comment-1' }],
-      11,
-    ] as never);
+    transaction.mockResolvedValue([[{ id: 'comment-1' }], 11] as never);
 
-    const result = await listIssueComments(
-      'owner',
-      'demo',
-      1,
-      'reader-1',
-      { page: 2, limit: 5 },
-    );
+    const result = await listIssueComments('owner', 'demo', 1, 'reader-1', { page: 2, limit: 5 });
 
     expect(authorize).toHaveBeenCalledWith('repo-1', 'READ', 'reader-1');
     expect(findComments).toHaveBeenCalledWith(
@@ -166,14 +151,9 @@ describe('Issue comment service', () => {
       body: 'Updated',
     } as never);
 
-    const result = await updateIssueComment(
-      'author-1',
-      'owner',
-      'demo',
-      1,
-      'comment-1',
-      { body: 'Updated' },
-    );
+    const result = await updateIssueComment('author-1', 'owner', 'demo', 1, 'comment-1', {
+      body: 'Updated',
+    });
 
     expect(result.body).toBe('Updated');
     expect(updateComment).toHaveBeenCalledWith(
@@ -195,14 +175,7 @@ describe('Issue comment service', () => {
       body: 'Owner edit',
     } as never);
 
-    await updateIssueComment(
-      'owner-1',
-      'owner',
-      'demo',
-      1,
-      'comment-1',
-      { body: 'Owner edit' },
-    );
+    await updateIssueComment('owner-1', 'owner', 'demo', 1, 'comment-1', { body: 'Owner edit' });
 
     expect(updateComment).toHaveBeenCalledOnce();
   });
@@ -214,14 +187,7 @@ describe('Issue comment service', () => {
     } as never);
 
     await expect(
-      updateIssueComment(
-        'reader-1',
-        'owner',
-        'demo',
-        1,
-        'comment-1',
-        { body: 'Unauthorized' },
-      ),
+      updateIssueComment('reader-1', 'owner', 'demo', 1, 'comment-1', { body: 'Unauthorized' }),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'ISSUE_COMMENT_ACCESS_DENIED',
@@ -234,14 +200,7 @@ describe('Issue comment service', () => {
     findComment.mockResolvedValue(null as never);
 
     await expect(
-      updateIssueComment(
-        'owner-1',
-        'owner',
-        'demo',
-        1,
-        'missing-comment',
-        { body: 'Updated' },
-      ),
+      updateIssueComment('owner-1', 'owner', 'demo', 1, 'missing-comment', { body: 'Updated' }),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'ISSUE_COMMENT_NOT_FOUND',
@@ -256,13 +215,7 @@ describe('Issue comment service', () => {
 
     deleteComment.mockResolvedValue({ id: 'comment-1' } as never);
 
-    await deleteIssueComment(
-      'author-1',
-      'owner',
-      'demo',
-      1,
-      'comment-1',
-    );
+    await deleteIssueComment('author-1', 'owner', 'demo', 1, 'comment-1');
 
     expect(deleteComment).toHaveBeenCalledWith({
       where: { id: 'comment-1' },

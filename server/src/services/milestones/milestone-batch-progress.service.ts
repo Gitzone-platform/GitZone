@@ -17,21 +17,13 @@ const emptyCounts = (): ProgressCounts => ({
 });
 
 const readGroupCount = (value: unknown): number => {
-  if (
-    typeof value !== 'object' ||
-    value === null ||
-    !('_all' in value)
-  ) {
+  if (typeof value !== 'object' || value === null || !('_all' in value)) {
     throw new Error('Invalid Prisma groupBy count result');
   }
 
   const count = value._all;
 
-  if (
-    typeof count !== 'number' ||
-    !Number.isSafeInteger(count) ||
-    count < 0
-  ) {
+  if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
     throw new Error('Invalid Prisma groupBy count value');
   }
 
@@ -52,10 +44,7 @@ export const calculateMilestonesProgress = async (
   const [issueGroups, pullRequestGroups] = await prisma.$transaction([
     prisma.issue.groupBy({
       by: ['milestoneId', 'state'] as const,
-      orderBy: [
-        { milestoneId: 'asc' as const },
-        { state: 'asc' as const },
-      ],
+      orderBy: [{ milestoneId: 'asc' as const }, { state: 'asc' as const }],
       where: {
         repositoryId,
         milestoneId: { in: uniqueIds },
@@ -64,10 +53,7 @@ export const calculateMilestonesProgress = async (
     }),
     prisma.pullRequest.groupBy({
       by: ['milestoneId', 'state'] as const,
-      orderBy: [
-        { milestoneId: 'asc' as const },
-        { state: 'asc' as const },
-      ],
+      orderBy: [{ milestoneId: 'asc' as const }, { state: 'asc' as const }],
       where: {
         repositoryId,
         milestoneId: { in: uniqueIds },
@@ -114,18 +100,14 @@ export const calculateMilestonesProgress = async (
 
   for (const [id, item] of counts) {
     const totalItems = item.totalIssues + item.totalPullRequests;
-    const completedItems =
-      item.closedIssues + item.completedPullRequests;
+    const completedItems = item.closedIssues + item.completedPullRequests;
 
     result.set(id, {
       ...item,
       totalItems,
       completedItems,
       openItems: totalItems - completedItems,
-      percentage:
-        totalItems === 0
-          ? 0
-          : Math.round((completedItems / totalItems) * 10000) / 100,
+      percentage: totalItems === 0 ? 0 : Math.round((completedItems / totalItems) * 10000) / 100,
     });
   }
 

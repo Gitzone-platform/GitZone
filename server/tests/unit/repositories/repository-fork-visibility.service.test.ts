@@ -90,12 +90,7 @@ describe('repository fork visibility security', () => {
 
     mockedClone.mockResolvedValue('isolated-test-path');
 
-    const result = await forkRepository(
-      'forker-1',
-      'sourceowner',
-      'project',
-      { isPrivate: true },
-    );
+    const result = await forkRepository('forker-1', 'sourceowner', 'project', { isPrivate: true });
 
     expect(result.isPrivate).toBe(true);
 
@@ -124,12 +119,7 @@ describe('repository fork visibility security', () => {
 
     mockedClone.mockResolvedValue('isolated-test-path');
 
-    const result = await forkRepository(
-      'forker-1',
-      'sourceowner',
-      'project',
-      {},
-    );
+    const result = await forkRepository('forker-1', 'sourceowner', 'project', {});
 
     expect(result.isPrivate).toBe(true);
 

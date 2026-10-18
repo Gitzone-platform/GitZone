@@ -29,11 +29,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   let cascadeRepositoryId = '';
 
   beforeAll(async () => {
-    for (const username of [
-      ownerUsername,
-      viewerUsername,
-      collaboratorUsername,
-    ]) {
+    for (const username of [ownerUsername, viewerUsername, collaboratorUsername]) {
       const user = await prisma.user.create({
         data: {
           username,
@@ -46,8 +42,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
       createdUserIds.push(user.id);
     }
 
-    const [createdOwnerId, createdViewerId, createdCollaboratorId] =
-      createdUserIds;
+    const [createdOwnerId, createdViewerId, createdCollaboratorId] = createdUserIds;
 
     if (!createdOwnerId || !createdViewerId || !createdCollaboratorId) {
       throw new Error('User fixtures were not initialized');
@@ -74,8 +69,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
       createdRepositoryIds.push(repository.id);
     }
 
-    const [createdPublicId, createdPrivateId, createdCascadeId] =
-      createdRepositoryIds;
+    const [createdPublicId, createdPrivateId, createdCascadeId] = createdRepositoryIds;
 
     if (!createdPublicId || !createdPrivateId || !createdCascadeId) {
       throw new Error('Repository fixtures were not initialized');
@@ -129,11 +123,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   });
 
   it('persists a watch on a public repository', async () => {
-    const result = await watchRepository(
-      viewerId,
-      ownerUsername,
-      publicName,
-    );
+    const result = await watchRepository(viewerId, ownerUsername, publicName);
 
     expect(result).toEqual({
       repositoryId: publicRepositoryId,
@@ -151,17 +141,9 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   });
 
   it('keeps exactly one watch after repeated requests', async () => {
-    const first = await watchRepository(
-      viewerId,
-      ownerUsername,
-      publicName,
-    );
+    const first = await watchRepository(viewerId, ownerUsername, publicName);
 
-    const second = await watchRepository(
-      viewerId,
-      ownerUsername,
-      publicName,
-    );
+    const second = await watchRepository(viewerId, ownerUsername, publicName);
 
     expect(second).toEqual(first);
 
@@ -176,11 +158,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   });
 
   it('allows the owner to watch a private repository', async () => {
-    const result = await watchRepository(
-      ownerId,
-      ownerUsername,
-      privateName,
-    );
+    const result = await watchRepository(ownerId, ownerUsername, privateName);
 
     expect(result).toEqual({
       repositoryId: privateRepositoryId,
@@ -198,11 +176,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   });
 
   it('allows a READ collaborator to watch a private repository', async () => {
-    const result = await watchRepository(
-      collaboratorId,
-      ownerUsername,
-      privateName,
-    );
+    const result = await watchRepository(collaboratorId, ownerUsername, privateName);
 
     expect(result).toEqual({
       repositoryId: privateRepositoryId,
@@ -220,9 +194,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   });
 
   it('rejects an unauthorized private repository watch', async () => {
-    await expect(
-      watchRepository(viewerId, ownerUsername, privateName),
-    ).rejects.toMatchObject({
+    await expect(watchRepository(viewerId, ownerUsername, privateName)).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
     });
@@ -238,11 +210,7 @@ describe.skipIf(!runDatabaseTests)('repository watch real PostgreSQL integration
   });
 
   it('cascades watch deletion when its repository is deleted', async () => {
-    await watchRepository(
-      viewerId,
-      ownerUsername,
-      cascadeName,
-    );
+    await watchRepository(viewerId, ownerUsername, cascadeName);
 
     const before = await prisma.repositoryWatch.count({
       where: {

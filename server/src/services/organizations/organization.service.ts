@@ -10,11 +10,7 @@ export const createOrganization = async (userId: string, input: CreateOrganizati
   });
 
   if (reservedName) {
-    throw new AppError(
-      'Organization slug already exists',
-      409,
-      'ORGANIZATION_ALREADY_EXISTS',
-    );
+    throw new AppError('Organization slug already exists', 409, 'ORGANIZATION_ALREADY_EXISTS');
   }
 
   try {
@@ -58,10 +54,7 @@ const organizationProfileSelect = {
   updatedAt: true,
 } as const;
 
-export const getOrganizationProfile = async (
-  slug: string,
-  userId?: string,
-) => {
+export const getOrganizationProfile = async (slug: string, userId?: string) => {
   const organization = await prisma.organization.findUnique({
     where: { slug },
     select: {
@@ -77,20 +70,12 @@ export const getOrganizationProfile = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   if (organization.visibility === 'PRIVATE') {
     if (!userId) {
-      throw new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      );
+      throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
     }
 
     const membership = await prisma.organizationMember.findUnique({
@@ -104,11 +89,7 @@ export const getOrganizationProfile = async (
     });
 
     if (!membership) {
-      throw new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      );
+      throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
     }
   }
 
@@ -129,11 +110,7 @@ export const updateOrganizationProfile = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   const membership = await prisma.organizationMember.findUnique({
@@ -156,15 +133,9 @@ export const updateOrganizationProfile = async (
 
   const data = {
     ...(input.name !== undefined ? { name: input.name } : {}),
-    ...(input.description !== undefined
-      ? { description: input.description }
-      : {}),
-    ...(input.avatarUrl !== undefined
-      ? { avatarUrl: input.avatarUrl }
-      : {}),
-    ...(input.website !== undefined
-      ? { website: input.website }
-      : {}),
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.avatarUrl !== undefined ? { avatarUrl: input.avatarUrl } : {}),
+    ...(input.website !== undefined ? { website: input.website } : {}),
   };
 
   return prisma.organization.update({
@@ -173,10 +144,7 @@ export const updateOrganizationProfile = async (
     select: organizationProfileSelect,
   });
 };
-export const listOrganizationOwners = async (
-  slug: string,
-  userId?: string,
-) => {
+export const listOrganizationOwners = async (slug: string, userId?: string) => {
   const organization = await prisma.organization.findUnique({
     where: { slug },
     select: {
@@ -186,20 +154,12 @@ export const listOrganizationOwners = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   if (organization.visibility === 'PRIVATE') {
     if (!userId) {
-      throw new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      );
+      throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
     }
 
     const membership = await prisma.organizationMember.findUnique({
@@ -213,11 +173,7 @@ export const listOrganizationOwners = async (
     });
 
     if (!membership) {
-      throw new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      );
+      throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
     }
   }
 
@@ -244,10 +200,7 @@ export const listOrganizationOwners = async (
   return owners.map(({ user }) => user);
 };
 
-export const listOrganizationMembers = async (
-  slug: string,
-  userId?: string,
-) => {
+export const listOrganizationMembers = async (slug: string, userId?: string) => {
   const organization = await prisma.organization.findUnique({
     where: { slug },
     select: {
@@ -257,20 +210,12 @@ export const listOrganizationMembers = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   if (organization.visibility === 'PRIVATE') {
     if (!userId) {
-      throw new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      );
+      throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
     }
 
     const membership = await prisma.organizationMember.findUnique({
@@ -284,11 +229,7 @@ export const listOrganizationMembers = async (
     });
 
     if (!membership) {
-      throw new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      );
+      throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
     }
   }
 
@@ -308,10 +249,7 @@ export const listOrganizationMembers = async (
         },
       },
     },
-    orderBy: [
-      { createdAt: 'asc' },
-      { id: 'asc' },
-    ],
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   });
 
   return members.map(({ user, role, createdAt }) => ({
@@ -332,11 +270,7 @@ export const removeOrganizationMember = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   const actorMembership = await prisma.organizationMember.findUnique({
@@ -368,11 +302,7 @@ export const removeOrganizationMember = async (
   });
 
   if (!targetMembership) {
-    throw new AppError(
-      'Organization member not found',
-      404,
-      'ORGANIZATION_MEMBER_NOT_FOUND',
-    );
+    throw new AppError('Organization member not found', 404, 'ORGANIZATION_MEMBER_NOT_FOUND');
   }
 
   if (targetMembership.role === 'OWNER') {
@@ -405,21 +335,14 @@ export const removeOrganizationMember = async (
   };
 };
 
-export const leaveOrganization = async (
-  slug: string,
-  actorId: string,
-) => {
+export const leaveOrganization = async (slug: string, actorId: string) => {
   const organization = await prisma.organization.findUnique({
     where: { slug },
     select: { id: true },
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   const membership = await prisma.organizationMember.findUnique({
@@ -433,11 +356,7 @@ export const leaveOrganization = async (
   });
 
   if (!membership) {
-    throw new AppError(
-      'Organization membership not found',
-      404,
-      'ORGANIZATION_MEMBER_NOT_FOUND',
-    );
+    throw new AppError('Organization membership not found', 404, 'ORGANIZATION_MEMBER_NOT_FOUND');
   }
 
   if (membership.role === 'OWNER') {
@@ -489,11 +408,7 @@ export const transferOrganizationOwnership = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   try {
@@ -528,11 +443,7 @@ export const transferOrganizationOwnership = async (
         });
 
         if (!targetMembership) {
-          throw new AppError(
-            'Organization member not found',
-            404,
-            'ORGANIZATION_MEMBER_NOT_FOUND',
-          );
+          throw new AppError('Organization member not found', 404, 'ORGANIZATION_MEMBER_NOT_FOUND');
         }
 
         if (targetMembership.role !== 'MEMBER') {
@@ -588,11 +499,7 @@ export const transferOrganizationOwnership = async (
       },
     );
   } catch (error) {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      error.code === 'P2034'
-    ) {
+    if (error instanceof Error && 'code' in error && error.code === 'P2034') {
       throw new AppError(
         'Concurrent organization ownership change detected',
         409,

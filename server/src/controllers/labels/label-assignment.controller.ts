@@ -20,17 +20,8 @@ const getParams = (req: Request) => {
   const { username, name } = req.params;
   const number = labelAssignmentNumberSchema.safeParse(req.params.number);
 
-  if (
-    typeof username !== 'string' ||
-    typeof name !== 'string' ||
-    !username ||
-    !name
-  ) {
-    throw new AppError(
-      'Invalid repository parameters',
-      400,
-      'INVALID_REPOSITORY_PARAMS',
-    );
+  if (typeof username !== 'string' || typeof name !== 'string' || !username || !name) {
+    throw new AppError('Invalid repository parameters', 400, 'INVALID_REPOSITORY_PARAMS');
   }
 
   if (!number.success) {
@@ -53,11 +44,7 @@ const getRemovalParams = (req: Request) => {
   const labelId = labelAssignmentIdSchema.safeParse(req.params.labelId);
 
   if (!labelId.success) {
-    throw new AppError(
-      'Invalid label ID',
-      400,
-      'INVALID_LABEL_ID',
-    );
+    throw new AppError('Invalid label ID', 400, 'INVALID_LABEL_ID');
   }
 
   return {
@@ -70,20 +57,13 @@ const getAssignmentBody = (req: Request) => {
   const parsed = assignLabelSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid label assignment data',
-      400,
-      'INVALID_LABEL_ASSIGNMENT_DATA',
-    );
+    throw new AppError('Invalid label assignment data', 400, 'INVALID_LABEL_ASSIGNMENT_DATA');
   }
 
   return parsed.data;
 };
 
-export const createIssueLabel = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const createIssueLabel = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const input = getAssignmentBody(req);
   const userId = (req as AuthenticatedRequest).userId;
@@ -102,10 +82,7 @@ export const createIssueLabel = async (
   });
 };
 
-export const deleteIssueLabel = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const deleteIssueLabel = async (req: Request, res: Response): Promise<void> => {
   const params = getRemovalParams(req);
   const userId = (req as AuthenticatedRequest).userId;
 
@@ -120,10 +97,7 @@ export const deleteIssueLabel = async (
   res.status(204).send();
 };
 
-export const createPullRequestLabel = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const createPullRequestLabel = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const input = getAssignmentBody(req);
   const userId = (req as AuthenticatedRequest).userId;
@@ -142,10 +116,7 @@ export const createPullRequestLabel = async (
   });
 };
 
-export const deletePullRequestLabel = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const deletePullRequestLabel = async (req: Request, res: Response): Promise<void> => {
   const params = getRemovalParams(req);
   const userId = (req as AuthenticatedRequest).userId;
 

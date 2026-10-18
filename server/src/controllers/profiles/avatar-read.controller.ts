@@ -7,11 +7,7 @@ export const getProfileAvatar: RequestHandler = async (req, res) => {
   const filename = req.params.filename;
 
   if (typeof filename !== 'string') {
-    throw new AppError(
-      'Invalid avatar filename',
-      400,
-      'INVALID_AVATAR_FILENAME',
-    );
+    throw new AppError('Invalid avatar filename', 400, 'INVALID_AVATAR_FILENAME');
   }
 
   const buffer = await readStoredAvatar(filename);

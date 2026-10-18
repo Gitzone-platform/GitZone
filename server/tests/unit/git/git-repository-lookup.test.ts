@@ -105,9 +105,7 @@ describe('lookupGitRepository', () => {
   it('rejects a missing namespace', async () => {
     findNamespace.mockResolvedValue(null);
 
-    await expect(
-      lookupGitRepository('missing', 'backend'),
-    ).rejects.toMatchObject({
+    await expect(lookupGitRepository('missing', 'backend')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -121,9 +119,7 @@ describe('lookupGitRepository', () => {
       ownerId: 'unknown-1',
     } as never);
 
-    await expect(
-      lookupGitRepository('unknown', 'backend'),
-    ).rejects.toMatchObject({
+    await expect(lookupGitRepository('unknown', 'backend')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -142,9 +138,7 @@ describe('lookupGitRepository', () => {
       username: 'renamed-user',
     } as never);
 
-    await expect(
-      lookupGitRepository('asil', 'backend'),
-    ).rejects.toMatchObject({
+    await expect(lookupGitRepository('asil', 'backend')).rejects.toMatchObject({
       statusCode: 404,
     });
 
@@ -162,9 +156,7 @@ describe('lookupGitRepository', () => {
       slug: 'renamed-team',
     } as never);
 
-    await expect(
-      lookupGitRepository('gitzone-team', 'backend'),
-    ).rejects.toMatchObject({
+    await expect(lookupGitRepository('gitzone-team', 'backend')).rejects.toMatchObject({
       statusCode: 404,
     });
 
@@ -184,9 +176,7 @@ describe('lookupGitRepository', () => {
 
     findRepository.mockResolvedValue(null);
 
-    await expect(
-      lookupGitRepository('gitzone-team', 'backend'),
-    ).rejects.toMatchObject({
+    await expect(lookupGitRepository('gitzone-team', 'backend')).rejects.toMatchObject({
       statusCode: 404,
     });
   });
@@ -194,9 +184,7 @@ describe('lookupGitRepository', () => {
   it.each(['../escape', '.', '..', 'team/name', ''])(
     'rejects an unsafe namespace "%s" before database access',
     async (namespace) => {
-      await expect(
-        lookupGitRepository(namespace, 'backend'),
-      ).rejects.toMatchObject({
+      await expect(lookupGitRepository(namespace, 'backend')).rejects.toMatchObject({
         code: 'INVALID_GIT_REPOSITORY_PATH',
       });
 
@@ -207,9 +195,7 @@ describe('lookupGitRepository', () => {
   it.each(['../escape', '.', '..', 'repo/name', ''])(
     'rejects an unsafe repository name "%s" before database access',
     async (name) => {
-      await expect(
-        lookupGitRepository('gitzone-team', name),
-      ).rejects.toMatchObject({
+      await expect(lookupGitRepository('gitzone-team', name)).rejects.toMatchObject({
         code: 'INVALID_GIT_REPOSITORY_PATH',
       });
 

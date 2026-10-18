@@ -50,19 +50,10 @@ describe.skipIf(!runDatabaseTests)('repository unwatch real PostgreSQL integrati
       createdUserIds.push(user.id);
     }
 
-    const [
-      createdOwnerId,
-      createdViewerId,
-      createdSecondViewerId,
-      createdCollaboratorId,
-    ] = createdUserIds;
+    const [createdOwnerId, createdViewerId, createdSecondViewerId, createdCollaboratorId] =
+      createdUserIds;
 
-    if (
-      !createdOwnerId ||
-      !createdViewerId ||
-      !createdSecondViewerId ||
-      !createdCollaboratorId
-    ) {
+    if (!createdOwnerId || !createdViewerId || !createdSecondViewerId || !createdCollaboratorId) {
       throw new Error('User fixtures were not initialized');
     }
 
@@ -142,11 +133,7 @@ describe.skipIf(!runDatabaseTests)('repository unwatch real PostgreSQL integrati
   it('removes an existing watch on a public repository', async () => {
     await watchRepository(viewerId, ownerUsername, publicName);
 
-    const result = await unwatchRepository(
-      viewerId,
-      ownerUsername,
-      publicName,
-    );
+    const result = await unwatchRepository(viewerId, ownerUsername, publicName);
 
     expect(result).toEqual({
       repositoryId: publicRepositoryId,
@@ -164,17 +151,9 @@ describe.skipIf(!runDatabaseTests)('repository unwatch real PostgreSQL integrati
   });
 
   it('is idempotent when a repository is already unwatched', async () => {
-    const first = await unwatchRepository(
-      viewerId,
-      ownerUsername,
-      publicName,
-    );
+    const first = await unwatchRepository(viewerId, ownerUsername, publicName);
 
-    const second = await unwatchRepository(
-      viewerId,
-      ownerUsername,
-      publicName,
-    );
+    const second = await unwatchRepository(viewerId, ownerUsername, publicName);
 
     expect(second).toEqual(first);
     expect(first.watching).toBe(false);
@@ -216,11 +195,7 @@ describe.skipIf(!runDatabaseTests)('repository unwatch real PostgreSQL integrati
   it('allows the owner to unwatch a private repository', async () => {
     await watchRepository(ownerId, ownerUsername, privateName);
 
-    const result = await unwatchRepository(
-      ownerId,
-      ownerUsername,
-      privateName,
-    );
+    const result = await unwatchRepository(ownerId, ownerUsername, privateName);
 
     expect(result).toEqual({
       repositoryId: privateRepositoryId,
@@ -240,11 +215,7 @@ describe.skipIf(!runDatabaseTests)('repository unwatch real PostgreSQL integrati
   it('allows a READ collaborator to unwatch a private repository', async () => {
     await watchRepository(collaboratorId, ownerUsername, privateName);
 
-    const result = await unwatchRepository(
-      collaboratorId,
-      ownerUsername,
-      privateName,
-    );
+    const result = await unwatchRepository(collaboratorId, ownerUsername, privateName);
 
     expect(result).toEqual({
       repositoryId: privateRepositoryId,
@@ -262,9 +233,7 @@ describe.skipIf(!runDatabaseTests)('repository unwatch real PostgreSQL integrati
   });
 
   it('denies unwatch for an inaccessible private repository', async () => {
-    await expect(
-      unwatchRepository(viewerId, ownerUsername, privateName),
-    ).rejects.toMatchObject({
+    await expect(unwatchRepository(viewerId, ownerUsername, privateName)).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
     });

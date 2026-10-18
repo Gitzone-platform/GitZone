@@ -19,15 +19,12 @@ const lockKey = (owner: GitDistributedLockOwner): bigint => {
     throw new Error('Git lock owner ID is required');
   }
 
-  const digest = createHash('sha256')
-    .update(`gitzone:git:${owner.type}:${owner.id}`)
-    .digest();
+  const digest = createHash('sha256').update(`gitzone:git:${owner.type}:${owner.id}`).digest();
 
   return digest.readBigInt64BE(0);
 };
 
-const lockIdentity = (owner: GitDistributedLockOwner): string =>
-  `${owner.type}:${owner.id}`;
+const lockIdentity = (owner: GitDistributedLockOwner): string => `${owner.type}:${owner.id}`;
 
 export const withGitDistributedLocks = async <T>(
   owners: readonly GitDistributedLockOwner[],
@@ -38,11 +35,9 @@ export const withGitDistributedLocks = async <T>(
     throw new Error('At least one Git lock owner is required');
   }
 
-  const uniqueOwners = [...new Map(
-    owners.map((owner) => [lockIdentity(owner), owner]),
-  ).values()].sort((a, b) =>
-    lockIdentity(a).localeCompare(lockIdentity(b)),
-  );
+  const uniqueOwners = [
+    ...new Map(owners.map((owner) => [lockIdentity(owner), owner])).values(),
+  ].sort((a, b) => lockIdentity(a).localeCompare(lockIdentity(b)));
 
   const client = new Client({
     connectionString: env.DATABASE_URL,
@@ -100,5 +95,4 @@ export const withGitDistributedLock = async <T>(
   owner: GitDistributedLockOwner,
   mode: GitDistributedLockMode,
   operation: (context: GitDistributedLockContext) => Promise<T>,
-): Promise<T> =>
-  withGitDistributedLocks([owner], mode, operation);
+): Promise<T> => withGitDistributedLocks([owner], mode, operation);

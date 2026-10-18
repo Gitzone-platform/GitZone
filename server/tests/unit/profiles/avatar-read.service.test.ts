@@ -42,9 +42,7 @@ describe('avatar read storage security', () => {
   });
 
   it('rejects path traversal filenames', async () => {
-    await expect(
-      readStoredAvatar('../secret.webp'),
-    ).rejects.toMatchObject({
+    await expect(readStoredAvatar('../secret.webp')).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_AVATAR_FILENAME',
     });
@@ -53,9 +51,7 @@ describe('avatar read storage security', () => {
   });
 
   it('rejects filenames without the expected UUID format', async () => {
-    await expect(
-      readStoredAvatar('avatar.webp'),
-    ).rejects.toMatchObject({
+    await expect(readStoredAvatar('avatar.webp')).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_AVATAR_FILENAME',
     });
@@ -66,9 +62,7 @@ describe('avatar read storage security', () => {
   it('rejects a symlink in the storage directory path', async () => {
     mockedLstat.mockResolvedValueOnce(symlinkStats as never);
 
-    await expect(
-      readStoredAvatar(filename),
-    ).rejects.toMatchObject({
+    await expect(readStoredAvatar(filename)).rejects.toMatchObject({
       statusCode: 500,
       code: 'AVATAR_STORAGE_UNSAFE',
     });
@@ -85,9 +79,7 @@ describe('avatar read storage security', () => {
       return directoryStats as never;
     });
 
-    await expect(
-      readStoredAvatar(filename),
-    ).rejects.toMatchObject({
+    await expect(readStoredAvatar(filename)).rejects.toMatchObject({
       statusCode: 404,
       code: 'AVATAR_NOT_FOUND',
     });
@@ -106,9 +98,7 @@ describe('avatar read storage security', () => {
       return directoryStats as never;
     });
 
-    await expect(
-      readStoredAvatar(filename),
-    ).rejects.toMatchObject({
+    await expect(readStoredAvatar(filename)).rejects.toMatchObject({
       statusCode: 404,
       code: 'AVATAR_NOT_FOUND',
     });
@@ -166,9 +156,7 @@ describe('avatar read storage security', () => {
       close,
     } as never);
 
-    await expect(
-      readStoredAvatar(filename),
-    ).rejects.toMatchObject({
+    await expect(readStoredAvatar(filename)).rejects.toMatchObject({
       statusCode: 404,
       code: 'AVATAR_NOT_FOUND',
     });

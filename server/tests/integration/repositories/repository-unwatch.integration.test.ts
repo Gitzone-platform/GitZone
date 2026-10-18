@@ -52,11 +52,7 @@ describe('repository unwatch HTTP integration', () => {
       },
     });
 
-    expect(mockedUnwatchRepository).toHaveBeenCalledExactlyOnceWith(
-      'user-1',
-      'asil',
-      'demo',
-    );
+    expect(mockedUnwatchRepository).toHaveBeenCalledExactlyOnceWith('user-1', 'asil', 'demo');
   });
 
   it('returns the same result for repeated unwatch requests', async () => {
@@ -127,11 +123,7 @@ describe('repository unwatch HTTP integration', () => {
 
   it('returns 404 for a missing repository', async () => {
     mockedUnwatchRepository.mockRejectedValue(
-      new AppError(
-        'Repository not found',
-        404,
-        'REPOSITORY_NOT_FOUND',
-      ),
+      new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND'),
     );
 
     const response = await request(app)
@@ -146,11 +138,7 @@ describe('repository unwatch HTTP integration', () => {
       },
     });
 
-    expect(mockedUnwatchRepository).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'missing',
-    );
+    expect(mockedUnwatchRepository).toHaveBeenCalledWith('user-1', 'asil', 'missing');
   });
 
   it('returns 403 when private repository access is denied', async () => {
@@ -174,10 +162,6 @@ describe('repository unwatch HTTP integration', () => {
       },
     });
 
-    expect(mockedUnwatchRepository).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'private',
-    );
+    expect(mockedUnwatchRepository).toHaveBeenCalledWith('user-1', 'asil', 'private');
   });
 });

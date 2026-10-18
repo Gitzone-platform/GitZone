@@ -31,10 +31,7 @@ const getLockState = (userId: string): LockState => {
   return state;
 };
 
-const acquireLock = (
-  userId: string,
-  mode: LockMode,
-): Promise<() => void> => {
+const acquireLock = (userId: string, mode: LockMode): Promise<() => void> => {
   const state = getLockState(userId);
 
   return new Promise((resolve) => {
@@ -135,8 +132,7 @@ export const withGitUserWriteLock = async <T>(
  * The owner ID, not the mutable username or slug, determines the lock.
  */
 export type GitNamespaceLockOwner =
-  | { type: 'USER'; id: string }
-  | { type: 'ORGANIZATION'; id: string };
+  { type: 'USER'; id: string } | { type: 'ORGANIZATION'; id: string };
 
 const getGitNamespaceLockKey = (owner: GitNamespaceLockOwner): string => {
   if (owner.id.length === 0) {
@@ -194,11 +190,7 @@ export const withGitNamespacePairWriteLock = async <T>(
   }
 
   const [first, second] =
-    firstKey < secondKey
-      ? [firstOwner, secondOwner]
-      : [secondOwner, firstOwner];
+    firstKey < secondKey ? [firstOwner, secondOwner] : [secondOwner, firstOwner];
 
-  return withGitNamespaceWriteLock(first, () =>
-    withGitNamespaceWriteLock(second, operation),
-  );
+  return withGitNamespaceWriteLock(first, () => withGitNamespaceWriteLock(second, operation));
 };

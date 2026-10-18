@@ -5,9 +5,7 @@ import { processAndStoreAvatar } from '../../../src/services/profiles/avatar-upl
 
 describe('avatar upload security', () => {
   it('rejects an empty file', async () => {
-    await expect(
-      processAndStoreAvatar(Buffer.alloc(0), 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(Buffer.alloc(0), 'image/png')).rejects.toMatchObject({
       statusCode: 413,
       code: 'INVALID_AVATAR_SIZE',
     });
@@ -16,9 +14,7 @@ describe('avatar upload security', () => {
   it('rejects files larger than 5 MB', async () => {
     const oversized = Buffer.alloc(5 * 1024 * 1024 + 1);
 
-    await expect(
-      processAndStoreAvatar(oversized, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(oversized, 'image/png')).rejects.toMatchObject({
       statusCode: 413,
       code: 'INVALID_AVATAR_SIZE',
     });
@@ -27,9 +23,7 @@ describe('avatar upload security', () => {
   it('rejects corrupted image data', async () => {
     const corrupted = Buffer.from('not-a-real-image');
 
-    await expect(
-      processAndStoreAvatar(corrupted, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(corrupted, 'image/png')).rejects.toMatchObject({
       statusCode: 415,
       code: 'INVALID_AVATAR_IMAGE',
     });
@@ -47,9 +41,7 @@ describe('avatar upload security', () => {
       .jpeg()
       .toBuffer();
 
-    await expect(
-      processAndStoreAvatar(jpeg, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(jpeg, 'image/png')).rejects.toMatchObject({
       statusCode: 415,
       code: 'AVATAR_MIME_MISMATCH',
     });
@@ -67,9 +59,7 @@ describe('avatar upload security', () => {
       .gif()
       .toBuffer();
 
-    await expect(
-      processAndStoreAvatar(gif, 'image/gif'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(gif, 'image/gif')).rejects.toMatchObject({
       statusCode: 415,
     });
   });
@@ -86,9 +76,7 @@ describe('avatar upload security', () => {
       .png()
       .toBuffer();
 
-    await expect(
-      processAndStoreAvatar(hugeImage, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(hugeImage, 'image/png')).rejects.toMatchObject({
       statusCode: 415,
       code: 'INVALID_AVATAR_IMAGE',
     });

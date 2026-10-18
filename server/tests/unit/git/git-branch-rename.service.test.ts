@@ -1,10 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GitWriteError } from '../../../src/errors/git-write.error.js';
 import { executeGitReadCommand } from '../../../src/services/git/git-read-command.service.js';
@@ -12,41 +6,27 @@ import { renameGitBranch } from '../../../src/services/git/git-branch-mutation.s
 import { getGitRepositoryRefs } from '../../../src/services/git/git-ref.service.js';
 import { executeGitWriteCommand } from '../../../src/services/git/git-write-command.service.js';
 
-vi.mock(
-  '../../../src/services/git/git-read-command.service.js',
-  () => ({
-    executeGitReadCommand: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/git/git-read-command.service.js', () => ({
+  executeGitReadCommand: vi.fn(),
+}));
 
-vi.mock(
-  '../../../src/services/git/git-ref.service.js',
-  () => ({
-    getGitRepositoryRefs: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/git/git-ref.service.js', () => ({
+  getGitRepositoryRefs: vi.fn(),
+}));
 
-vi.mock(
-  '../../../src/services/git/git-write-command.service.js',
-  () => ({
-    executeGitWriteCommand: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/git/git-write-command.service.js', () => ({
+  executeGitWriteCommand: vi.fn(),
+}));
 
-const mockedRead =
-  vi.mocked(executeGitReadCommand);
+const mockedRead = vi.mocked(executeGitReadCommand);
 
-const mockedRefs =
-  vi.mocked(getGitRepositoryRefs);
+const mockedRefs = vi.mocked(getGitRepositoryRefs);
 
-const mockedWrite =
-  vi.mocked(executeGitWriteCommand);
+const mockedWrite = vi.mocked(executeGitWriteCommand);
 
-const mainOid =
-  '1111111111111111111111111111111111111111';
+const mainOid = '1111111111111111111111111111111111111111';
 
-const featureOid =
-  '2222222222222222222222222222222222222222';
+const featureOid = '2222222222222222222222222222222222222222';
 
 const refs = {
   objectFormat: 'sha1' as const,
@@ -113,20 +93,16 @@ describe('renameGitBranch', () => {
       objectType: 'commit',
     });
 
-    expect(mockedWrite)
-      .toHaveBeenCalledWith({
-        username: 'asil',
-        repositoryName: 'demo',
-        args: [
-          'update-ref',
-          '--stdin',
-        ],
-        stdin: [
-          `create refs/heads/feature/auth ${featureOid}`,
-          `delete refs/heads/feature/login ${featureOid}`,
-          '',
-        ].join('\n'),
-      });
+    expect(mockedWrite).toHaveBeenCalledWith({
+      username: 'asil',
+      repositoryName: 'demo',
+      args: ['update-ref', '--stdin'],
+      stdin: [
+        `create refs/heads/feature/auth ${featureOid}`,
+        `delete refs/heads/feature/login ${featureOid}`,
+        '',
+      ].join('\n'),
+    });
   });
 
   it('validates both branch names with Git', async () => {
@@ -153,8 +129,7 @@ describe('renameGitBranch', () => {
       code: 'INVALID_GIT_BRANCH_NAME',
     });
 
-    expect(mockedWrite)
-      .not.toHaveBeenCalled();
+    expect(mockedWrite).not.toHaveBeenCalled();
   });
 
   it('rejects unsafe target branch names', async () => {
@@ -170,8 +145,7 @@ describe('renameGitBranch', () => {
       code: 'INVALID_GIT_BRANCH_NAME',
     });
 
-    expect(mockedWrite)
-      .not.toHaveBeenCalled();
+    expect(mockedWrite).not.toHaveBeenCalled();
   });
 
   it('returns 404 when source branch is missing', async () => {
@@ -201,8 +175,7 @@ describe('renameGitBranch', () => {
       code: 'GIT_DEFAULT_BRANCH_PROTECTED',
     });
 
-    expect(mockedWrite)
-      .not.toHaveBeenCalled();
+    expect(mockedWrite).not.toHaveBeenCalled();
   });
 
   it('rejects an existing target branch', async () => {
@@ -221,13 +194,9 @@ describe('renameGitBranch', () => {
 
   it('maps concurrent rename failure to conflict', async () => {
     mockedWrite.mockRejectedValueOnce(
-      new GitWriteError(
-        'transaction failed',
-        'GIT_WRITE_COMMAND_FAILED',
-        {
-          exitCode: 128,
-        },
-      ),
+      new GitWriteError('transaction failed', 'GIT_WRITE_COMMAND_FAILED', {
+        exitCode: 128,
+      }),
     );
 
     await expect(
@@ -244,15 +213,9 @@ describe('renameGitBranch', () => {
   });
 
   it('preserves infrastructure failures', async () => {
-    const error =
-      new GitWriteError(
-        'Git timed out',
-        'GIT_WRITE_TIMEOUT',
-      );
+    const error = new GitWriteError('Git timed out', 'GIT_WRITE_TIMEOUT');
 
-    mockedWrite.mockRejectedValueOnce(
-      error,
-    );
+    mockedWrite.mockRejectedValueOnce(error);
 
     await expect(
       renameGitBranch({

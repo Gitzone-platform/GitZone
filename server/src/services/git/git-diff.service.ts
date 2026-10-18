@@ -24,17 +24,12 @@ export type GitCompareResult = {
   diff: GitUnifiedDiff;
 };
 
-const byteLength = (value: string): number =>
-  Buffer.byteLength(value, 'utf8');
+const byteLength = (value: string): number => Buffer.byteLength(value, 'utf8');
 
 const containsBinaryDiff = (diff: string): boolean =>
-  /^Binary files .* differ$/m.test(diff) ||
-  /^GIT binary patch$/m.test(diff);
+  /^Binary files .* differ$/m.test(diff) || /^GIT binary patch$/m.test(diff);
 
-const limitDiff = (
-  diff: string,
-  maxBytes: number,
-): GitUnifiedDiff => {
+const limitDiff = (diff: string, maxBytes: number): GitUnifiedDiff => {
   const size = byteLength(diff);
 
   if (size <= maxBytes) {
@@ -48,9 +43,7 @@ const limitDiff = (
 
   const buffer = Buffer.from(diff, 'utf8');
 
-  const limited = buffer
-    .subarray(0, maxBytes)
-    .toString('utf8');
+  const limited = buffer.subarray(0, maxBytes).toString('utf8');
 
   return {
     diff: limited,
@@ -60,31 +53,15 @@ const limitDiff = (
   };
 };
 
-const validateLimit = (
-  maxBytes: number,
-): void => {
-  if (
-    !Number.isSafeInteger(maxBytes) ||
-    maxBytes < 1024 ||
-    maxBytes > 5 * 1024 * 1024
-  ) {
-    throw new AppError(
-      'Invalid Git diff limit',
-      400,
-      'INVALID_GIT_DIFF_LIMIT',
-    );
+const validateLimit = (maxBytes: number): void => {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1024 || maxBytes > 5 * 1024 * 1024) {
+    throw new AppError('Invalid Git diff limit', 400, 'INVALID_GIT_DIFF_LIMIT');
   }
 };
 
-const assertCommitSha = (
-  sha: string,
-): void => {
+const assertCommitSha = (sha: string): void => {
   if (!SHA_PATTERN.test(sha)) {
-    throw new AppError(
-      'Invalid commit SHA',
-      400,
-      'INVALID_GIT_COMMIT_SHA',
-    );
+    throw new AppError('Invalid commit SHA', 400, 'INVALID_GIT_COMMIT_SHA');
   }
 };
 
@@ -94,36 +71,21 @@ const resolveBranch = async (
   branchName: string,
 ): Promise<string> => {
   if (!isSafeGitRefName(branchName)) {
-    throw new AppError(
-      'Invalid Git branch name',
-      400,
-      'INVALID_GIT_REF',
-    );
+    throw new AppError('Invalid Git branch name', 400, 'INVALID_GIT_REF');
   }
 
-  const refs = await getGitRepositoryRefs(
-    username,
-    repositoryName,
-  );
+  const refs = await getGitRepositoryRefs(username, repositoryName);
 
-  const branch = refs.branches.find(
-    (candidate) => candidate.name === branchName,
-  );
+  const branch = refs.branches.find((candidate) => candidate.name === branchName);
 
   if (!branch) {
-    throw new AppError(
-      'Git branch not found',
-      404,
-      'GIT_REF_NOT_FOUND',
-    );
+    throw new AppError('Git branch not found', 404, 'GIT_REF_NOT_FOUND');
   }
 
   return branch.fullName;
 };
 
-const mapDiffFailure = (
-  error: unknown,
-): never => {
+const mapDiffFailure = (error: unknown): never => {
   if (error instanceof AppError) {
     throw error;
   }
@@ -133,17 +95,10 @@ const mapDiffFailure = (
     error.code === 'GIT_READ_COMMAND_FAILED' &&
     error.exitCode === 128
   ) {
-    throw new AppError(
-      'Git revision not found',
-      404,
-      'GIT_REVISION_NOT_FOUND',
-    );
+    throw new AppError('Git revision not found', 404, 'GIT_REVISION_NOT_FOUND');
   }
 
-  if (
-    error instanceof GitReadError &&
-    error.code === 'GIT_READ_OUTPUT_LIMIT_EXCEEDED'
-  ) {
+  if (error instanceof GitReadError && error.code === 'GIT_READ_OUTPUT_LIMIT_EXCEEDED') {
     throw new AppError(
       'Git diff exceeded the server output limit',
       413,
@@ -151,11 +106,7 @@ const mapDiffFailure = (
     );
   }
 
-  throw new AppError(
-    'Failed to read Git diff',
-    500,
-    'GIT_DIFF_READ_FAILED',
-  );
+  throw new AppError('Failed to read Git diff', 500, 'GIT_DIFF_READ_FAILED');
 };
 
 export const getGitCommitDiff = async (
@@ -184,10 +135,7 @@ export const getGitCommitDiff = async (
       ],
     });
 
-    return limitDiff(
-      result.stdout,
-      maxBytes,
-    );
+    return limitDiff(result.stdout, maxBytes);
   } catch (error) {
     return mapDiffFailure(error);
   }
@@ -205,12 +153,7 @@ const getCommitDistance = async (
   const result = await executeGitReadCommand({
     username,
     repositoryName,
-    args: [
-      'rev-list',
-      '--left-right',
-      '--count',
-      `${base}...${head}`,
-    ],
+    args: ['rev-list', '--left-right', '--count', `${base}...${head}`],
   });
 
   const parts = result.stdout.trim().split(/\s+/);
@@ -255,18 +198,12 @@ const getMergeBase = async (
     const result = await executeGitReadCommand({
       username,
       repositoryName,
-      args: [
-        'merge-base',
-        base,
-        head,
-      ],
+      args: ['merge-base', base, head],
     });
 
     const value = result.stdout.trim();
 
-    return SHA_PATTERN.test(value)
-      ? value
-      : null;
+    return SHA_PATTERN.test(value) ? value : null;
   } catch (error) {
     if (
       error instanceof GitReadError &&
@@ -289,19 +226,9 @@ const compareRevisions = async (
 ): Promise<GitCompareResult> => {
   validateLimit(maxBytes);
 
-  const distance = await getCommitDistance(
-    username,
-    repositoryName,
-    base,
-    head,
-  );
+  const distance = await getCommitDistance(username, repositoryName, base, head);
 
-  const mergeBase = await getMergeBase(
-    username,
-    repositoryName,
-    base,
-    head,
-  );
+  const mergeBase = await getMergeBase(username, repositoryName, base, head);
 
   const result = await executeGitReadCommand({
     username,
@@ -324,10 +251,7 @@ const compareRevisions = async (
     mergeBase,
     aheadBy: distance.aheadBy,
     behindBy: distance.behindBy,
-    diff: limitDiff(
-      result.stdout,
-      maxBytes,
-    ),
+    diff: limitDiff(result.stdout, maxBytes),
   };
 };
 
@@ -342,13 +266,7 @@ export const compareGitCommits = async (
   assertCommitSha(headSha);
 
   try {
-    return await compareRevisions(
-      username,
-      repositoryName,
-      baseSha,
-      headSha,
-      maxBytes,
-    );
+    return await compareRevisions(username, repositoryName, baseSha, headSha, maxBytes);
   } catch (error) {
     return mapDiffFailure(error);
   }
@@ -362,25 +280,11 @@ export const compareGitBranches = async (
   maxBytes = DEFAULT_DIFF_LIMIT_BYTES,
 ): Promise<GitCompareResult> => {
   try {
-    const base = await resolveBranch(
-      username,
-      repositoryName,
-      baseBranch,
-    );
+    const base = await resolveBranch(username, repositoryName, baseBranch);
 
-    const head = await resolveBranch(
-      username,
-      repositoryName,
-      headBranch,
-    );
+    const head = await resolveBranch(username, repositoryName, headBranch);
 
-    return await compareRevisions(
-      username,
-      repositoryName,
-      base,
-      head,
-      maxBytes,
-    );
+    return await compareRevisions(username, repositoryName, base, head, maxBytes);
   } catch (error) {
     return mapDiffFailure(error);
   }

@@ -15,8 +15,7 @@ vi.mock('../../../src/services/profiles/profile-starred.service.js', () => ({
 }));
 
 vi.mock('../../../src/utils/auth/tokens.js', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('../../../src/utils/auth/tokens.js')>();
+  const original = await importOriginal<typeof import('../../../src/utils/auth/tokens.js')>();
 
   return {
     ...original,
@@ -59,8 +58,7 @@ describe('GET /api/users/:username/starred', () => {
   });
 
   it('returns starred repositories without authentication', async () => {
-    const response = await request(app)
-      .get('/api/users/asil/starred');
+    const response = await request(app).get('/api/users/asil/starred');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -68,24 +66,18 @@ describe('GET /api/users/:username/starred', () => {
       data: result,
     });
 
-    expect(mockedService).toHaveBeenCalledExactlyOnceWith(
-      'asil',
-      undefined,
-      { page: 1, limit: 20 },
-    );
+    expect(mockedService).toHaveBeenCalledExactlyOnceWith('asil', undefined, {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('passes validated pagination to the service', async () => {
-    const response = await request(app)
-      .get('/api/users/asil/starred?page=3&limit=5');
+    const response = await request(app).get('/api/users/asil/starred?page=3&limit=5');
 
     expect(response.status).toBe(200);
 
-    expect(mockedService).toHaveBeenCalledWith(
-      'asil',
-      undefined,
-      { page: 3, limit: 5 },
-    );
+    expect(mockedService).toHaveBeenCalledWith('asil', undefined, { page: 3, limit: 5 });
   });
 
   it('passes authenticated viewer ID to the service', async () => {
@@ -100,16 +92,11 @@ describe('GET /api/users/:username/starred', () => {
     expect(response.status).toBe(200);
     expect(mockedVerifyToken).toHaveBeenCalledWith('valid-test-token');
 
-    expect(mockedService).toHaveBeenCalledWith(
-      'asil',
-      'viewer-1',
-      { page: 1, limit: 20 },
-    );
+    expect(mockedService).toHaveBeenCalledWith('asil', 'viewer-1', { page: 1, limit: 20 });
   });
 
   it('rejects an invalid username', async () => {
-    const response = await request(app)
-      .get('/api/users/invalid.username/starred');
+    const response = await request(app).get('/api/users/invalid.username/starred');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_USERNAME');
@@ -117,8 +104,7 @@ describe('GET /api/users/:username/starred', () => {
   });
 
   it('rejects invalid pagination parameters', async () => {
-    const response = await request(app)
-      .get('/api/users/asil/starred?page=0&limit=101');
+    const response = await request(app).get('/api/users/asil/starred?page=0&limit=101');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_STARRED_QUERY');
@@ -126,8 +112,7 @@ describe('GET /api/users/:username/starred', () => {
   });
 
   it('rejects unexpected query parameters', async () => {
-    const response = await request(app)
-      .get('/api/users/asil/starred?includePrivate=true');
+    const response = await request(app).get('/api/users/asil/starred?includePrivate=true');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_STARRED_QUERY');
@@ -135,12 +120,9 @@ describe('GET /api/users/:username/starred', () => {
   });
 
   it('returns 404 when the profile does not exist', async () => {
-    mockedService.mockRejectedValue(
-      new AppError('User not found', 404, 'USER_NOT_FOUND'),
-    );
+    mockedService.mockRejectedValue(new AppError('User not found', 404, 'USER_NOT_FOUND'));
 
-    const response = await request(app)
-      .get('/api/users/missinguser/starred');
+    const response = await request(app).get('/api/users/missinguser/starred');
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('USER_NOT_FOUND');
@@ -157,8 +139,7 @@ describe('GET /api/users/:username/starred', () => {
       },
     });
 
-    const response = await request(app)
-      .get('/api/users/asil/starred');
+    const response = await request(app).get('/api/users/asil/starred');
 
     expect(response.status).toBe(200);
     expect(response.body.data.repositories).toEqual([]);
@@ -176,12 +157,9 @@ describe('GET /api/users/:username/starred', () => {
   });
 
   it('propagates service failures through error middleware', async () => {
-    mockedService.mockRejectedValue(
-      new AppError('Query failed', 503, 'STARRED_QUERY_FAILED'),
-    );
+    mockedService.mockRejectedValue(new AppError('Query failed', 503, 'STARRED_QUERY_FAILED'));
 
-    const response = await request(app)
-      .get('/api/users/asil/starred');
+    const response = await request(app).get('/api/users/asil/starred');
 
     expect(response.status).toBe(503);
     expect(response.body.error.code).toBe('STARRED_QUERY_FAILED');

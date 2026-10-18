@@ -16,29 +16,14 @@ import {
 const getParams = (req: Request) => {
   const { username, name } = req.params;
 
-  if (
-    typeof username !== 'string' ||
-    typeof name !== 'string' ||
-    !username ||
-    !name
-  ) {
-    throw new AppError(
-      'Invalid repository parameters',
-      400,
-      'INVALID_REPOSITORY_PARAMS',
-    );
+  if (typeof username !== 'string' || typeof name !== 'string' || !username || !name) {
+    throw new AppError('Invalid repository parameters', 400, 'INVALID_REPOSITORY_PARAMS');
   }
 
-  const parsedNumber = milestoneAssignmentNumberSchema.safeParse(
-    req.params.number,
-  );
+  const parsedNumber = milestoneAssignmentNumberSchema.safeParse(req.params.number);
 
   if (!parsedNumber.success) {
-    throw new AppError(
-      'Invalid issue or pull request number',
-      400,
-      'INVALID_NUMBER',
-    );
+    throw new AppError('Invalid issue or pull request number', 400, 'INVALID_NUMBER');
   }
 
   return {
@@ -52,20 +37,13 @@ const getBody = (req: Request) => {
   const parsed = assignMilestoneSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid milestone assignment data',
-      400,
-      'INVALID_MILESTONE_ASSIGNMENT',
-    );
+    throw new AppError('Invalid milestone assignment data', 400, 'INVALID_MILESTONE_ASSIGNMENT');
   }
 
   return parsed.data;
 };
 
-export const updateIssueMilestone = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const updateIssueMilestone = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const body = getBody(req);
   const userId = (req as AuthenticatedRequest).userId;
@@ -84,10 +62,7 @@ export const updateIssueMilestone = async (
   });
 };
 
-export const updatePullRequestMilestone = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const updatePullRequestMilestone = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const body = getBody(req);
   const userId = (req as AuthenticatedRequest).userId;

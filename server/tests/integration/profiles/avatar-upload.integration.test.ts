@@ -17,11 +17,7 @@ vi.mock('../../../src/services/profiles/avatar-profile.service.js', () => ({
 vi.mock('../../../src/middleware/auth.middleware.js', () => ({
   authMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization !== 'Bearer valid-test-token') {
-      throw new AppError(
-        'Authorization required',
-        401,
-        'AUTHORIZATION_REQUIRED',
-      );
+      throw new AppError('Authorization required', 401, 'AUTHORIZATION_REQUIRED');
     }
 
     (req as Request & { userId: string }).userId = 'user-1';
@@ -53,12 +49,10 @@ describe('avatar upload API integration', () => {
   });
 
   it('requires authentication before processing uploads', async () => {
-    const response = await request(app)
-      .patch(endpoint)
-      .attach('avatar', image, {
-        filename: 'avatar.png',
-        contentType: 'image/png',
-      });
+    const response = await request(app).patch(endpoint).attach('avatar', image, {
+      filename: 'avatar.png',
+      contentType: 'image/png',
+    });
 
     expect(response.status).toBe(401);
     expect(mockedUpdateAvatar).not.toHaveBeenCalled();
@@ -84,11 +78,7 @@ describe('avatar upload API integration', () => {
       },
     });
 
-    expect(mockedUpdateAvatar).toHaveBeenCalledWith(
-      'user-1',
-      image,
-      'image/png',
-    );
+    expect(mockedUpdateAvatar).toHaveBeenCalledWith('user-1', image, 'image/png');
   });
 
   it.each([
@@ -104,11 +94,7 @@ describe('avatar upload API integration', () => {
       });
 
     expect(response.status).toBe(200);
-    expect(mockedUpdateAvatar).toHaveBeenCalledWith(
-      'user-1',
-      image,
-      contentType,
-    );
+    expect(mockedUpdateAvatar).toHaveBeenCalledWith('user-1', image, contentType);
   });
 
   it('rejects unsupported GIF uploads', async () => {
@@ -167,11 +153,7 @@ describe('avatar upload API integration', () => {
 
   it('returns service errors through the API error handler', async () => {
     mockedUpdateAvatar.mockRejectedValue(
-      new AppError(
-        'Avatar was changed by another request',
-        409,
-        'AVATAR_UPDATE_CONFLICT',
-      ),
+      new AppError('Avatar was changed by another request', 409, 'AVATAR_UPDATE_CONFLICT'),
     );
 
     const response = await request(app)

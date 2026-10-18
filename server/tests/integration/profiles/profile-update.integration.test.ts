@@ -18,11 +18,7 @@ vi.mock('../../../src/services/profiles/profile.service.js', () => ({
 vi.mock('../../../src/middleware/auth.middleware.js', () => ({
   authMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization !== 'Bearer valid-test-token') {
-      throw new AppError(
-        'Authorization required',
-        401,
-        'AUTHORIZATION_REQUIRED',
-      );
+      throw new AppError('Authorization required', 401, 'AUTHORIZATION_REQUIRED');
     }
 
     (req as Request & { userId: string }).userId = 'user-1';
@@ -75,13 +71,10 @@ describe('profile update API integration', () => {
       },
     });
 
-    expect(mockedUpdateUserProfile).toHaveBeenCalledWith(
-      'user-1',
-      {
-        name: 'Asilbek',
-        bio: 'Full Stack Developer',
-      },
-    );
+    expect(mockedUpdateUserProfile).toHaveBeenCalledWith('user-1', {
+      name: 'Asilbek',
+      bio: 'Full Stack Developer',
+    });
   });
 
   it('updates username successfully', async () => {
@@ -106,10 +99,7 @@ describe('profile update API integration', () => {
       },
     });
 
-    expect(mockedUpdateUserProfile).toHaveBeenCalledWith(
-      'user-1',
-      { username: 'newuser' },
-    );
+    expect(mockedUpdateUserProfile).toHaveBeenCalledWith('user-1', { username: 'newuser' });
   });
 
   it('updates username and other profile fields together', async () => {
@@ -137,23 +127,16 @@ describe('profile update API integration', () => {
       bio: null,
     });
 
-    expect(mockedUpdateUserProfile).toHaveBeenCalledWith(
-      'user-1',
-      {
-        username: 'newuser',
-        name: 'Updated Name',
-        bio: null,
-      },
-    );
+    expect(mockedUpdateUserProfile).toHaveBeenCalledWith('user-1', {
+      username: 'newuser',
+      name: 'Updated Name',
+      bio: null,
+    });
   });
 
   it('returns 409 when username is already taken', async () => {
     mockedUpdateUserProfile.mockRejectedValue(
-      new AppError(
-        'Username is already taken',
-        409,
-        'USERNAME_TAKEN',
-      ),
+      new AppError('Username is already taken', 409, 'USERNAME_TAKEN'),
     );
 
     const response = await request(app)
@@ -199,9 +182,7 @@ describe('profile update API integration', () => {
       .send({ username: 'newuser' });
 
     expect(response.status).toBe(409);
-    expect(response.body.error.code).toBe(
-      'GIT_USER_DIRECTORY_MISSING',
-    );
+    expect(response.body.error.code).toBe('GIT_USER_DIRECTORY_MISSING');
   });
 
   it('accepts an unchanged username with updated profile fields', async () => {
@@ -225,18 +206,13 @@ describe('profile update API integration', () => {
       name: 'Updated Name',
     });
 
-    expect(mockedUpdateUserProfile).toHaveBeenCalledWith(
-      'user-1',
-      {
-        username: 'asil',
-        name: 'Updated Name',
-      },
-    );
+    expect(mockedUpdateUserProfile).toHaveBeenCalledWith('user-1', {
+      username: 'asil',
+      name: 'Updated Name',
+    });
   });
   it('rejects requests without authorization', async () => {
-    const response = await request(app)
-      .patch(endpoint)
-      .send({ name: 'Asilbek' });
+    const response = await request(app).patch(endpoint).send({ name: 'Asilbek' });
 
     expect(response.status).toBe(401);
     expect(response.body.error.code).toBe('AUTHORIZATION_REQUIRED');
@@ -308,13 +284,10 @@ describe('profile update API integration', () => {
 
     expect(response.status).toBe(200);
 
-    expect(mockedUpdateUserProfile).toHaveBeenCalledWith(
-      'user-1',
-      {
-        bio: null,
-        website: null,
-      },
-    );
+    expect(mockedUpdateUserProfile).toHaveBeenCalledWith('user-1', {
+      bio: null,
+      website: null,
+    });
   });
 
   it('returns 404 when the authenticated user no longer exists', async () => {

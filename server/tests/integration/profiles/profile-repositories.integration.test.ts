@@ -53,8 +53,7 @@ describe('public profile repositories API', () => {
   it('returns public repositories for an existing user', async () => {
     mockedGetRepositories.mockResolvedValue([publicRepository]);
 
-    const response = await request(app)
-      .get('/api/users/asil/repositories');
+    const response = await request(app).get('/api/users/asil/repositories');
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -72,20 +71,16 @@ describe('public profile repositories API', () => {
   it('returns an empty list for a user without public repositories', async () => {
     mockedGetRepositories.mockResolvedValue([]);
 
-    const response = await request(app)
-      .get('/api/users/asil/repositories');
+    const response = await request(app).get('/api/users/asil/repositories');
 
     expect(response.status).toBe(200);
     expect(response.body.data.repositories).toEqual([]);
   });
 
   it('returns 404 for a nonexistent user', async () => {
-    mockedGetProfile.mockRejectedValue(
-      new AppError('User not found', 404, 'USER_NOT_FOUND'),
-    );
+    mockedGetProfile.mockRejectedValue(new AppError('User not found', 404, 'USER_NOT_FOUND'));
 
-    const response = await request(app)
-      .get('/api/users/missinguser/repositories');
+    const response = await request(app).get('/api/users/missinguser/repositories');
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('USER_NOT_FOUND');
@@ -93,8 +88,7 @@ describe('public profile repositories API', () => {
   });
 
   it('rejects invalid usernames', async () => {
-    const response = await request(app)
-      .get('/api/users/invalid.username/repositories');
+    const response = await request(app).get('/api/users/invalid.username/repositories');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_USERNAME');
@@ -105,8 +99,7 @@ describe('public profile repositories API', () => {
   it('does not require an authorization header', async () => {
     mockedGetRepositories.mockResolvedValue([publicRepository]);
 
-    const response = await request(app)
-      .get('/api/users/asil/repositories');
+    const response = await request(app).get('/api/users/asil/repositories');
 
     expect(response.status).toBe(200);
     expect(mockedGetRepositories).toHaveBeenCalledOnce();
@@ -117,8 +110,7 @@ describe('public profile repositories API', () => {
       new AppError('Repository query failed', 503, 'REPOSITORY_QUERY_FAILED'),
     );
 
-    const response = await request(app)
-      .get('/api/users/asil/repositories');
+    const response = await request(app).get('/api/users/asil/repositories');
 
     expect(response.status).toBe(503);
     expect(response.body.error.code).toBe('REPOSITORY_QUERY_FAILED');

@@ -31,9 +31,7 @@ describe('getRepositoryStarCount', () => {
   it('returns 404 when repository does not exist', async () => {
     mockedFindFirst.mockResolvedValue(null);
 
-    await expect(
-      getRepositoryStarCount('asil', 'missing'),
-    ).rejects.toMatchObject({
+    await expect(getRepositoryStarCount('asil', 'missing')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -61,11 +59,7 @@ describe('getRepositoryStarCount', () => {
       },
     });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      undefined,
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'READ', undefined);
 
     expect(mockedCount).toHaveBeenCalledWith({
       where: {
@@ -84,9 +78,7 @@ describe('getRepositoryStarCount', () => {
     mockedAuthorize.mockResolvedValue({ permission: 'PUBLIC' } as never);
     mockedCount.mockResolvedValue(12);
 
-    await expect(
-      getRepositoryStarCount('asil', 'demo'),
-    ).resolves.toEqual({
+    await expect(getRepositoryStarCount('asil', 'demo')).resolves.toEqual({
       repositoryId: 'repo-1',
       starCount: 12,
     });
@@ -97,18 +89,12 @@ describe('getRepositoryStarCount', () => {
     mockedAuthorize.mockResolvedValue({ permission: 'READ' } as never);
     mockedCount.mockResolvedValue(3);
 
-    await expect(
-      getRepositoryStarCount('asil', 'private', 'collaborator-1'),
-    ).resolves.toEqual({
+    await expect(getRepositoryStarCount('asil', 'private', 'collaborator-1')).resolves.toEqual({
       repositoryId: 'private-repo',
       starCount: 3,
     });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'private-repo',
-      'READ',
-      'collaborator-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('private-repo', 'READ', 'collaborator-1');
   });
 
   it('denies unauthorized access without querying star count', async () => {
@@ -118,9 +104,7 @@ describe('getRepositoryStarCount', () => {
       code: 'REPOSITORY_ACCESS_DENIED',
     });
 
-    await expect(
-      getRepositoryStarCount('asil', 'private', 'stranger-1'),
-    ).rejects.toMatchObject({
+    await expect(getRepositoryStarCount('asil', 'private', 'stranger-1')).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
     });
@@ -133,9 +117,7 @@ describe('getRepositoryStarCount', () => {
     mockedAuthorize.mockResolvedValue({ permission: 'PUBLIC' } as never);
     mockedCount.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      getRepositoryStarCount('asil', 'demo'),
-    ).rejects.toThrow('Database unavailable');
+    await expect(getRepositoryStarCount('asil', 'demo')).rejects.toThrow('Database unavailable');
   });
 
   it('waits for authorization before counting stars', async () => {

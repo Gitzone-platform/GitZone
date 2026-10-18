@@ -26,12 +26,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-authorization.service.js',
-  () => ({
-    authorizeRepositoryAccess: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
+  authorizeRepositoryAccess: vi.fn(),
+}));
 
 const findRepository = vi.mocked(prisma.repository.findFirst);
 const authorize = vi.mocked(authorizeRepositoryAccess);
@@ -84,24 +81,15 @@ describe('Label service', () => {
   });
 
   it('creates a label with WRITE permission', async () => {
-    const result = await createLabel(
-      'user-1',
-      'owner',
-      'demo',
-      {
-        name: 'bug',
-        color: '#FF5733',
-        description: 'Bug reports',
-      },
-    );
+    const result = await createLabel('user-1', 'owner', 'demo', {
+      name: 'bug',
+      color: '#FF5733',
+      description: 'Bug reports',
+    });
 
     expect(result).toEqual(label);
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
 
     expect(createRecord).toHaveBeenCalledWith({
       data: {
@@ -114,15 +102,10 @@ describe('Label service', () => {
   });
 
   it('defaults missing description to null', async () => {
-    await createLabel(
-      'user-1',
-      'owner',
-      'demo',
-      {
-        name: 'feature',
-        color: '#00FF00',
-      },
-    );
+    await createLabel('user-1', 'owner', 'demo', {
+      name: 'feature',
+      color: '#00FF00',
+    });
 
     expect(createRecord).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -156,28 +139,16 @@ describe('Label service', () => {
 
     expect(result).toEqual([label]);
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      undefined,
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'READ', undefined);
 
     expect(findRecords).toHaveBeenCalledWith({
       where: { repositoryId: 'repo-1' },
-      orderBy: [
-        { name: 'asc' },
-        { id: 'asc' },
-      ],
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
     });
   });
 
   it('gets only a label belonging to the repository', async () => {
-    const result = await getLabel(
-      'owner',
-      'demo',
-      'label-1',
-      'user-1',
-    );
+    const result = await getLabel('owner', 'demo', 'label-1', 'user-1');
 
     expect(result).toEqual(label);
 
@@ -192,32 +163,20 @@ describe('Label service', () => {
   it('returns 404 for a label outside the repository', async () => {
     findRecord.mockResolvedValue(null);
 
-    await expect(
-      getLabel('owner', 'demo', 'foreign-label'),
-    ).rejects.toMatchObject({
+    await expect(getLabel('owner', 'demo', 'foreign-label')).rejects.toMatchObject({
       statusCode: 404,
       code: 'LABEL_NOT_FOUND',
     });
   });
 
   it('updates a label with WRITE permission', async () => {
-    const result = await updateLabel(
-      'user-1',
-      'owner',
-      'demo',
-      'label-1',
-      {
-        color: '#00FF00',
-      },
-    );
+    const result = await updateLabel('user-1', 'owner', 'demo', 'label-1', {
+      color: '#00FF00',
+    });
 
     expect(result).toEqual(label);
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
 
     expect(updateRecord).toHaveBeenCalledWith({
       where: {
@@ -231,15 +190,9 @@ describe('Label service', () => {
   });
 
   it('preserves explicitly null description on update', async () => {
-    await updateLabel(
-      'user-1',
-      'owner',
-      'demo',
-      'label-1',
-      {
-        description: null,
-      },
-    );
+    await updateLabel('user-1', 'owner', 'demo', 'label-1', {
+      description: null,
+    });
 
     expect(updateRecord).toHaveBeenCalledWith({
       where: {
@@ -256,13 +209,7 @@ describe('Label service', () => {
     findRecord.mockResolvedValue(null);
 
     await expect(
-      updateLabel(
-        'user-1',
-        'owner',
-        'demo',
-        'foreign-label',
-        { name: 'changed' },
-      ),
+      updateLabel('user-1', 'owner', 'demo', 'foreign-label', { name: 'changed' }),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'LABEL_NOT_FOUND',
@@ -273,13 +220,10 @@ describe('Label service', () => {
 
   it('rejects duplicate label creation with 409', async () => {
     createRecord.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        {
-          code: 'P2002',
-          clientVersion: '7.10.0',
-        },
-      ),
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: '7.10.0',
+      }),
     );
 
     await expect(
@@ -295,41 +239,23 @@ describe('Label service', () => {
 
   it('rejects duplicate label rename with 409', async () => {
     updateRecord.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        {
-          code: 'P2002',
-          clientVersion: '7.10.0',
-        },
-      ),
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: '7.10.0',
+      }),
     );
 
     await expect(
-      updateLabel(
-        'user-1',
-        'owner',
-        'demo',
-        'label-1',
-        { name: 'existing-label' },
-      ),
+      updateLabel('user-1', 'owner', 'demo', 'label-1', { name: 'existing-label' }),
     ).rejects.toMatchObject({
       statusCode: 409,
       code: 'LABEL_ALREADY_EXISTS',
     });
   });
   it('deletes a label scoped to the repository', async () => {
-    await deleteLabel(
-      'user-1',
-      'owner',
-      'demo',
-      'label-1',
-    );
+    await deleteLabel('user-1', 'owner', 'demo', 'label-1');
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
 
     expect(deleteRecord).toHaveBeenCalledWith({
       where: {
@@ -342,14 +268,7 @@ describe('Label service', () => {
   it('does not delete a foreign repository label', async () => {
     findRecord.mockResolvedValue(null);
 
-    await expect(
-      deleteLabel(
-        'user-1',
-        'owner',
-        'demo',
-        'foreign-label',
-      ),
-    ).rejects.toMatchObject({
+    await expect(deleteLabel('user-1', 'owner', 'demo', 'foreign-label')).rejects.toMatchObject({
       statusCode: 404,
       code: 'LABEL_NOT_FOUND',
     });

@@ -44,9 +44,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .delete(endpoint)
-      .expect(401);
+    const response = await request(app).delete(endpoint).expect(401);
 
     expect(response.body.error.code).toBe('UNAUTHORIZED');
     expect(mocks.removeOrganizationMember).not.toHaveBeenCalled();
@@ -68,9 +66,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
       .set('Authorization', authorization)
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_MEMBER_ID',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_MEMBER_ID');
 
     expect(mocks.removeOrganizationMember).not.toHaveBeenCalled();
   });
@@ -81,9 +77,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
       .set('Authorization', authorization)
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_MEMBER_ID',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_MEMBER_ID');
 
     expect(mocks.removeOrganizationMember).not.toHaveBeenCalled();
   });
@@ -116,11 +110,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
 
   it('returns 403 when the actor is not an owner', async () => {
     mocks.removeOrganizationMember.mockRejectedValue(
-      new AppError(
-        'Organization owner permission required',
-        403,
-        'ORGANIZATION_OWNER_REQUIRED',
-      ),
+      new AppError('Organization owner permission required', 403, 'ORGANIZATION_OWNER_REQUIRED'),
     );
 
     const response = await request(app)
@@ -128,18 +118,12 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
       .set('Authorization', authorization)
       .expect(403);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_OWNER_REQUIRED',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_OWNER_REQUIRED');
   });
 
   it('returns 404 when the organization does not exist', async () => {
     mocks.removeOrganizationMember.mockRejectedValue(
-      new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      ),
+      new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND'),
     );
 
     const response = await request(app)
@@ -152,11 +136,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
 
   it('returns 404 when the target membership does not exist', async () => {
     mocks.removeOrganizationMember.mockRejectedValue(
-      new AppError(
-        'Organization member not found',
-        404,
-        'ORGANIZATION_MEMBER_NOT_FOUND',
-      ),
+      new AppError('Organization member not found', 404, 'ORGANIZATION_MEMBER_NOT_FOUND'),
     );
 
     const response = await request(app)
@@ -164,9 +144,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
       .set('Authorization', authorization)
       .expect(404);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_MEMBER_NOT_FOUND',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_MEMBER_NOT_FOUND');
   });
 
   it('returns 409 when trying to remove an owner', async () => {
@@ -183,9 +161,7 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
       .set('Authorization', authorization)
       .expect(409);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_OWNER_REMOVAL_FORBIDDEN',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_OWNER_REMOVAL_FORBIDDEN');
   });
 
   it('returns 409 when membership changes during removal', async () => {
@@ -202,8 +178,6 @@ describe('DELETE /api/organizations/:slug/members/:userId', () => {
       .set('Authorization', authorization)
       .expect(409);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_MEMBERSHIP_CHANGED',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_MEMBERSHIP_CHANGED');
   });
 });

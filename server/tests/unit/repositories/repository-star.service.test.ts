@@ -91,11 +91,7 @@ describe('starRepository', () => {
       starred: true,
     });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'private-repo',
-      'READ',
-      'collaborator-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('private-repo', 'READ', 'collaborator-1');
   });
 
   it('denies star when repository read access is forbidden', async () => {
@@ -143,8 +139,6 @@ describe('starRepository', () => {
     mockedAuthorize.mockResolvedValue({ permission: 'PUBLIC' } as never);
     mockedUpsert.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(starRepository('user-1', 'asil', 'demo')).rejects.toThrow(
-      'Database unavailable',
-    );
+    await expect(starRepository('user-1', 'asil', 'demo')).rejects.toThrow('Database unavailable');
   });
 });

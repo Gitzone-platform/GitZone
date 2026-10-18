@@ -64,7 +64,10 @@ describe('organization Git repository creation', () => {
     mockedResolve.mockReturnValue(gitPath);
     mockedAccess.mockRejectedValue(missing);
     mockedMkdir.mockResolvedValue(undefined);
-    mockedLstat.mockResolvedValue({ isDirectory: () => true, isSymbolicLink: () => false } as Awaited<ReturnType<typeof fs.lstat>>);
+    mockedLstat.mockResolvedValue({
+      isDirectory: () => true,
+      isSymbolicLink: () => false,
+    } as Awaited<ReturnType<typeof fs.lstat>>);
     gitSuccess();
   });
 

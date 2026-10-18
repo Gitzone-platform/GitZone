@@ -46,9 +46,7 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .post(endpoint)
-      .expect(401);
+    const response = await request(app).post(endpoint).expect(401);
 
     expect(response.body.error.code).toBe('UNAUTHORIZED');
     expect(mocks.acceptOrganizationInvitation).not.toHaveBeenCalled();
@@ -60,9 +58,7 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
       .set('Authorization', authorization)
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_INVITATION_ID',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_INVITATION_ID');
 
     expect(mocks.acceptOrganizationInvitation).not.toHaveBeenCalled();
   });
@@ -73,9 +69,7 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
       .set('Authorization', authorization)
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_INVITATION_ID',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_INVITATION_ID');
 
     expect(mocks.acceptOrganizationInvitation).not.toHaveBeenCalled();
   });
@@ -117,11 +111,7 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
 
   it('returns 404 when the invitation is missing or belongs to another user', async () => {
     mocks.acceptOrganizationInvitation.mockRejectedValue(
-      new AppError(
-        'Organization invitation not found',
-        404,
-        'ORGANIZATION_INVITATION_NOT_FOUND',
-      ),
+      new AppError('Organization invitation not found', 404, 'ORGANIZATION_INVITATION_NOT_FOUND'),
     );
 
     const response = await request(app)
@@ -129,9 +119,7 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
       .set('Authorization', authorization)
       .expect(404);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_INVITATION_NOT_FOUND',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_INVITATION_NOT_FOUND');
   });
 
   it('returns 409 when the invitation is no longer pending', async () => {
@@ -148,18 +136,12 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
       .set('Authorization', authorization)
       .expect(409);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_INVITATION_NOT_PENDING',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_INVITATION_NOT_PENDING');
   });
 
   it('returns 410 when the invitation has expired', async () => {
     mocks.acceptOrganizationInvitation.mockRejectedValue(
-      new AppError(
-        'Organization invitation has expired',
-        410,
-        'ORGANIZATION_INVITATION_EXPIRED',
-      ),
+      new AppError('Organization invitation has expired', 410, 'ORGANIZATION_INVITATION_EXPIRED'),
     );
 
     const response = await request(app)
@@ -167,9 +149,7 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
       .set('Authorization', authorization)
       .expect(410);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_INVITATION_EXPIRED',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_INVITATION_EXPIRED');
   });
 
   it('returns 409 when membership already exists', async () => {
@@ -186,8 +166,6 @@ describe('POST /api/organizations/invitations/:invitationId/accept', () => {
       .set('Authorization', authorization)
       .expect(409);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_MEMBER_ALREADY_EXISTS',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_MEMBER_ALREADY_EXISTS');
   });
 });

@@ -23,11 +23,7 @@ vi.mock('../../../src/middleware/auth.middleware.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/optional-auth.middleware.js', () => ({
-  optionalAuthMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
       (req as Request & { userId?: string }).userId = 'user-1';
     }
@@ -84,9 +80,7 @@ describe('Repository issue comments API integration', () => {
   });
 
   it('creates a comment', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({ body: 'First comment' });
+    const response = await request(app).post(base).send({ body: 'First comment' });
 
     expect(response.status).toBe(201);
 
@@ -100,19 +94,13 @@ describe('Repository issue comments API integration', () => {
       },
     });
 
-    expect(mockedCreate).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      1,
-      { body: 'First comment' },
-    );
+    expect(mockedCreate).toHaveBeenCalledWith('user-1', 'asil', 'demo', 1, {
+      body: 'First comment',
+    });
   });
 
   it('rejects empty comment body', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({ body: '   ' });
+    const response = await request(app).post(base).send({ body: '   ' });
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_ISSUE_COMMENT_DATA');
@@ -120,12 +108,10 @@ describe('Repository issue comments API integration', () => {
   });
 
   it('rejects unknown comment creation fields', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({
-        body: 'Hello',
-        unexpected: true,
-      });
+    const response = await request(app).post(base).send({
+      body: 'Hello',
+      unexpected: true,
+    });
 
     expect(response.status).toBe(400);
     expect(mockedCreate).not.toHaveBeenCalled();
@@ -137,41 +123,25 @@ describe('Repository issue comments API integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.data.comments).toHaveLength(1);
 
-    expect(mockedList).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      1,
-      undefined,
-      {
-        page: 1,
-        limit: 20,
-      },
-    );
+    expect(mockedList).toHaveBeenCalledWith('asil', 'demo', 1, undefined, {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('lists comments with custom pagination', async () => {
-    const response = await request(app)
-      .get(base)
-      .query({ page: '2', limit: '5' });
+    const response = await request(app).get(base).query({ page: '2', limit: '5' });
 
     expect(response.status).toBe(200);
 
-    expect(mockedList).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      1,
-      undefined,
-      {
-        page: 2,
-        limit: 5,
-      },
-    );
+    expect(mockedList).toHaveBeenCalledWith('asil', 'demo', 1, undefined, {
+      page: 2,
+      limit: 5,
+    });
   });
 
   it('rejects invalid comments pagination', async () => {
-    const response = await request(app)
-      .get(base)
-      .query({ limit: '101' });
+    const response = await request(app).get(base).query({ limit: '101' });
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_ISSUE_COMMENTS_QUERY');
@@ -186,20 +156,13 @@ describe('Repository issue comments API integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
 
-    expect(mockedUpdate).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      1,
-      'comment-1',
-      { body: 'Updated comment' },
-    );
+    expect(mockedUpdate).toHaveBeenCalledWith('user-1', 'asil', 'demo', 1, 'comment-1', {
+      body: 'Updated comment',
+    });
   });
 
   it('rejects invalid comment update', async () => {
-    const response = await request(app)
-      .patch(`${base}/comment-1`)
-      .send({ body: '' });
+    const response = await request(app).patch(`${base}/comment-1`).send({ body: '' });
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_ISSUE_COMMENT_UPDATE');
@@ -207,8 +170,7 @@ describe('Repository issue comments API integration', () => {
   });
 
   it('deletes a comment', async () => {
-    const response = await request(app)
-      .delete(`${base}/comment-1`);
+    const response = await request(app).delete(`${base}/comment-1`);
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -216,18 +178,11 @@ describe('Repository issue comments API integration', () => {
       data: { deleted: true },
     });
 
-    expect(mockedDelete).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      1,
-      'comment-1',
-    );
+    expect(mockedDelete).toHaveBeenCalledWith('user-1', 'asil', 'demo', 1, 'comment-1');
   });
 
   it('rejects invalid issue number', async () => {
-    const response = await request(app)
-      .get('/api/repositories/asil/demo/issues/invalid/comments');
+    const response = await request(app).get('/api/repositories/asil/demo/issues/invalid/comments');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_ISSUE_NUMBER');

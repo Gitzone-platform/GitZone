@@ -3,11 +3,7 @@ import { AppError } from '../../errors/app.error.js';
 import { isPrismaUniqueConstraintError } from '../../utils/prisma/errors.js';
 import { authorizeRepositoryAccess } from '../repositories/repository-authorization.service.js';
 
-const resolveRepository = async (
-  userId: string,
-  username: string,
-  repositoryName: string,
-) => {
+const resolveRepository = async (userId: string, username: string, repositoryName: string) => {
   const repository = await prisma.repository.findFirst({
     where: {
       name: repositoryName,

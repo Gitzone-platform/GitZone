@@ -1,9 +1,21 @@
 import { createOrganizationRepositoryController } from '../controllers/organizations/organization-repository.controller.js';
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware.js';
-import { create, getMembers, getOwners, getProfile, leave, removeMember, transferOwnership, updateProfile } from '../controllers/organizations/organization.controller.js';
+import {
+  create,
+  getMembers,
+  getOwners,
+  getProfile,
+  leave,
+  removeMember,
+  transferOwnership,
+  updateProfile,
+} from '../controllers/organizations/organization.controller.js';
 import { optionalAuthMiddleware } from '../middleware/optional-auth.middleware.js';
-import { acceptInvitation, inviteMember } from '../controllers/organizations/organization-invitation.controller.js';
+import {
+  acceptInvitation,
+  inviteMember,
+} from '../controllers/organizations/organization-invitation.controller.js';
 
 const router = Router();
 router.post('/', authMiddleware, create);

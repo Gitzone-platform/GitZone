@@ -53,9 +53,7 @@ describe('Issue assignee service', () => {
   it('rejects missing repository', async () => {
     findRepository.mockResolvedValue(null as never);
 
-    await expect(
-      addIssueAssignee('owner-1', 'owner', 'demo', 1, 'alice'),
-    ).rejects.toMatchObject({
+    await expect(addIssueAssignee('owner-1', 'owner', 'demo', 1, 'alice')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -66,9 +64,7 @@ describe('Issue assignee service', () => {
   it('rejects missing issue', async () => {
     findIssue.mockResolvedValue(null as never);
 
-    await expect(
-      addIssueAssignee('owner-1', 'owner', 'demo', 999, 'alice'),
-    ).rejects.toMatchObject({
+    await expect(addIssueAssignee('owner-1', 'owner', 'demo', 999, 'alice')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ISSUE_NOT_FOUND',
     });
@@ -79,9 +75,7 @@ describe('Issue assignee service', () => {
   it('rejects missing assignee user', async () => {
     findUser.mockResolvedValue(null as never);
 
-    await expect(
-      addIssueAssignee('owner-1', 'owner', 'demo', 1, 'missing'),
-    ).rejects.toMatchObject({
+    await expect(addIssueAssignee('owner-1', 'owner', 'demo', 1, 'missing')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ISSUE_ASSIGNEE_USER_NOT_FOUND',
     });
@@ -95,13 +89,7 @@ describe('Issue assignee service', () => {
       userId: 'owner-1',
     } as never);
 
-    const result = await addIssueAssignee(
-      'owner-1',
-      'owner',
-      'demo',
-      1,
-      'owner',
-    );
+    const result = await addIssueAssignee('owner-1', 'owner', 'demo', 1, 'owner');
 
     expect(result.userId).toBe('owner-1');
     expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'owner-1');
@@ -126,13 +114,7 @@ describe('Issue assignee service', () => {
       userId: 'collab-1',
     } as never);
 
-    await addIssueAssignee(
-      'owner-1',
-      'owner',
-      'demo',
-      1,
-      'alice',
-    );
+    await addIssueAssignee('owner-1', 'owner', 'demo', 1, 'alice');
 
     expect(findCollaborator).toHaveBeenCalledWith({
       where: {
@@ -151,12 +133,12 @@ describe('Issue assignee service', () => {
     findUser.mockResolvedValue({ id: 'outsider-1' } as never);
     findCollaborator.mockResolvedValue(null as never);
 
-    await expect(
-      addIssueAssignee('owner-1', 'owner', 'demo', 1, 'outsider'),
-    ).rejects.toMatchObject({
-      statusCode: 403,
-      code: 'ISSUE_ASSIGNEE_NOT_ELIGIBLE',
-    });
+    await expect(addIssueAssignee('owner-1', 'owner', 'demo', 1, 'outsider')).rejects.toMatchObject(
+      {
+        statusCode: 403,
+        code: 'ISSUE_ASSIGNEE_NOT_ELIGIBLE',
+      },
+    );
 
     expect(createAssignee).not.toHaveBeenCalled();
   });
@@ -165,18 +147,13 @@ describe('Issue assignee service', () => {
     findUser.mockResolvedValue({ id: 'owner-1' } as never);
 
     createAssignee.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        {
-          code: 'P2002',
-          clientVersion: 'test',
-        },
-      ),
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
     );
 
-    await expect(
-      addIssueAssignee('owner-1', 'owner', 'demo', 1, 'owner'),
-    ).rejects.toMatchObject({
+    await expect(addIssueAssignee('owner-1', 'owner', 'demo', 1, 'owner')).rejects.toMatchObject({
       statusCode: 409,
       code: 'ISSUE_ASSIGNEE_ALREADY_EXISTS',
     });
@@ -188,9 +165,7 @@ describe('Issue assignee service', () => {
       code: 'REPOSITORY_FORBIDDEN',
     });
 
-    await expect(
-      addIssueAssignee('reader-1', 'owner', 'demo', 1, 'owner'),
-    ).rejects.toMatchObject({
+    await expect(addIssueAssignee('reader-1', 'owner', 'demo', 1, 'owner')).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_FORBIDDEN',
     });
@@ -200,17 +175,9 @@ describe('Issue assignee service', () => {
   });
 
   it('lists assignees with READ access', async () => {
-    findAssignees.mockResolvedValue([
-      { userId: 'owner-1' },
-      { userId: 'collab-1' },
-    ] as never);
+    findAssignees.mockResolvedValue([{ userId: 'owner-1' }, { userId: 'collab-1' }] as never);
 
-    const result = await listIssueAssignees(
-      'owner',
-      'demo',
-      1,
-      'reader-1',
-    );
+    const result = await listIssueAssignees('owner', 'demo', 1, 'reader-1');
 
     expect(result).toHaveLength(2);
     expect(authorize).toHaveBeenCalledWith('repo-1', 'READ', 'reader-1');
@@ -218,10 +185,7 @@ describe('Issue assignee service', () => {
     expect(findAssignees).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { issueId: 'issue-1' },
-        orderBy: [
-          { assignedAt: 'asc' },
-          { userId: 'asc' },
-        ],
+        orderBy: [{ assignedAt: 'asc' }, { userId: 'asc' }],
       }),
     );
   });
@@ -230,13 +194,7 @@ describe('Issue assignee service', () => {
     findUser.mockResolvedValue({ id: 'collab-1' } as never);
     deleteAssignees.mockResolvedValue({ count: 1 } as never);
 
-    await removeIssueAssignee(
-      'owner-1',
-      'owner',
-      'demo',
-      1,
-      'alice',
-    );
+    await removeIssueAssignee('owner-1', 'owner', 'demo', 1, 'alice');
 
     expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'owner-1');
 
@@ -265,11 +223,11 @@ describe('Issue assignee service', () => {
     findUser.mockResolvedValue({ id: 'collab-1' } as never);
     deleteAssignees.mockResolvedValue({ count: 0 } as never);
 
-    await expect(
-      removeIssueAssignee('owner-1', 'owner', 'demo', 1, 'alice'),
-    ).rejects.toMatchObject({
-      statusCode: 404,
-      code: 'ISSUE_ASSIGNEE_NOT_FOUND',
-    });
+    await expect(removeIssueAssignee('owner-1', 'owner', 'demo', 1, 'alice')).rejects.toMatchObject(
+      {
+        statusCode: 404,
+        code: 'ISSUE_ASSIGNEE_NOT_FOUND',
+      },
+    );
   });
 });

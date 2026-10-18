@@ -2,44 +2,21 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
   root: '',
 }));
 
-vi.mock(
-  '../../../src/utils/git/repository-path.js',
-  () => ({
-    resolveGitRepositoryPath: (
-      username: string,
-      repositoryName: string,
-    ) =>
-      path.join(state.root, username, `${repositoryName}.git`),
+vi.mock('../../../src/utils/git/repository-path.js', () => ({
+  resolveGitRepositoryPath: (username: string, repositoryName: string) =>
+    path.join(state.root, username, `${repositoryName}.git`),
 
-    resolveOwnedGitRepositoryPath: (
-      owner: { type: string; slug: string },
-      repositoryName: string,
-    ) =>
-      path.join(
-        state.root,
-        '.organizations',
-        owner.slug,
-        `${repositoryName}.git`,
-      ),
-  }),
-);
+  resolveOwnedGitRepositoryPath: (owner: { type: string; slug: string }, repositoryName: string) =>
+    path.join(state.root, '.organizations', owner.slug, `${repositoryName}.git`),
+}));
 
-import {
-  inspectGitRepositoryTransferRecovery,
-} from '../../../src/services/git/git-repository-transfer-recovery.service.js';
+import { inspectGitRepositoryTransferRecovery } from '../../../src/services/git/git-repository-transfer-recovery.service.js';
 
 const transferId = 'cmtransferjournal00000001';
 
@@ -51,14 +28,9 @@ const input = {
 };
 
 beforeEach(async () => {
-  state.root = await fs.mkdtemp(
-    path.join(os.tmpdir(), 'gitzone-recovery-'),
-  );
+  state.root = await fs.mkdtemp(path.join(os.tmpdir(), 'gitzone-recovery-'));
 
-  await fs.mkdir(
-    path.join(state.root, 'alice', 'project.git'),
-    { recursive: true },
-  );
+  await fs.mkdir(path.join(state.root, 'alice', 'project.git'), { recursive: true });
 });
 
 afterEach(async () => {
@@ -81,18 +53,10 @@ describe('Git transfer recovery inspection', () => {
   });
 
   it('detects an owned staging directory', async () => {
-    const staging = path.join(
-      state.root,
-      '.organizations',
-      'team',
-      `.transfer-${transferId}`,
-    );
+    const staging = path.join(state.root, '.organizations', 'team', `.transfer-${transferId}`);
 
     await fs.mkdir(staging, { recursive: true });
-    await fs.writeFile(
-      path.join(staging, '.gitzone-transfer-owner'),
-      transferId,
-    );
+    await fs.writeFile(path.join(staging, '.gitzone-transfer-owner'), transferId);
 
     const result = await inspectGitRepositoryTransferRecovery(input);
 
@@ -101,12 +65,7 @@ describe('Git transfer recovery inspection', () => {
   });
 
   it('flags a foreign destination for manual recovery', async () => {
-    const destination = path.join(
-      state.root,
-      '.organizations',
-      'team',
-      'project.git',
-    );
+    const destination = path.join(state.root, '.organizations', 'team', 'project.git');
 
     await fs.mkdir(destination, { recursive: true });
 

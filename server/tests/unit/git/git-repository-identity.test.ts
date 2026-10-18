@@ -38,9 +38,7 @@ const expectNotFound = (
 
 describe('assertGitRepositoryIdentity', () => {
   it('accepts an unchanged user repository', () => {
-    expect(() =>
-      assertGitRepositoryIdentity(userRepository, { ...userRepository }),
-    ).not.toThrow();
+    expect(() => assertGitRepositoryIdentity(userRepository, { ...userRepository })).not.toThrow();
   });
 
   it('accepts an unchanged organization repository', () => {

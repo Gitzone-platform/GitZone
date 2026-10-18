@@ -11,11 +11,7 @@ vi.mock('../../../src/controllers/git/git-http.controller.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/optional-auth.middleware.js', () => ({
-  optionalAuthMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization === 'Bearer member-token') {
       (req as Request & { userId?: string }).userId = 'member-1';
     }
@@ -61,19 +57,14 @@ describe('GET /api/organizations/:slug/members', () => {
   });
 
   it('returns members for a public organization without authentication', async () => {
-    const response = await request(app)
-      .get('/api/organizations/public-org/members')
-      .expect(200);
+    const response = await request(app).get('/api/organizations/public-org/members').expect(200);
 
     expect(response.body).toEqual({
       success: true,
       data: { members },
     });
 
-    expect(mockedListOrganizationMembers).toHaveBeenCalledWith(
-      'public-org',
-      undefined,
-    );
+    expect(mockedListOrganizationMembers).toHaveBeenCalledWith('public-org', undefined);
   });
 
   it('passes authenticated member identity to the service', async () => {
@@ -82,10 +73,7 @@ describe('GET /api/organizations/:slug/members', () => {
       .set('Authorization', 'Bearer member-token')
       .expect(200);
 
-    expect(mockedListOrganizationMembers).toHaveBeenCalledWith(
-      'private-org',
-      'member-1',
-    );
+    expect(mockedListOrganizationMembers).toHaveBeenCalledWith('private-org', 'member-1');
   });
 
   it('hides private organization members from guests', async () => {
@@ -93,16 +81,11 @@ describe('GET /api/organizations/:slug/members', () => {
       new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .get('/api/organizations/private-org/members')
-      .expect(404);
+    const response = await request(app).get('/api/organizations/private-org/members').expect(404);
 
     expect(response.body.error.code).toBe('ORGANIZATION_NOT_FOUND');
 
-    expect(mockedListOrganizationMembers).toHaveBeenCalledWith(
-      'private-org',
-      undefined,
-    );
+    expect(mockedListOrganizationMembers).toHaveBeenCalledWith('private-org', undefined);
   });
 
   it('hides private organization members from outsiders', async () => {
@@ -117,16 +100,11 @@ describe('GET /api/organizations/:slug/members', () => {
 
     expect(response.body.error.code).toBe('ORGANIZATION_NOT_FOUND');
 
-    expect(mockedListOrganizationMembers).toHaveBeenCalledWith(
-      'private-org',
-      'outsider-1',
-    );
+    expect(mockedListOrganizationMembers).toHaveBeenCalledWith('private-org', 'outsider-1');
   });
 
   it('rejects an invalid organization slug', async () => {
-    const response = await request(app)
-      .get('/api/organizations/INVALID_SLUG/members')
-      .expect(400);
+    const response = await request(app).get('/api/organizations/INVALID_SLUG/members').expect(400);
 
     expect(response.body.error.code).toBe('INVALID_ORGANIZATION_SLUG');
     expect(mockedListOrganizationMembers).not.toHaveBeenCalled();
@@ -137,9 +115,7 @@ describe('GET /api/organizations/:slug/members', () => {
       new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .get('/api/organizations/missing-org/members')
-      .expect(404);
+    const response = await request(app).get('/api/organizations/missing-org/members').expect(404);
 
     expect(response.body.error.code).toBe('ORGANIZATION_NOT_FOUND');
   });
@@ -147,9 +123,7 @@ describe('GET /api/organizations/:slug/members', () => {
   it('returns an empty members array when the service returns none', async () => {
     mockedListOrganizationMembers.mockResolvedValue([]);
 
-    const response = await request(app)
-      .get('/api/organizations/public-org/members')
-      .expect(200);
+    const response = await request(app).get('/api/organizations/public-org/members').expect(200);
 
     expect(response.body).toEqual({
       success: true,

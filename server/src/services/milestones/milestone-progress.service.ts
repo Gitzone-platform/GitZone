@@ -25,42 +25,35 @@ export const calculateMilestoneProgress = async (
     milestoneId,
   };
 
-  const [
-    totalIssues,
-    closedIssues,
-    totalPullRequests,
-    completedPullRequests,
-  ] = await prisma.$transaction([
-    prisma.issue.count({
-      where: issueWhere,
-    }),
-    prisma.issue.count({
-      where: {
-        ...issueWhere,
-        state: 'CLOSED',
-      },
-    }),
-    prisma.pullRequest.count({
-      where: pullRequestWhere,
-    }),
-    prisma.pullRequest.count({
-      where: {
-        ...pullRequestWhere,
-        state: {
-          in: ['CLOSED', 'MERGED'],
+  const [totalIssues, closedIssues, totalPullRequests, completedPullRequests] =
+    await prisma.$transaction([
+      prisma.issue.count({
+        where: issueWhere,
+      }),
+      prisma.issue.count({
+        where: {
+          ...issueWhere,
+          state: 'CLOSED',
         },
-      },
-    }),
-  ]);
+      }),
+      prisma.pullRequest.count({
+        where: pullRequestWhere,
+      }),
+      prisma.pullRequest.count({
+        where: {
+          ...pullRequestWhere,
+          state: {
+            in: ['CLOSED', 'MERGED'],
+          },
+        },
+      }),
+    ]);
 
   const totalItems = totalIssues + totalPullRequests;
   const completedItems = closedIssues + completedPullRequests;
   const openItems = totalItems - completedItems;
 
-  const percentage =
-    totalItems === 0
-      ? 0
-      : Math.round((completedItems / totalItems) * 10000) / 100;
+  const percentage = totalItems === 0 ? 0 : Math.round((completedItems / totalItems) * 10000) / 100;
 
   return {
     totalIssues,

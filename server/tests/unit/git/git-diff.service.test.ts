@@ -71,16 +71,10 @@ describe('git diff service', () => {
       stderr: '',
     });
 
-    const result = await getGitCommitDiff(
-      'alice',
-      'demo',
-      HEAD,
-    );
+    const result = await getGitCommitDiff('alice', 'demo', HEAD);
 
     expect(result.diff).toBe(diff);
-    expect(result.size).toBe(
-      Buffer.byteLength(diff, 'utf8'),
-    );
+    expect(result.size).toBe(Buffer.byteLength(diff, 'utf8'));
     expect(result.truncated).toBe(false);
     expect(result.binary).toBe(false);
   });
@@ -101,11 +95,7 @@ describe('git diff service', () => {
       stderr: '',
     });
 
-    const result = await getGitCommitDiff(
-      'alice',
-      'demo',
-      HEAD,
-    );
+    const result = await getGitCommitDiff('alice', 'demo', HEAD);
 
     expect(result.binary).toBe(true);
   });
@@ -118,29 +108,15 @@ describe('git diff service', () => {
       stderr: '',
     });
 
-    const result = await getGitCommitDiff(
-      'alice',
-      'demo',
-      HEAD,
-      1024,
-    );
+    const result = await getGitCommitDiff('alice', 'demo', HEAD, 1024);
 
     expect(result.size).toBe(4096);
     expect(result.truncated).toBe(true);
-    expect(
-      Buffer.byteLength(result.diff, 'utf8'),
-    ).toBeLessThanOrEqual(1024);
+    expect(Buffer.byteLength(result.diff, 'utf8')).toBeLessThanOrEqual(1024);
   });
 
   it('rejects an invalid diff limit', async () => {
-    await expect(
-      getGitCommitDiff(
-        'alice',
-        'demo',
-        HEAD,
-        100,
-      ),
-    ).rejects.toMatchObject({
+    await expect(getGitCommitDiff('alice', 'demo', HEAD, 100)).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_GIT_DIFF_LIMIT',
     });
@@ -149,13 +125,7 @@ describe('git diff service', () => {
   });
 
   it('rejects an invalid commit SHA', async () => {
-    await expect(
-      getGitCommitDiff(
-        'alice',
-        'demo',
-        'bad-sha',
-      ),
-    ).rejects.toMatchObject({
+    await expect(getGitCommitDiff('alice', 'demo', 'bad-sha')).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_GIT_COMMIT_SHA',
     });
@@ -176,12 +146,7 @@ describe('git diff service', () => {
         stderr: '',
       });
 
-    const result = await compareGitCommits(
-      'alice',
-      'demo',
-      BASE,
-      HEAD,
-    );
+    const result = await compareGitCommits('alice', 'demo', BASE, HEAD);
 
     expect(result).toMatchObject({
       base: BASE,
@@ -209,31 +174,17 @@ describe('git diff service', () => {
         stderr: '',
       });
 
-    const result = await compareGitBranches(
-      'alice',
-      'demo',
-      'main',
-      'feature/compare',
-    );
+    const result = await compareGitBranches('alice', 'demo', 'main', 'feature/compare');
 
     expect(result.base).toBe('refs/heads/main');
-    expect(result.head).toBe(
-      'refs/heads/feature/compare',
-    );
+    expect(result.head).toBe('refs/heads/feature/compare');
 
     expect(result.aheadBy).toBe(1);
     expect(result.behindBy).toBe(2);
   });
 
   it('rejects an unknown comparison branch', async () => {
-    await expect(
-      compareGitBranches(
-        'alice',
-        'demo',
-        'main',
-        'missing',
-      ),
-    ).rejects.toMatchObject({
+    await expect(compareGitBranches('alice', 'demo', 'main', 'missing')).rejects.toMatchObject({
       statusCode: 404,
       code: 'GIT_REF_NOT_FOUND',
     });
@@ -241,12 +192,7 @@ describe('git diff service', () => {
 
   it('rejects an unsafe branch name', async () => {
     await expect(
-      compareGitBranches(
-        'alice',
-        'demo',
-        '../main',
-        'feature/compare',
-      ),
+      compareGitBranches('alice', 'demo', '../main', 'feature/compare'),
     ).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_GIT_REF',

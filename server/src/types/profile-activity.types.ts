@@ -1,7 +1,4 @@
-export type ProfileActivityType =
-  | 'REPOSITORY_CREATED'
-  | 'ISSUE_CREATED'
-  | 'PULL_REQUEST_CREATED';
+export type ProfileActivityType = 'REPOSITORY_CREATED' | 'ISSUE_CREATED' | 'PULL_REQUEST_CREATED';
 
 export interface ProfileActivity {
   id: string;

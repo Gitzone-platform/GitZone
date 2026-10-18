@@ -38,10 +38,7 @@ const repository = {
   updatedAt: new Date('2026-10-12T00:00:00.000Z'),
 };
 
-const authenticated = () =>
-  request(app)
-    .post(url)
-    .set('Authorization', 'Bearer test-access-token');
+const authenticated = () => request(app).post(url).set('Authorization', 'Bearer test-access-token');
 
 describe('repository fork HTTP integration', () => {
   beforeEach(() => {
@@ -65,12 +62,7 @@ describe('repository fork HTTP integration', () => {
       },
     });
 
-    expect(mockedFork).toHaveBeenCalledExactlyOnceWith(
-      'forker-1',
-      'sourceowner',
-      'project',
-      {},
-    );
+    expect(mockedFork).toHaveBeenCalledExactlyOnceWith('forker-1', 'sourceowner', 'project', {});
   });
 
   it('passes custom fork settings to service', async () => {
@@ -84,12 +76,7 @@ describe('repository fork HTTP integration', () => {
 
     expect(response.status).toBe(201);
 
-    expect(mockedFork).toHaveBeenCalledExactlyOnceWith(
-      'forker-1',
-      'sourceowner',
-      'project',
-      input,
-    );
+    expect(mockedFork).toHaveBeenCalledExactlyOnceWith('forker-1', 'sourceowner', 'project', input);
   });
 
   it('requires authentication', async () => {
@@ -153,9 +140,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('returns 404 when source repository is missing', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Not found', 404, 'REPOSITORY_NOT_FOUND'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Not found', 404, 'REPOSITORY_NOT_FOUND'));
 
     const response = await authenticated().send({});
 
@@ -164,9 +149,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('returns 403 when private source access is denied', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Access denied', 403, 'REPOSITORY_ACCESS_DENIED'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Access denied', 403, 'REPOSITORY_ACCESS_DENIED'));
 
     const response = await authenticated().send({});
 
@@ -175,9 +158,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('rejects private-to-public fork visibility', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Visibility denied', 403, 'FORK_VISIBILITY_DENIED'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Visibility denied', 403, 'FORK_VISIBILITY_DENIED'));
 
     const response = await authenticated().send({
       isPrivate: false,
@@ -188,9 +169,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('returns 409 for self-collision', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Self collision', 409, 'FORK_SELF_COLLISION'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Self collision', 409, 'FORK_SELF_COLLISION'));
 
     const response = await authenticated().send({});
 
@@ -199,9 +178,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('returns 409 for existing target repository', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Already exists', 409, 'REPOSITORY_ALREADY_EXISTS'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Already exists', 409, 'REPOSITORY_ALREADY_EXISTS'));
 
     const response = await authenticated().send({});
 
@@ -221,9 +198,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('returns 500 for Git clone failures', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Clone failed', 500, 'GIT_FORK_CLONE_FAILED'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Clone failed', 500, 'GIT_FORK_CLONE_FAILED'));
 
     const response = await authenticated().send({});
 
@@ -232,9 +207,7 @@ describe('repository fork HTTP integration', () => {
   });
 
   it('returns 500 for rollback failures', async () => {
-    mockedFork.mockRejectedValue(
-      new AppError('Rollback failed', 500, 'FORK_ROLLBACK_FAILED'),
-    );
+    mockedFork.mockRejectedValue(new AppError('Rollback failed', 500, 'FORK_ROLLBACK_FAILED'));
 
     const response = await authenticated().send({});
 

@@ -3,9 +3,7 @@ import { AppError } from '../../errors/app.error.js';
 import { verifyGitRepositoryIntegrity } from '../git/git-repository-transfer-integrity.service.js';
 import { resolveOwnedGitRepositoryPath } from '../../utils/git/repository-path.js';
 
-export const switchRepositoryTransferOwnership = async (
-  transferId: string,
-): Promise<void> => {
+export const switchRepositoryTransferOwnership = async (transferId: string): Promise<void> => {
   await prisma.$transaction(async (tx) => {
     const transfer = await tx.repositoryTransfer.findUnique({
       where: { id: transferId },

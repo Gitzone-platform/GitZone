@@ -17,12 +17,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-authorization.service.js',
-  () => ({
-    authorizeRepositoryAccess: mocks.authorizeRepositoryAccess,
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
+  authorizeRepositoryAccess: mocks.authorizeRepositoryAccess,
+}));
 
 import { updateRepositoryWatchPreference } from '../../../src/services/repositories/repository-watch.service.js';
 
@@ -39,12 +36,7 @@ describe('updateRepositoryWatchPreference', () => {
     'updates preference to %s',
     async (preference) => {
       await expect(
-        updateRepositoryWatchPreference(
-          'user-1',
-          'owner',
-          'project',
-          preference,
-        ),
+        updateRepositoryWatchPreference('user-1', 'owner', 'project', preference),
       ).resolves.toEqual({
         repositoryId: 'repository-1',
         watching: true,
@@ -62,12 +54,7 @@ describe('updateRepositoryWatchPreference', () => {
   );
 
   it('looks up repository by owner and name', async () => {
-    await updateRepositoryWatchPreference(
-      'user-1',
-      'owner',
-      'project',
-      'ALL',
-    );
+    await updateRepositoryWatchPreference('user-1', 'owner', 'project', 'ALL');
 
     expect(mocks.findFirst).toHaveBeenCalledWith({
       where: {
@@ -82,12 +69,7 @@ describe('updateRepositoryWatchPreference', () => {
     mocks.findFirst.mockResolvedValue(null);
 
     await expect(
-      updateRepositoryWatchPreference(
-        'user-1',
-        'owner',
-        'missing',
-        'ALL',
-      ),
+      updateRepositoryWatchPreference('user-1', 'owner', 'missing', 'ALL'),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
@@ -98,18 +80,9 @@ describe('updateRepositoryWatchPreference', () => {
   });
 
   it('authorizes READ access for the current user', async () => {
-    await updateRepositoryWatchPreference(
-      'user-1',
-      'owner',
-      'project',
-      'PARTICIPATING',
-    );
+    await updateRepositoryWatchPreference('user-1', 'owner', 'project', 'PARTICIPATING');
 
-    expect(mocks.authorizeRepositoryAccess).toHaveBeenCalledWith(
-      'repository-1',
-      'READ',
-      'user-1',
-    );
+    expect(mocks.authorizeRepositoryAccess).toHaveBeenCalledWith('repository-1', 'READ', 'user-1');
   });
 
   it('rejects unauthorized private repository access without writing', async () => {
@@ -121,12 +94,7 @@ describe('updateRepositoryWatchPreference', () => {
     );
 
     await expect(
-      updateRepositoryWatchPreference(
-        'user-1',
-        'owner',
-        'private-project',
-        'IGNORE',
-      ),
+      updateRepositoryWatchPreference('user-1', 'owner', 'private-project', 'IGNORE'),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
@@ -139,12 +107,7 @@ describe('updateRepositoryWatchPreference', () => {
     mocks.updateMany.mockResolvedValue({ count: 0 });
 
     await expect(
-      updateRepositoryWatchPreference(
-        'user-1',
-        'owner',
-        'project',
-        'ALL',
-      ),
+      updateRepositoryWatchPreference('user-1', 'owner', 'project', 'ALL'),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'WATCH_NOT_FOUND',
@@ -155,14 +118,9 @@ describe('updateRepositoryWatchPreference', () => {
     const error = new Error('Database unavailable');
     mocks.updateMany.mockRejectedValue(error);
 
-    await expect(
-      updateRepositoryWatchPreference(
-        'user-1',
-        'owner',
-        'project',
-        'ALL',
-      ),
-    ).rejects.toBe(error);
+    await expect(updateRepositoryWatchPreference('user-1', 'owner', 'project', 'ALL')).rejects.toBe(
+      error,
+    );
   });
 
   it('performs authorization before attempting the update', async () => {
@@ -177,12 +135,7 @@ describe('updateRepositoryWatchPreference', () => {
       return { count: 1 };
     });
 
-    await updateRepositoryWatchPreference(
-      'user-1',
-      'owner',
-      'project',
-      'ALL',
-    );
+    await updateRepositoryWatchPreference('user-1', 'owner', 'project', 'ALL');
 
     expect(order).toEqual(['authorize', 'update']);
   });

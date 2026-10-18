@@ -43,8 +43,7 @@ export const repositoryCreateBranchSchema = z
   })
   .strict();
 
-export type RepositoryCreateBranchInput =
-  z.infer<typeof repositoryCreateBranchSchema>;
+export type RepositoryCreateBranchInput = z.infer<typeof repositoryCreateBranchSchema>;
 
 export const repositoryBranchQuerySchema = z
   .object({
@@ -52,8 +51,7 @@ export const repositoryBranchQuerySchema = z
   })
   .strict();
 
-export type RepositoryBranchQuery =
-  z.infer<typeof repositoryBranchQuerySchema>;
+export type RepositoryBranchQuery = z.infer<typeof repositoryBranchQuerySchema>;
 export const repositoryDeleteBranchQuerySchema = z
   .object({
     name: safeRef,
@@ -66,9 +64,7 @@ export const repositoryRenameBranchSchema = z
   })
   .strict();
 
-const commitSha = z
-  .string()
-  .regex(/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i);
+const commitSha = z.string().regex(/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i);
 
 const diffLimit = z.coerce
   .number()
@@ -83,10 +79,7 @@ export const repositoryCommitDiffQuerySchema = z
   })
   .strict()
   .transform((value) => ({
-    maxBytes:
-      value.maxBytes ??
-      value.max_bytes ??
-      1024 * 1024,
+    maxBytes: value.maxBytes ?? value.max_bytes ?? 1024 * 1024,
   }));
 
 export const repositoryCompareCommitsQuerySchema = z
@@ -100,10 +93,7 @@ export const repositoryCompareCommitsQuerySchema = z
   .transform((value) => ({
     base: value.base,
     head: value.head,
-    maxBytes:
-      value.maxBytes ??
-      value.max_bytes ??
-      1024 * 1024,
+    maxBytes: value.maxBytes ?? value.max_bytes ?? 1024 * 1024,
   }));
 
 export const repositoryCompareBranchesQuerySchema = z
@@ -117,8 +107,5 @@ export const repositoryCompareBranchesQuerySchema = z
   .transform((value) => ({
     base: value.base,
     head: value.head,
-    maxBytes:
-      value.maxBytes ??
-      value.max_bytes ??
-      1024 * 1024,
+    maxBytes: value.maxBytes ?? value.max_bytes ?? 1024 * 1024,
   }));

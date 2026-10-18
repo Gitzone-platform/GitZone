@@ -183,9 +183,7 @@ describe('Git HTTP backend lifecycle', () => {
 
     controller.abort();
 
-    child.stdout.write(
-      Buffer.from('Status: 200 OK\r\nContent-Type: text/plain\r\n\r\nsuccess'),
-    );
+    child.stdout.write(Buffer.from('Status: 200 OK\r\nContent-Type: text/plain\r\n\r\nsuccess'));
 
     child.emit('close', null);
 
@@ -221,12 +219,9 @@ describe('Git HTTP backend lifecycle', () => {
 
     const operation = execute();
 
-    const headers = [
-      'Status: 200 OK',
-      'Content-Type: application/octet-stream',
-      '',
-      '',
-    ].join('\r\n');
+    const headers = ['Status: 200 OK', 'Content-Type: application/octet-stream', '', ''].join(
+      '\r\n',
+    );
 
     child.stdout.write(Buffer.from(headers));
     child.stdout.end();

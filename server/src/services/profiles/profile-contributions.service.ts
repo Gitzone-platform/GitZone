@@ -9,15 +9,10 @@ import type {
 const CONTRIBUTION_DAYS = 365;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const toDateKey = (date: Date): string =>
-  date.toISOString().slice(0, 10);
+const toDateKey = (date: Date): string => date.toISOString().slice(0, 10);
 
 const getUtcDayStart = (date: Date): Date =>
-  new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-  ));
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 
 const calculateStreaks = (
   days: ContributionDay[],
@@ -71,17 +66,11 @@ export const getUserPublicContributions = async (
 
   const today = getUtcDayStart(now);
 
-  const start = new Date(
-    today.getTime() - (CONTRIBUTION_DAYS - 1) * DAY_MS,
-  );
+  const start = new Date(today.getTime() - (CONTRIBUTION_DAYS - 1) * DAY_MS);
 
   const endExclusive = new Date(today.getTime() + DAY_MS);
 
-  const aggregates = await getContributionAggregates(
-    user.id,
-    start,
-    endExclusive,
-  );
+  const aggregates = await getContributionAggregates(user.id, start, endExclusive);
 
   const counts = new Map<string, number>();
 
@@ -105,8 +94,7 @@ export const getUserPublicContributions = async (
     const issueCount = toSafeCount(row.issues);
     const pullRequestCount = toSafeCount(row.pullRequests);
 
-    const dayTotal =
-      repositoryCount + issueCount + pullRequestCount;
+    const dayTotal = repositoryCount + issueCount + pullRequestCount;
 
     const nextDayCount = (counts.get(key) ?? 0) + dayTotal;
 
@@ -121,19 +109,11 @@ export const getUserPublicContributions = async (
     pullRequests += pullRequestCount;
   }
 
-  const days: ContributionDay[] = Array.from(
-    counts,
-    ([date, count]) => ({ date, count }),
-  );
+  const days: ContributionDay[] = Array.from(counts, ([date, count]) => ({ date, count }));
 
-  const total = days.reduce(
-    (sum, day) => sum + day.count,
-    0,
-  );
+  const total = days.reduce((sum, day) => sum + day.count, 0);
 
-  const activeDays = days.filter(
-    (day) => day.count > 0,
-  ).length;
+  const activeDays = days.filter((day) => day.count > 0).length;
 
   const streaks = calculateStreaks(days);
 

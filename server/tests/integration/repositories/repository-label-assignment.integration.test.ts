@@ -17,11 +17,7 @@ vi.mock('../../../src/controllers/git/git-http.controller.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/auth.middleware.js', () => ({
-  authMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  authMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     (req as Request & { userId: string }).userId = 'user-1';
     next();
   },
@@ -65,9 +61,7 @@ describe('Repository label assignment API integration', () => {
   });
 
   it('adds a label to an issue', async () => {
-    const response = await request(app)
-      .post(issueBase)
-      .send({ labelId });
+    const response = await request(app).post(issueBase).send({ labelId });
 
     expect(response.status).toBe(201);
     expect(response.body).toMatchObject({
@@ -80,40 +74,26 @@ describe('Repository label assignment API integration', () => {
       },
     });
 
-    expect(mockedAddIssue).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      1,
-      labelId,
-    );
+    expect(mockedAddIssue).toHaveBeenCalledWith('user-1', 'asil', 'demo', 1, labelId);
   });
 
   it('rejects missing issue label ID', async () => {
-    const response = await request(app)
-      .post(issueBase)
-      .send({});
+    const response = await request(app).post(issueBase).send({});
 
     expect(response.status).toBe(400);
-    expect(response.body.error.code).toBe(
-      'INVALID_LABEL_ASSIGNMENT_DATA',
-    );
+    expect(response.body.error.code).toBe('INVALID_LABEL_ASSIGNMENT_DATA');
     expect(mockedAddIssue).not.toHaveBeenCalled();
   });
 
   it('rejects malformed issue label ID', async () => {
-    const response = await request(app)
-      .post(issueBase)
-      .send({ labelId: 'invalid-id' });
+    const response = await request(app).post(issueBase).send({ labelId: 'invalid-id' });
 
     expect(response.status).toBe(400);
     expect(mockedAddIssue).not.toHaveBeenCalled();
   });
 
   it('rejects unknown issue assignment fields', async () => {
-    const response = await request(app)
-      .post(issueBase)
-      .send({ labelId, unexpected: true });
+    const response = await request(app).post(issueBase).send({ labelId, unexpected: true });
 
     expect(response.status).toBe(400);
     expect(mockedAddIssue).not.toHaveBeenCalled();
@@ -125,31 +105,21 @@ describe('Repository label assignment API integration', () => {
       .send({ labelId });
 
     expect(response.status).toBe(400);
-    expect(response.body.error.code).toBe(
-      'INVALID_LABEL_ASSIGNMENT_NUMBER',
-    );
+    expect(response.body.error.code).toBe('INVALID_LABEL_ASSIGNMENT_NUMBER');
     expect(mockedAddIssue).not.toHaveBeenCalled();
   });
 
   it('removes a label from an issue', async () => {
-    const response = await request(app)
-      .delete(`${issueBase}/${labelId}`);
+    const response = await request(app).delete(`${issueBase}/${labelId}`);
 
     expect(response.status).toBe(204);
     expect(response.text).toBe('');
 
-    expect(mockedRemoveIssue).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      1,
-      labelId,
-    );
+    expect(mockedRemoveIssue).toHaveBeenCalledWith('user-1', 'asil', 'demo', 1, labelId);
   });
 
   it('rejects invalid issue label ID on removal', async () => {
-    const response = await request(app)
-      .delete(`${issueBase}/invalid-id`);
+    const response = await request(app).delete(`${issueBase}/invalid-id`);
 
     expect(response.status).toBe(400);
     expect(mockedRemoveIssue).not.toHaveBeenCalled();
@@ -157,61 +127,39 @@ describe('Repository label assignment API integration', () => {
 
   it('maps duplicate issue assignment to HTTP 409', async () => {
     mockedAddIssue.mockRejectedValue(
-      new AppError(
-        'Label is already assigned',
-        409,
-        'LABEL_ALREADY_ASSIGNED',
-      ),
+      new AppError('Label is already assigned', 409, 'LABEL_ALREADY_ASSIGNED'),
     );
 
-    const response = await request(app)
-      .post(issueBase)
-      .send({ labelId });
+    const response = await request(app).post(issueBase).send({ labelId });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe('LABEL_ALREADY_ASSIGNED');
   });
 
   it('maps unauthorized issue assignment to HTTP 403', async () => {
-    mockedAddIssue.mockRejectedValue(
-      new AppError('Forbidden', 403, 'FORBIDDEN'),
-    );
+    mockedAddIssue.mockRejectedValue(new AppError('Forbidden', 403, 'FORBIDDEN'));
 
-    const response = await request(app)
-      .post(issueBase)
-      .send({ labelId });
+    const response = await request(app).post(issueBase).send({ labelId });
 
     expect(response.status).toBe(403);
   });
 
   it('maps missing issue to HTTP 404', async () => {
-    mockedAddIssue.mockRejectedValue(
-      new AppError('Issue not found', 404, 'ISSUE_NOT_FOUND'),
-    );
+    mockedAddIssue.mockRejectedValue(new AppError('Issue not found', 404, 'ISSUE_NOT_FOUND'));
 
-    const response = await request(app)
-      .post(issueBase)
-      .send({ labelId });
+    const response = await request(app).post(issueBase).send({ labelId });
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('ISSUE_NOT_FOUND');
   });
 
   it('adds a label to a pull request', async () => {
-    const response = await request(app)
-      .post(pullBase)
-      .send({ labelId });
+    const response = await request(app).post(pullBase).send({ labelId });
 
     expect(response.status).toBe(201);
     expect(response.body.data.label.id).toBe(labelId);
 
-    expect(mockedAddPull).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      2,
-      labelId,
-    );
+    expect(mockedAddPull).toHaveBeenCalledWith('user-1', 'asil', 'demo', 2, labelId);
   });
 
   it('rejects invalid pull request number', async () => {
@@ -224,33 +172,23 @@ describe('Repository label assignment API integration', () => {
   });
 
   it('rejects unknown pull request assignment fields', async () => {
-    const response = await request(app)
-      .post(pullBase)
-      .send({ labelId, unexpected: true });
+    const response = await request(app).post(pullBase).send({ labelId, unexpected: true });
 
     expect(response.status).toBe(400);
     expect(mockedAddPull).not.toHaveBeenCalled();
   });
 
   it('removes a label from a pull request', async () => {
-    const response = await request(app)
-      .delete(`${pullBase}/${labelId}`);
+    const response = await request(app).delete(`${pullBase}/${labelId}`);
 
     expect(response.status).toBe(204);
     expect(response.text).toBe('');
 
-    expect(mockedRemovePull).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      2,
-      labelId,
-    );
+    expect(mockedRemovePull).toHaveBeenCalledWith('user-1', 'asil', 'demo', 2, labelId);
   });
 
   it('rejects invalid pull request label ID on removal', async () => {
-    const response = await request(app)
-      .delete(`${pullBase}/invalid-id`);
+    const response = await request(app).delete(`${pullBase}/invalid-id`);
 
     expect(response.status).toBe(400);
     expect(mockedRemovePull).not.toHaveBeenCalled();
@@ -258,16 +196,10 @@ describe('Repository label assignment API integration', () => {
 
   it('maps duplicate pull request assignment to HTTP 409', async () => {
     mockedAddPull.mockRejectedValue(
-      new AppError(
-        'Label is already assigned',
-        409,
-        'LABEL_ALREADY_ASSIGNED',
-      ),
+      new AppError('Label is already assigned', 409, 'LABEL_ALREADY_ASSIGNED'),
     );
 
-    const response = await request(app)
-      .post(pullBase)
-      .send({ labelId });
+    const response = await request(app).post(pullBase).send({ labelId });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe('LABEL_ALREADY_ASSIGNED');
@@ -275,16 +207,10 @@ describe('Repository label assignment API integration', () => {
 
   it('maps missing pull request to HTTP 404', async () => {
     mockedAddPull.mockRejectedValue(
-      new AppError(
-        'Pull request not found',
-        404,
-        'PULL_REQUEST_NOT_FOUND',
-      ),
+      new AppError('Pull request not found', 404, 'PULL_REQUEST_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .post(pullBase)
-      .send({ labelId });
+    const response = await request(app).post(pullBase).send({ labelId });
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('PULL_REQUEST_NOT_FOUND');
@@ -292,15 +218,10 @@ describe('Repository label assignment API integration', () => {
 
   it('maps unassigned issue label removal to HTTP 404', async () => {
     mockedRemoveIssue.mockRejectedValue(
-      new AppError(
-        'Label is not assigned',
-        404,
-        'ISSUE_LABEL_NOT_FOUND',
-      ),
+      new AppError('Label is not assigned', 404, 'ISSUE_LABEL_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .delete(`${issueBase}/${labelId}`);
+    const response = await request(app).delete(`${issueBase}/${labelId}`);
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('ISSUE_LABEL_NOT_FOUND');
@@ -308,19 +229,12 @@ describe('Repository label assignment API integration', () => {
 
   it('maps unassigned pull request label removal to HTTP 404', async () => {
     mockedRemovePull.mockRejectedValue(
-      new AppError(
-        'Label is not assigned',
-        404,
-        'PULL_REQUEST_LABEL_NOT_FOUND',
-      ),
+      new AppError('Label is not assigned', 404, 'PULL_REQUEST_LABEL_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .delete(`${pullBase}/${labelId}`);
+    const response = await request(app).delete(`${pullBase}/${labelId}`);
 
     expect(response.status).toBe(404);
-    expect(response.body.error.code).toBe(
-      'PULL_REQUEST_LABEL_NOT_FOUND',
-    );
+    expect(response.body.error.code).toBe('PULL_REQUEST_LABEL_NOT_FOUND');
   });
 });

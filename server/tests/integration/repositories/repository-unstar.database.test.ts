@@ -75,11 +75,7 @@ describe.skipIf(!runDatabaseTests)('unstarRepository PostgreSQL integration', ()
 
     expect(before).toBe(1);
 
-    const result = await unstarRepository(
-      userId,
-      username,
-      repositoryName,
-    );
+    const result = await unstarRepository(userId, username, repositoryName);
 
     expect(result).toEqual({
       repositoryId,
@@ -94,17 +90,9 @@ describe.skipIf(!runDatabaseTests)('unstarRepository PostgreSQL integration', ()
   });
 
   it('allows repeated unstar without recreating the star', async () => {
-    const first = await unstarRepository(
-      userId,
-      username,
-      repositoryName,
-    );
+    const first = await unstarRepository(userId, username, repositoryName);
 
-    const second = await unstarRepository(
-      userId,
-      username,
-      repositoryName,
-    );
+    const second = await unstarRepository(userId, username, repositoryName);
 
     expect(first).toEqual({
       repositoryId,

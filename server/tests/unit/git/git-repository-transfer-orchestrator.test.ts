@@ -46,9 +46,7 @@ vi.mock('../../../src/services/repositories/repository-transfer-ownership.servic
   switchRepositoryTransferOwnership: mocks.switchOwnership,
 }));
 
-import {
-  prepareRepositoryTransferOrchestration,
-} from '../../../src/services/repositories/repository-transfer-orchestrator.service.js';
+import { prepareRepositoryTransferOrchestration } from '../../../src/services/repositories/repository-transfer-orchestrator.service.js';
 
 const input = {
   repositoryId: 'repo-id',
@@ -66,17 +64,13 @@ beforeEach(() => {
   const controller = new AbortController();
   mocks.abortController = controller;
 
-  mocks.lock.mockImplementation(
-    async (_first, _second, operation: () => Promise<unknown>) =>
-      operation(),
+  mocks.lock.mockImplementation(async (_first, _second, operation: () => Promise<unknown>) =>
+    operation(),
   );
 
   mocks.distributedLock.mockImplementation(
-    async (
-      _owners,
-      _mode,
-      operation: (context: { signal: AbortSignal }) => Promise<unknown>,
-    ) => operation({ signal: controller.signal }),
+    async (_owners, _mode, operation: (context: { signal: AbortSignal }) => Promise<unknown>) =>
+      operation({ signal: controller.signal }),
   );
 
   mocks.authorize.mockResolvedValue(undefined);
@@ -102,9 +96,7 @@ beforeEach(() => {
 
 describe('Repository transfer orchestration', () => {
   it('completes transfer under local and distributed locks', async () => {
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).resolves.toEqual({
+    await expect(prepareRepositoryTransferOrchestration(input)).resolves.toEqual({
       transferId: 'transfer-id',
       status: 'COMPLETED',
     });
@@ -120,25 +112,11 @@ describe('Repository transfer orchestration', () => {
       expect.any(Function),
     );
 
-    expect(mocks.authorize).toHaveBeenCalledWith(
-      'repo-id',
-      'alice-id',
-      'org-id',
-    );
+    expect(mocks.authorize).toHaveBeenCalledWith('repo-id', 'alice-id', 'org-id');
 
-    expect(mocks.advance).toHaveBeenNthCalledWith(
-      1,
-      'transfer-id',
-      'PENDING',
-      'MOVING',
-    );
+    expect(mocks.advance).toHaveBeenNthCalledWith(1, 'transfer-id', 'PENDING', 'MOVING');
 
-    expect(mocks.advance).toHaveBeenNthCalledWith(
-      2,
-      'transfer-id',
-      'MOVING',
-      'MOVED',
-    );
+    expect(mocks.advance).toHaveBeenNthCalledWith(2, 'transfer-id', 'MOVING', 'MOVED');
 
     expect(mocks.prepare).toHaveBeenCalledOnce();
     expect(mocks.integrity).toHaveBeenCalledTimes(2);
@@ -148,9 +126,7 @@ describe('Repository transfer orchestration', () => {
   it('rejects unauthorized actors before creating a journal', async () => {
     mocks.authorize.mockRejectedValue(new Error('Forbidden'));
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toThrow('Forbidden');
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toThrow('Forbidden');
 
     expect(mocks.createJournal).not.toHaveBeenCalled();
     expect(mocks.prepare).not.toHaveBeenCalled();
@@ -165,9 +141,7 @@ describe('Repository transfer orchestration', () => {
       reason: 'INVALID_GIT_REPOSITORY',
     });
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toMatchObject({
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_SOURCE_INTEGRITY_FAILED',
     });
 
@@ -190,9 +164,7 @@ describe('Repository transfer orchestration', () => {
         reason: 'GIT_FSCK_FAILED',
       });
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toMatchObject({
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_DESTINATION_INTEGRITY_FAILED',
     });
 
@@ -201,30 +173,22 @@ describe('Repository transfer orchestration', () => {
   });
 
   it('stops before filesystem preparation when journal transition fails', async () => {
-    mocks.advance.mockRejectedValueOnce(
-      new Error('State conflict'),
-    );
+    mocks.advance.mockRejectedValueOnce(new Error('State conflict'));
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toThrow('State conflict');
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toThrow('State conflict');
 
     expect(mocks.prepare).not.toHaveBeenCalled();
     expect(mocks.switchOwnership).not.toHaveBeenCalled();
   });
 
   it('does not switch ownership when distributed lock is lost', async () => {
-    mocks.advance.mockImplementation(
-      async (_id: string, _from: string, to: string) => {
-        if (to === 'MOVED') {
-          mocks.abortController?.abort();
-        }
-      },
-    );
+    mocks.advance.mockImplementation(async (_id: string, _from: string, to: string) => {
+      if (to === 'MOVED') {
+        mocks.abortController?.abort();
+      }
+    });
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toMatchObject({
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toMatchObject({
       code: 'GIT_TRANSFER_LOCK_LOST',
     });
 
@@ -234,9 +198,7 @@ describe('Repository transfer orchestration', () => {
   it('does not create a journal if the lock is already aborted', async () => {
     mocks.abortController?.abort();
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toMatchObject({
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toMatchObject({
       code: 'GIT_TRANSFER_LOCK_LOST',
     });
 
@@ -244,13 +206,11 @@ describe('Repository transfer orchestration', () => {
   });
 
   it('propagates ownership switch failures', async () => {
-    mocks.switchOwnership.mockRejectedValue(
-      new Error('Ownership switch failed'),
-    );
+    mocks.switchOwnership.mockRejectedValue(new Error('Ownership switch failed'));
 
-    await expect(
-      prepareRepositoryTransferOrchestration(input),
-    ).rejects.toThrow('Ownership switch failed');
+    await expect(prepareRepositoryTransferOrchestration(input)).rejects.toThrow(
+      'Ownership switch failed',
+    );
 
     expect(mocks.advance).toHaveBeenCalledTimes(2);
   });

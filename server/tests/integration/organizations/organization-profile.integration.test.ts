@@ -2,10 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  mockedGetProfile,
-  mockedUpdateProfile,
-} = vi.hoisted(() => ({
+const { mockedGetProfile, mockedUpdateProfile } = vi.hoisted(() => ({
   mockedGetProfile: vi.fn(),
   mockedUpdateProfile: vi.fn(),
 }));
@@ -15,11 +12,7 @@ vi.mock('../../../src/controllers/git/git-http.controller.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/auth.middleware.js', () => ({
-  authMiddleware: (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  authMiddleware: (req: Request, res: Response, next: NextFunction) => {
     if (!req.headers.authorization) {
       res.status(401).json({
         success: false,
@@ -37,11 +30,7 @@ vi.mock('../../../src/middleware/auth.middleware.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/optional-auth.middleware.js', () => ({
-  optionalAuthMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
       (req as Request & { userId?: string }).userId = 'member-1';
     }
@@ -73,16 +62,11 @@ describe('Organization profile HTTP API', () => {
   it('returns public organization profiles', async () => {
     mockedGetProfile.mockResolvedValue(organization);
 
-    const response = await request(app)
-      .get('/api/organizations/gitzone-platform')
-      .expect(200);
+    const response = await request(app).get('/api/organizations/gitzone-platform').expect(200);
 
     expect(response.body.data.organization).toMatchObject(organization);
 
-    expect(mockedGetProfile).toHaveBeenCalledWith(
-      'gitzone-platform',
-      undefined,
-    );
+    expect(mockedGetProfile).toHaveBeenCalledWith('gitzone-platform', undefined);
   });
 
   it('passes authenticated viewer identity to the service', async () => {
@@ -93,10 +77,7 @@ describe('Organization profile HTTP API', () => {
       .set('Authorization', 'Bearer test-token')
       .expect(200);
 
-    expect(mockedGetProfile).toHaveBeenCalledWith(
-      'gitzone-platform',
-      'member-1',
-    );
+    expect(mockedGetProfile).toHaveBeenCalledWith('gitzone-platform', 'member-1');
   });
 
   it('rejects anonymous profile updates', async () => {
@@ -115,9 +96,7 @@ describe('Organization profile HTTP API', () => {
       .send({ visibility: 'PRIVATE' })
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_PROFILE_DATA',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_PROFILE_DATA');
 
     expect(mockedUpdateProfile).not.toHaveBeenCalled();
   });
@@ -136,10 +115,8 @@ describe('Organization profile HTTP API', () => {
 
     expect(response.body.data.organization.name).toBe('Updated');
 
-    expect(mockedUpdateProfile).toHaveBeenCalledWith(
-      'gitzone-platform',
-      'owner-1',
-      { name: 'Updated' },
-    );
+    expect(mockedUpdateProfile).toHaveBeenCalledWith('gitzone-platform', 'owner-1', {
+      name: 'Updated',
+    });
   });
 });

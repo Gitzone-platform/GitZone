@@ -24,12 +24,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-authorization.service.js',
-  () => ({
-    authorizeRepositoryAccess: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
+  authorizeRepositoryAccess: vi.fn(),
+}));
 
 const findRepository = vi.mocked(prisma.repository.findFirst);
 const authorize = vi.mocked(authorizeRepositoryAccess);
@@ -41,9 +38,7 @@ const getUpdatedIssue = vi.mocked(prisma.issue.findUniqueOrThrow);
 
 const findPullRequest = vi.mocked(prisma.pullRequest.findUnique);
 const updatePullRequest = vi.mocked(prisma.pullRequest.updateMany);
-const getUpdatedPullRequest = vi.mocked(
-  prisma.pullRequest.findUniqueOrThrow,
-);
+const getUpdatedPullRequest = vi.mocked(prisma.pullRequest.findUniqueOrThrow);
 
 const milestoneId = 'milestone-1';
 
@@ -77,9 +72,7 @@ describe('Milestone assignment service', () => {
     findRepository.mockResolvedValue(null as never);
 
     await expect(
-      assignIssueMilestone(
-        'user-1', 'owner', 'demo', 1, milestoneId,
-      ),
+      assignIssueMilestone('user-1', 'owner', 'demo', 1, milestoneId),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
@@ -89,13 +82,9 @@ describe('Milestone assignment service', () => {
   });
 
   it('requires WRITE permission for issue assignment', async () => {
-    await assignIssueMilestone(
-      'user-1', 'owner', 'demo', 1, milestoneId,
-    );
+    await assignIssueMilestone('user-1', 'owner', 'demo', 1, milestoneId);
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1', 'WRITE', 'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
   });
 
   it('rejects issue assignment without WRITE permission', async () => {
@@ -107,9 +96,7 @@ describe('Milestone assignment service', () => {
     );
 
     await expect(
-      assignIssueMilestone(
-        'reader-1', 'owner', 'demo', 1, milestoneId,
-      ),
+      assignIssueMilestone('reader-1', 'owner', 'demo', 1, milestoneId),
     ).rejects.toMatchObject({ statusCode: 403 });
 
     expect(updateIssue).not.toHaveBeenCalled();
@@ -119,9 +106,7 @@ describe('Milestone assignment service', () => {
     findIssue.mockResolvedValue(null);
 
     await expect(
-      assignIssueMilestone(
-        'user-1', 'owner', 'demo', 99, milestoneId,
-      ),
+      assignIssueMilestone('user-1', 'owner', 'demo', 99, milestoneId),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'ISSUE_NOT_FOUND',
@@ -134,9 +119,7 @@ describe('Milestone assignment service', () => {
     findMilestone.mockResolvedValue(null);
 
     await expect(
-      assignIssueMilestone(
-        'user-1', 'owner', 'demo', 1, 'foreign-milestone',
-      ),
+      assignIssueMilestone('user-1', 'owner', 'demo', 1, 'foreign-milestone'),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'MILESTONE_NOT_FOUND',
@@ -154,9 +137,7 @@ describe('Milestone assignment service', () => {
   });
 
   it('assigns an issue milestone scoped to repository', async () => {
-    const result = await assignIssueMilestone(
-      'user-1', 'owner', 'demo', 1, milestoneId,
-    );
+    const result = await assignIssueMilestone('user-1', 'owner', 'demo', 1, milestoneId);
 
     expect(findIssue).toHaveBeenCalledWith({
       where: {
@@ -180,9 +161,7 @@ describe('Milestone assignment service', () => {
   });
 
   it('removes an issue milestone using null', async () => {
-    await assignIssueMilestone(
-      'user-1', 'owner', 'demo', 1, null,
-    );
+    await assignIssueMilestone('user-1', 'owner', 'demo', 1, null);
 
     expect(findMilestone).not.toHaveBeenCalled();
     expect(updateIssue).toHaveBeenCalledWith({
@@ -198,9 +177,7 @@ describe('Milestone assignment service', () => {
     updateIssue.mockResolvedValue({ count: 0 });
 
     await expect(
-      assignIssueMilestone(
-        'user-1', 'owner', 'demo', 1, milestoneId,
-      ),
+      assignIssueMilestone('user-1', 'owner', 'demo', 1, milestoneId),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'ISSUE_NOT_FOUND',
@@ -210,22 +187,16 @@ describe('Milestone assignment service', () => {
   });
 
   it('requires WRITE permission for pull request assignment', async () => {
-    await assignPullRequestMilestone(
-      'user-1', 'owner', 'demo', 2, milestoneId,
-    );
+    await assignPullRequestMilestone('user-1', 'owner', 'demo', 2, milestoneId);
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1', 'WRITE', 'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
   });
 
   it('rejects a missing pull request', async () => {
     findPullRequest.mockResolvedValue(null);
 
     await expect(
-      assignPullRequestMilestone(
-        'user-1', 'owner', 'demo', 99, milestoneId,
-      ),
+      assignPullRequestMilestone('user-1', 'owner', 'demo', 99, milestoneId),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'PULL_REQUEST_NOT_FOUND',
@@ -238,9 +209,7 @@ describe('Milestone assignment service', () => {
     findMilestone.mockResolvedValue(null);
 
     await expect(
-      assignPullRequestMilestone(
-        'user-1', 'owner', 'demo', 2, 'foreign-milestone',
-      ),
+      assignPullRequestMilestone('user-1', 'owner', 'demo', 2, 'foreign-milestone'),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'MILESTONE_NOT_FOUND',
@@ -250,9 +219,7 @@ describe('Milestone assignment service', () => {
   });
 
   it('assigns a pull request milestone scoped to repository', async () => {
-    const result = await assignPullRequestMilestone(
-      'user-1', 'owner', 'demo', 2, milestoneId,
-    );
+    const result = await assignPullRequestMilestone('user-1', 'owner', 'demo', 2, milestoneId);
 
     expect(findPullRequest).toHaveBeenCalledWith({
       where: {
@@ -276,9 +243,7 @@ describe('Milestone assignment service', () => {
   });
 
   it('removes a pull request milestone using null', async () => {
-    await assignPullRequestMilestone(
-      'user-1', 'owner', 'demo', 2, null,
-    );
+    await assignPullRequestMilestone('user-1', 'owner', 'demo', 2, null);
 
     expect(findMilestone).not.toHaveBeenCalled();
     expect(updatePullRequest).toHaveBeenCalledWith({
@@ -294,9 +259,7 @@ describe('Milestone assignment service', () => {
     updatePullRequest.mockResolvedValue({ count: 0 });
 
     await expect(
-      assignPullRequestMilestone(
-        'user-1', 'owner', 'demo', 2, milestoneId,
-      ),
+      assignPullRequestMilestone('user-1', 'owner', 'demo', 2, milestoneId),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'PULL_REQUEST_NOT_FOUND',

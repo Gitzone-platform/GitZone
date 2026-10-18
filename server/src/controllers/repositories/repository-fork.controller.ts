@@ -24,9 +24,8 @@ export const fork = async (req: Request, res: Response): Promise<void> => {
     throw new AppError('Invalid fork data', 400, 'INVALID_FORK_DATA');
   }
 
-  const repository = await withGitUserWriteLock(
-    authenticatedReq.userId,
-    () => forkRepository(authenticatedReq.userId, username, name, parsed.data),
+  const repository = await withGitUserWriteLock(authenticatedReq.userId, () =>
+    forkRepository(authenticatedReq.userId, username, name, parsed.data),
   );
 
   res.status(201).json({

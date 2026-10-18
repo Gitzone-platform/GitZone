@@ -51,11 +51,7 @@ describe('repository watch HTTP integration', () => {
       },
     });
 
-    expect(mockedWatchRepository).toHaveBeenCalledExactlyOnceWith(
-      'user-1',
-      'asil',
-      'demo',
-    );
+    expect(mockedWatchRepository).toHaveBeenCalledExactlyOnceWith('user-1', 'asil', 'demo');
   });
 
   it('returns the same result for repeated watch requests', async () => {
@@ -93,9 +89,7 @@ describe('repository watch HTTP integration', () => {
   });
 
   it('rejects an invalid bearer token', async () => {
-    const response = await request(app)
-      .post(watchUrl)
-      .set('Authorization', 'Bearer invalid-token');
+    const response = await request(app).post(watchUrl).set('Authorization', 'Bearer invalid-token');
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({
@@ -126,11 +120,7 @@ describe('repository watch HTTP integration', () => {
 
   it('returns 404 for a missing repository', async () => {
     mockedWatchRepository.mockRejectedValue(
-      new AppError(
-        'Repository not found',
-        404,
-        'REPOSITORY_NOT_FOUND',
-      ),
+      new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND'),
     );
 
     const response = await request(app)
@@ -145,11 +135,7 @@ describe('repository watch HTTP integration', () => {
       },
     });
 
-    expect(mockedWatchRepository).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'missing',
-    );
+    expect(mockedWatchRepository).toHaveBeenCalledWith('user-1', 'asil', 'missing');
   });
 
   it('returns 403 when private repository access is denied', async () => {
@@ -173,10 +159,6 @@ describe('repository watch HTTP integration', () => {
       },
     });
 
-    expect(mockedWatchRepository).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'private',
-    );
+    expect(mockedWatchRepository).toHaveBeenCalledWith('user-1', 'asil', 'private');
   });
 });

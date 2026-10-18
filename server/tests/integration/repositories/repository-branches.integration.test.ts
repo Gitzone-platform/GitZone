@@ -101,16 +101,10 @@ describe('repository branch API', () => {
     });
 
     await request(app)
-      .get(
-        '/api/repositories/asil/demo/git/branches/details?name=feature%2Flogin',
-      )
+      .get('/api/repositories/asil/demo/git/branches/details?name=feature%2Flogin')
       .expect(200);
 
-    expect(mockedGetGitBranch).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      'feature/login',
-    );
+    expect(mockedGetGitBranch).toHaveBeenCalledWith('asil', 'demo', 'feature/login');
   });
   it('returns default branch details', async () => {
     mockedGetGitBranch.mockResolvedValue({

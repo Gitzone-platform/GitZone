@@ -41,9 +41,7 @@ describe('getContributionAggregates', () => {
   it('filters repository, issue and pull request contributions', async () => {
     await getContributionAggregates(USER_ID, START, END);
 
-    const [strings] = prismaMocks.queryRaw.mock.calls[0] as [
-      TemplateStringsArray,
-    ];
+    const [strings] = prismaMocks.queryRaw.mock.calls[0] as [TemplateStringsArray];
 
     const sql = Array.from(strings).join(' ');
 
@@ -51,9 +49,7 @@ describe('getContributionAggregates', () => {
     expect(sql).toContain('FROM "Issue" i');
     expect(sql).toContain('FROM "PullRequest" p');
 
-    expect(
-      sql.match(/r\."isPrivate"\s*=\s*false/g),
-    ).toHaveLength(3);
+    expect(sql.match(/r\."isPrivate"\s*=\s*false/g)).toHaveLength(3);
 
     expect(sql).toContain('i."creatorId"');
     expect(sql).toContain('p."authorId"');
@@ -63,15 +59,11 @@ describe('getContributionAggregates', () => {
   it('groups contributions by UTC calendar day', async () => {
     await getContributionAggregates(USER_ID, START, END);
 
-    const [strings] = prismaMocks.queryRaw.mock.calls[0] as [
-      TemplateStringsArray,
-    ];
+    const [strings] = prismaMocks.queryRaw.mock.calls[0] as [TemplateStringsArray];
 
     const sql = Array.from(strings).join(' ');
 
-    expect(
-      sql.match(/AT TIME ZONE 'UTC'/g),
-    ).toHaveLength(3);
+    expect(sql.match(/AT TIME ZONE 'UTC'/g)).toHaveLength(3);
 
     expect(sql).toContain('GROUP BY day');
     expect(sql).toContain('ORDER BY day ASC');
@@ -95,11 +87,7 @@ describe('getContributionAggregates', () => {
 
     prismaMocks.queryRaw.mockResolvedValue(rows);
 
-    const result = await getContributionAggregates(
-      USER_ID,
-      START,
-      END,
-    );
+    const result = await getContributionAggregates(USER_ID, START, END);
 
     expect(result).toEqual(rows);
     expect(result[0]?.repositories).toBe(2n);
@@ -107,22 +95,16 @@ describe('getContributionAggregates', () => {
   });
 
   it('returns an empty array when there are no contributions', async () => {
-    const result = await getContributionAggregates(
-      USER_ID,
-      START,
-      END,
-    );
+    const result = await getContributionAggregates(USER_ID, START, END);
 
     expect(result).toEqual([]);
   });
 
   it('propagates database errors', async () => {
-    prismaMocks.queryRaw.mockRejectedValue(
-      new Error('Aggregation query failed'),
-    );
+    prismaMocks.queryRaw.mockRejectedValue(new Error('Aggregation query failed'));
 
-    await expect(
-      getContributionAggregates(USER_ID, START, END),
-    ).rejects.toThrow('Aggregation query failed');
+    await expect(getContributionAggregates(USER_ID, START, END)).rejects.toThrow(
+      'Aggregation query failed',
+    );
   });
 });

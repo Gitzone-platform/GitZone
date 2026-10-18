@@ -50,11 +50,7 @@ describe('repository unstar HTTP integration', () => {
       },
     });
 
-    expect(mockedUnstarRepository).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-    );
+    expect(mockedUnstarRepository).toHaveBeenCalledWith('user-1', 'asil', 'demo');
   });
 
   it('returns the same result for repeated unstar requests', async () => {
@@ -78,8 +74,7 @@ describe('repository unstar HTTP integration', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .delete('/api/repositories/asil/demo/star');
+    const response = await request(app).delete('/api/repositories/asil/demo/star');
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({

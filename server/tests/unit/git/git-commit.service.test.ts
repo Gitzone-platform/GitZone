@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppError } from '../../../src/errors/app.error.js';
 import { GitReadError } from '../../../src/errors/git-read.error.js';
-import {
-  getGitCommit,
-  listGitCommits,
-} from '../../../src/services/git/git-commit.service.js';
+import { getGitCommit, listGitCommits } from '../../../src/services/git/git-commit.service.js';
 import { executeGitReadCommand } from '../../../src/services/git/git-read-command.service.js';
 import { getGitRepositoryRefs } from '../../../src/services/git/git-ref.service.js';
 
@@ -17,13 +14,9 @@ vi.mock('../../../src/services/git/git-ref.service.js', () => ({
   getGitRepositoryRefs: vi.fn(),
 }));
 
-const executeGitReadCommandMock = vi.mocked(
-  executeGitReadCommand,
-);
+const executeGitReadCommandMock = vi.mocked(executeGitReadCommand);
 
-const getGitRepositoryRefsMock = vi.mocked(
-  getGitRepositoryRefs,
-);
+const getGitRepositoryRefsMock = vi.mocked(getGitRepositoryRefs);
 
 const ROOT_SHA = '1'.repeat(40);
 const SECOND_SHA = '2'.repeat(40);
@@ -33,11 +26,7 @@ const FOURTH_SHA = '4'.repeat(40);
 const FIELD_SEPARATOR = '\x1f';
 const RECORD_SEPARATOR = '\x1e';
 
-const commitRecord = (
-  sha: string,
-  message: string,
-  parents = '',
-): string =>
+const commitRecord = (sha: string, message: string, parents = ''): string =>
   [
     sha,
     'Phase 6 Author',
@@ -87,28 +76,13 @@ describe('git commit service', () => {
     executeGitReadCommandMock.mockResolvedValueOnce({
       stdout:
         RECORD_SEPARATOR +
-        commitRecord(
-          FOURTH_SHA,
-          'fourth commit',
-          THIRD_SHA,
-        ) +
+        commitRecord(FOURTH_SHA, 'fourth commit', THIRD_SHA) +
         RECORD_SEPARATOR +
-        commitRecord(
-          THIRD_SHA,
-          'third commit',
-          SECOND_SHA,
-        ),
+        commitRecord(THIRD_SHA, 'third commit', SECOND_SHA),
       stderr: '',
     });
 
-    const commits = await listGitCommits(
-      'alice',
-      'demo',
-      undefined,
-      undefined,
-      1,
-      2,
-    );
+    const commits = await listGitCommits('alice', 'demo', undefined, undefined, 1, 2);
 
     expect(commits).toHaveLength(2);
 
@@ -135,14 +109,7 @@ describe('git commit service', () => {
       stderr: '',
     });
 
-    await listGitCommits(
-      'alice',
-      'demo',
-      undefined,
-      undefined,
-      3,
-      25,
-    );
+    await listGitCommits('alice', 'demo', undefined, undefined, 3, 25);
 
     expect(executeGitReadCommandMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -165,20 +132,11 @@ describe('git commit service', () => {
       stderr: '',
     });
 
-    await listGitCommits(
-      'alice',
-      'demo',
-      'feature/compare',
-      undefined,
-      1,
-      30,
-    );
+    await listGitCommits('alice', 'demo', 'feature/compare', undefined, 1, 30);
 
     expect(executeGitReadCommandMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        args: expect.arrayContaining([
-          'refs/heads/feature/compare',
-        ]),
+        args: expect.arrayContaining(['refs/heads/feature/compare']),
       }),
     );
   });
@@ -189,34 +147,16 @@ describe('git commit service', () => {
       stderr: '',
     });
 
-    await listGitCommits(
-      'alice',
-      'demo',
-      undefined,
-      'src/index.ts',
-      1,
-      30,
-    );
+    await listGitCommits('alice', 'demo', undefined, 'src/index.ts', 1, 30);
 
-    const call =
-      executeGitReadCommandMock.mock.calls[0]?.[0];
+    const call = executeGitReadCommandMock.mock.calls[0]?.[0];
 
-    expect(call?.args.slice(-2)).toEqual([
-      '--',
-      'src/index.ts',
-    ]);
+    expect(call?.args.slice(-2)).toEqual(['--', 'src/index.ts']);
   });
 
   it('rejects an unknown requested ref', async () => {
     await expect(
-      listGitCommits(
-        'alice',
-        'demo',
-        'missing',
-        undefined,
-        1,
-        30,
-      ),
+      listGitCommits('alice', 'demo', 'missing', undefined, 1, 30),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'GIT_REF_NOT_FOUND',
@@ -226,31 +166,19 @@ describe('git commit service', () => {
   it('returns complete commit details and statistics', async () => {
     executeGitReadCommandMock
       .mockResolvedValueOnce({
-        stdout: commitRecord(
-          THIRD_SHA,
-          'refactor files',
-          SECOND_SHA,
-        ),
+        stdout: commitRecord(THIRD_SHA, 'refactor files', SECOND_SHA),
         stderr: '',
       })
       .mockResolvedValueOnce({
-        stdout:
-          'R069\0README.md\0DOCUMENTATION.md\0' +
-          'M\0math.ts\0',
+        stdout: 'R069\0README.md\0DOCUMENTATION.md\0' + 'M\0math.ts\0',
         stderr: '',
       })
       .mockResolvedValueOnce({
-        stdout:
-          '1\t0\t\0README.md\0DOCUMENTATION.md\0' +
-          '4\t2\tmath.ts\0',
+        stdout: '1\t0\t\0README.md\0DOCUMENTATION.md\0' + '4\t2\tmath.ts\0',
         stderr: '',
       });
 
-    const commit = await getGitCommit(
-      'alice',
-      'demo',
-      THIRD_SHA,
-    );
+    const commit = await getGitCommit('alice', 'demo', THIRD_SHA);
 
     expect(commit.parents).toEqual([SECOND_SHA]);
 
@@ -283,11 +211,7 @@ describe('git commit service', () => {
   it('handles binary changed files', async () => {
     executeGitReadCommandMock
       .mockResolvedValueOnce({
-        stdout: commitRecord(
-          FOURTH_SHA,
-          'binary commit',
-          THIRD_SHA,
-        ),
+        stdout: commitRecord(FOURTH_SHA, 'binary commit', THIRD_SHA),
         stderr: '',
       })
       .mockResolvedValueOnce({
@@ -299,11 +223,7 @@ describe('git commit service', () => {
         stderr: '',
       });
 
-    const commit = await getGitCommit(
-      'alice',
-      'demo',
-      FOURTH_SHA,
-    );
+    const commit = await getGitCommit('alice', 'demo', FOURTH_SHA);
 
     expect(commit.stats).toEqual({
       additions: 0,
@@ -324,10 +244,7 @@ describe('git commit service', () => {
   it('handles a root commit with no parents', async () => {
     executeGitReadCommandMock
       .mockResolvedValueOnce({
-        stdout: commitRecord(
-          ROOT_SHA,
-          'root commit',
-        ),
+        stdout: commitRecord(ROOT_SHA, 'root commit'),
         stderr: '',
       })
       .mockResolvedValueOnce({
@@ -339,51 +256,29 @@ describe('git commit service', () => {
         stderr: '',
       });
 
-    const commit = await getGitCommit(
-      'alice',
-      'demo',
-      ROOT_SHA,
-    );
+    const commit = await getGitCommit('alice', 'demo', ROOT_SHA);
 
     expect(commit.parents).toEqual([]);
   });
 
   it('rejects invalid commit SHA before executing Git', async () => {
-    await expect(
-      getGitCommit(
-        'alice',
-        'demo',
-        'not-a-sha',
-      ),
-    ).rejects.toMatchObject({
+    await expect(getGitCommit('alice', 'demo', 'not-a-sha')).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_GIT_COMMIT_SHA',
     });
 
-    expect(
-      executeGitReadCommandMock,
-    ).not.toHaveBeenCalled();
+    expect(executeGitReadCommandMock).not.toHaveBeenCalled();
   });
 
   it('maps a missing Git commit to 404', async () => {
     executeGitReadCommandMock.mockRejectedValueOnce(
-      new GitReadError(
-        'Git command failed',
-        'GIT_READ_COMMAND_FAILED',
-        {
-          exitCode: 128,
-          stderr: 'bad object',
-        },
-      ),
+      new GitReadError('Git command failed', 'GIT_READ_COMMAND_FAILED', {
+        exitCode: 128,
+        stderr: 'bad object',
+      }),
     );
 
-    await expect(
-      getGitCommit(
-        'alice',
-        'demo',
-        FOURTH_SHA,
-      ),
-    ).rejects.toMatchObject({
+    await expect(getGitCommit('alice', 'demo', FOURTH_SHA)).rejects.toMatchObject({
       statusCode: 404,
       code: 'GIT_COMMIT_NOT_FOUND',
     });
@@ -395,12 +290,6 @@ describe('git commit service', () => {
       stderr: '',
     });
 
-    await expect(
-      getGitCommit(
-        'alice',
-        'demo',
-        FOURTH_SHA,
-      ),
-    ).rejects.toBeInstanceOf(AppError);
+    await expect(getGitCommit('alice', 'demo', FOURTH_SHA)).rejects.toBeInstanceOf(AppError);
   });
 });

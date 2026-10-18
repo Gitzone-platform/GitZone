@@ -11,11 +11,7 @@ vi.mock('../../../src/controllers/git/git-http.controller.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/optional-auth.middleware.js', () => ({
-  optionalAuthMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization === 'Bearer member-token') {
       (req as Request & { userId?: string }).userId = 'member-1';
     }
@@ -51,19 +47,14 @@ describe('GET /api/organizations/:slug/owners', () => {
   });
 
   it('returns owners for a public organization without authentication', async () => {
-    const response = await request(app)
-      .get('/api/organizations/public-org/owners')
-      .expect(200);
+    const response = await request(app).get('/api/organizations/public-org/owners').expect(200);
 
     expect(response.body).toEqual({
       success: true,
       data: { owners },
     });
 
-    expect(mockedListOrganizationOwners).toHaveBeenCalledWith(
-      'public-org',
-      undefined,
-    );
+    expect(mockedListOrganizationOwners).toHaveBeenCalledWith('public-org', undefined);
   });
 
   it('passes authenticated member identity to the service', async () => {
@@ -72,10 +63,7 @@ describe('GET /api/organizations/:slug/owners', () => {
       .set('Authorization', 'Bearer member-token')
       .expect(200);
 
-    expect(mockedListOrganizationOwners).toHaveBeenCalledWith(
-      'private-org',
-      'member-1',
-    );
+    expect(mockedListOrganizationOwners).toHaveBeenCalledWith('private-org', 'member-1');
   });
 
   it('returns 404 for a private organization requested by a guest', async () => {
@@ -83,16 +71,11 @@ describe('GET /api/organizations/:slug/owners', () => {
       new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .get('/api/organizations/private-org/owners')
-      .expect(404);
+    const response = await request(app).get('/api/organizations/private-org/owners').expect(404);
 
     expect(response.body.error.code).toBe('ORGANIZATION_NOT_FOUND');
 
-    expect(mockedListOrganizationOwners).toHaveBeenCalledWith(
-      'private-org',
-      undefined,
-    );
+    expect(mockedListOrganizationOwners).toHaveBeenCalledWith('private-org', undefined);
   });
 
   it('returns 404 for a private organization requested by an outsider', async () => {
@@ -107,16 +90,11 @@ describe('GET /api/organizations/:slug/owners', () => {
 
     expect(response.body.error.code).toBe('ORGANIZATION_NOT_FOUND');
 
-    expect(mockedListOrganizationOwners).toHaveBeenCalledWith(
-      'private-org',
-      'outsider-1',
-    );
+    expect(mockedListOrganizationOwners).toHaveBeenCalledWith('private-org', 'outsider-1');
   });
 
   it('rejects an invalid organization slug', async () => {
-    const response = await request(app)
-      .get('/api/organizations/INVALID_SLUG/owners')
-      .expect(400);
+    const response = await request(app).get('/api/organizations/INVALID_SLUG/owners').expect(400);
 
     expect(response.body.error.code).toBe('INVALID_ORGANIZATION_SLUG');
     expect(mockedListOrganizationOwners).not.toHaveBeenCalled();
@@ -127,9 +105,7 @@ describe('GET /api/organizations/:slug/owners', () => {
       new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .get('/api/organizations/missing-org/owners')
-      .expect(404);
+    const response = await request(app).get('/api/organizations/missing-org/owners').expect(404);
 
     expect(response.body.error.code).toBe('ORGANIZATION_NOT_FOUND');
   });

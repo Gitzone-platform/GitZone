@@ -46,8 +46,7 @@ describe('public profile activity API integration', () => {
       activities: [publicActivity],
     });
 
-    const response = await request(app)
-      .get('/api/users/asil/activity');
+    const response = await request(app).get('/api/users/asil/activity');
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -77,20 +76,16 @@ describe('public profile activity API integration', () => {
       activities: [],
     });
 
-    const response = await request(app)
-      .get('/api/users/asil/activity');
+    const response = await request(app).get('/api/users/asil/activity');
 
     expect(response.status).toBe(200);
     expect(response.body.data.activities).toEqual([]);
   });
 
   it('returns 404 for a nonexistent user', async () => {
-    mockedGetActivity.mockRejectedValue(
-      new AppError('User not found', 404, 'USER_NOT_FOUND'),
-    );
+    mockedGetActivity.mockRejectedValue(new AppError('User not found', 404, 'USER_NOT_FOUND'));
 
-    const response = await request(app)
-      .get('/api/users/missinguser/activity');
+    const response = await request(app).get('/api/users/missinguser/activity');
 
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
@@ -102,8 +97,7 @@ describe('public profile activity API integration', () => {
   });
 
   it('rejects invalid usernames', async () => {
-    const response = await request(app)
-      .get('/api/users/invalid.username/activity');
+    const response = await request(app).get('/api/users/invalid.username/activity');
 
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
@@ -121,8 +115,7 @@ describe('public profile activity API integration', () => {
       activities: [publicActivity],
     });
 
-    const response = await request(app)
-      .get('/api/users/asil/activity');
+    const response = await request(app).get('/api/users/asil/activity');
 
     expect(response.status).toBe(200);
     expect(mockedGetActivity).toHaveBeenCalledOnce();
@@ -130,15 +123,10 @@ describe('public profile activity API integration', () => {
 
   it('propagates activity service errors through middleware', async () => {
     mockedGetActivity.mockRejectedValue(
-      new AppError(
-        'Activity query failed',
-        503,
-        'ACTIVITY_QUERY_FAILED',
-      ),
+      new AppError('Activity query failed', 503, 'ACTIVITY_QUERY_FAILED'),
     );
 
-    const response = await request(app)
-      .get('/api/users/asil/activity');
+    const response = await request(app).get('/api/users/asil/activity');
 
     expect(response.status).toBe(503);
     expect(response.body.error.code).toBe('ACTIVITY_QUERY_FAILED');
@@ -149,8 +137,7 @@ describe('public profile activity API integration', () => {
       activities: [publicActivity],
     });
 
-    const response = await request(app)
-      .get('/api/users/asil/activity');
+    const response = await request(app).get('/api/users/asil/activity');
 
     expect(response.status).toBe(200);
 

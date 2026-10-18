@@ -159,8 +159,7 @@ describe('Git HTTP username locking', () => {
       },
     } as never);
 
-    const response = await request(app)
-      .get('/asil/demo.git/info/refs?service=git-upload-pack');
+    const response = await request(app).get('/asil/demo.git/info/refs?service=git-upload-pack');
 
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
@@ -191,12 +190,9 @@ describe('Git HTTP username locking', () => {
       backendStarted();
 
       void backendGate.then(() => {
-        const headers = [
-          'Status: 200 OK',
-          'Content-Type: application/octet-stream',
-          '',
-          '',
-        ].join('\r\n');
+        const headers = ['Status: 200 OK', 'Content-Type: application/octet-stream', '', ''].join(
+          '\r\n',
+        );
 
         child.stdout.write(Buffer.from(headers));
         child.stdout.end();

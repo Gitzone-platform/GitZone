@@ -17,12 +17,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-authorization.service.js',
-  () => ({
-    authorizeRepositoryAccess: mocks.authorizeRepositoryAccess,
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
+  authorizeRepositoryAccess: mocks.authorizeRepositoryAccess,
+}));
 
 import { getRepositoryWatcherCount } from '../../../src/services/repositories/repository-watch.service.js';
 
@@ -35,9 +32,7 @@ describe('getRepositoryWatcherCount', () => {
   });
 
   it('counts watchers for a public repository', async () => {
-    await expect(
-      getRepositoryWatcherCount('asil', 'demo'),
-    ).resolves.toEqual({
+    await expect(getRepositoryWatcherCount('asil', 'demo')).resolves.toEqual({
       repositoryId: 'repo-1',
       watcherCount: 3,
     });
@@ -62,9 +57,7 @@ describe('getRepositoryWatcherCount', () => {
   it('supports zero watchers', async () => {
     mocks.count.mockResolvedValue(0);
 
-    await expect(
-      getRepositoryWatcherCount('asil', 'demo'),
-    ).resolves.toEqual({
+    await expect(getRepositoryWatcherCount('asil', 'demo')).resolves.toEqual({
       repositoryId: 'repo-1',
       watcherCount: 0,
     });
@@ -73,29 +66,19 @@ describe('getRepositoryWatcherCount', () => {
   it('passes authenticated viewer ID to READ authorization', async () => {
     await getRepositoryWatcherCount('asil', 'demo', 'viewer-1');
 
-    expect(mocks.authorizeRepositoryAccess).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      'viewer-1',
-    );
+    expect(mocks.authorizeRepositoryAccess).toHaveBeenCalledWith('repo-1', 'READ', 'viewer-1');
   });
 
   it('supports anonymous READ authorization', async () => {
     await getRepositoryWatcherCount('asil', 'demo');
 
-    expect(mocks.authorizeRepositoryAccess).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      undefined,
-    );
+    expect(mocks.authorizeRepositoryAccess).toHaveBeenCalledWith('repo-1', 'READ', undefined);
   });
 
   it('rejects missing repositories before counting', async () => {
     mocks.findFirst.mockResolvedValue(null);
 
-    await expect(
-      getRepositoryWatcherCount('asil', 'missing'),
-    ).rejects.toMatchObject({
+    await expect(getRepositoryWatcherCount('asil', 'missing')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -111,9 +94,7 @@ describe('getRepositoryWatcherCount', () => {
       }),
     );
 
-    await expect(
-      getRepositoryWatcherCount('asil', 'private', 'viewer-1'),
-    ).rejects.toMatchObject({
+    await expect(getRepositoryWatcherCount('asil', 'private', 'viewer-1')).rejects.toMatchObject({
       statusCode: 403,
     });
 
@@ -124,8 +105,6 @@ describe('getRepositoryWatcherCount', () => {
     const error = new Error('Database unavailable');
     mocks.count.mockRejectedValue(error);
 
-    await expect(
-      getRepositoryWatcherCount('asil', 'demo'),
-    ).rejects.toBe(error);
+    await expect(getRepositoryWatcherCount('asil', 'demo')).rejects.toBe(error);
   });
 });

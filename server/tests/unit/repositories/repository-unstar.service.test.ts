@@ -31,9 +31,7 @@ describe('unstarRepository', () => {
   it('returns 404 when repository does not exist', async () => {
     mockedFindFirst.mockResolvedValue(null);
 
-    await expect(
-      unstarRepository('user-1', 'asil', 'missing'),
-    ).rejects.toMatchObject({
+    await expect(unstarRepository('user-1', 'asil', 'missing')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -61,11 +59,7 @@ describe('unstarRepository', () => {
       },
     });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      'user-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'READ', 'user-1');
 
     expect(mockedDeleteMany).toHaveBeenCalledWith({
       where: {
@@ -85,18 +79,12 @@ describe('unstarRepository', () => {
     mockedAuthorize.mockResolvedValue({ permission: 'READ' } as never);
     mockedDeleteMany.mockResolvedValue({ count: 1 });
 
-    await expect(
-      unstarRepository('collaborator-1', 'asil', 'private'),
-    ).resolves.toEqual({
+    await expect(unstarRepository('collaborator-1', 'asil', 'private')).resolves.toEqual({
       repositoryId: 'private-repo',
       starred: false,
     });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'private-repo',
-      'READ',
-      'collaborator-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('private-repo', 'READ', 'collaborator-1');
   });
 
   it('denies unstar when repository read access is forbidden', async () => {
@@ -107,9 +95,7 @@ describe('unstarRepository', () => {
       code: 'REPOSITORY_ACCESS_DENIED',
     });
 
-    await expect(
-      unstarRepository('stranger-1', 'asil', 'private'),
-    ).rejects.toMatchObject({
+    await expect(unstarRepository('stranger-1', 'asil', 'private')).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
     });
@@ -139,8 +125,8 @@ describe('unstarRepository', () => {
     mockedAuthorize.mockResolvedValue({ permission: 'PUBLIC' } as never);
     mockedDeleteMany.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      unstarRepository('user-1', 'asil', 'demo'),
-    ).rejects.toThrow('Database unavailable');
+    await expect(unstarRepository('user-1', 'asil', 'demo')).rejects.toThrow(
+      'Database unavailable',
+    );
   });
 });

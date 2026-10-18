@@ -60,20 +60,12 @@ describe('getUserStarredRepositories', () => {
   });
 
   it('returns paginated public starred repositories', async () => {
-    mockedFindMany.mockResolvedValue([
-      { createdAt: starredAt, repository },
-    ] as never);
+    mockedFindMany.mockResolvedValue([{ createdAt: starredAt, repository }] as never);
     mockedCount.mockResolvedValue(1);
 
-    const result = await getUserStarredRepositories(
-      'asil',
-      undefined,
-      query,
-    );
+    const result = await getUserStarredRepositories('asil', undefined, query);
 
-    expect(result.repositories).toEqual([
-      { ...repository, starredAt },
-    ]);
+    expect(result.repositories).toEqual([{ ...repository, starredAt }]);
 
     expect(result.pagination).toEqual({
       page: 1,
@@ -131,20 +123,13 @@ describe('getUserStarredRepositories', () => {
   });
 
   it('applies pagination and stable newest-first ordering', async () => {
-    await getUserStarredRepositories(
-      'asil',
-      undefined,
-      { page: 3, limit: 5 },
-    );
+    await getUserStarredRepositories('asil', undefined, { page: 3, limit: 5 });
 
     expect(mockedFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         skip: 10,
         take: 5,
-        orderBy: [
-          { createdAt: 'desc' },
-          { id: 'desc' },
-        ],
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       }),
     );
   });
@@ -152,11 +137,7 @@ describe('getUserStarredRepositories', () => {
   it('calculates total pages using the filtered count', async () => {
     mockedCount.mockResolvedValue(21);
 
-    const result = await getUserStarredRepositories(
-      'asil',
-      undefined,
-      { page: 2, limit: 10 },
-    );
+    const result = await getUserStarredRepositories('asil', undefined, { page: 2, limit: 10 });
 
     expect(result.pagination).toEqual({
       page: 2,
@@ -169,12 +150,12 @@ describe('getUserStarredRepositories', () => {
   it('rejects a nonexistent profile before querying stars', async () => {
     mockedUser.mockResolvedValue(null);
 
-    await expect(
-      getUserStarredRepositories('missinguser', undefined, query),
-    ).rejects.toMatchObject({
-      statusCode: 404,
-      code: 'USER_NOT_FOUND',
-    });
+    await expect(getUserStarredRepositories('missinguser', undefined, query)).rejects.toMatchObject(
+      {
+        statusCode: 404,
+        code: 'USER_NOT_FOUND',
+      },
+    );
 
     expect(mockedFindMany).not.toHaveBeenCalled();
     expect(mockedCount).not.toHaveBeenCalled();

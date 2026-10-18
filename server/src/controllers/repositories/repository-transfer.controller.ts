@@ -6,9 +6,11 @@ import { AppError } from '../../errors/app.error.js';
 import type { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
 import { prepareRepositoryTransferOrchestration } from '../../services/repositories/repository-transfer-orchestrator.service.js';
 
-const transferSchema = z.object({
-  organizationSlug: z.string().min(1).max(100),
-}).strict();
+const transferSchema = z
+  .object({
+    organizationSlug: z.string().min(1).max(100),
+  })
+  .strict();
 
 export const transferRepositoryToOrganization = async (
   req: Request,
@@ -18,21 +20,13 @@ export const transferRepositoryToOrganization = async (
   const { username, name } = req.params;
 
   if (typeof username !== 'string' || typeof name !== 'string') {
-    throw new AppError(
-      'Invalid repository parameters',
-      400,
-      'INVALID_REPOSITORY_PARAMS',
-    );
+    throw new AppError('Invalid repository parameters', 400, 'INVALID_REPOSITORY_PARAMS');
   }
 
   const parsed = transferSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid repository transfer data',
-      400,
-      'INVALID_REPOSITORY_TRANSFER_DATA',
-    );
+    throw new AppError('Invalid repository transfer data', 400, 'INVALID_REPOSITORY_TRANSFER_DATA');
   }
 
   const repository = await prisma.repository.findFirst({
@@ -50,11 +44,7 @@ export const transferRepositoryToOrganization = async (
   });
 
   if (!repository || !repository.ownerId || !repository.owner) {
-    throw new AppError(
-      'Repository not found',
-      404,
-      'REPOSITORY_NOT_FOUND',
-    );
+    throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
   }
 
   if (repository.ownerId !== authenticatedReq.userId) {
@@ -71,11 +61,7 @@ export const transferRepositoryToOrganization = async (
   });
 
   if (!organization) {
-    throw new AppError(
-      'Organization not found',
-      404,
-      'ORGANIZATION_NOT_FOUND',
-    );
+    throw new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND');
   }
 
   const result = await prepareRepositoryTransferOrchestration({

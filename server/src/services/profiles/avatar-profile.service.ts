@@ -33,10 +33,7 @@ const removeLocalAvatar = async (avatarUrl: string | null): Promise<void> => {
   // Never delete files through an untrusted storage directory.
   const directory = path.dirname(avatarPath);
   const parsed = path.parse(directory);
-  const segments = path
-    .relative(parsed.root, directory)
-    .split(path.sep)
-    .filter(Boolean);
+  const segments = path.relative(parsed.root, directory).split(path.sep).filter(Boolean);
 
   let current = parsed.root;
 
@@ -48,11 +45,7 @@ const removeLocalAvatar = async (avatarUrl: string | null): Promise<void> => {
     try {
       stats = await lstat(current);
     } catch (error) {
-      if (
-        error instanceof Error &&
-        'code' in error &&
-        error.code === 'ENOENT'
-      ) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         return;
       }
 
@@ -60,11 +53,7 @@ const removeLocalAvatar = async (avatarUrl: string | null): Promise<void> => {
     }
 
     if (!stats.isDirectory() || stats.isSymbolicLink()) {
-      throw new AppError(
-        'Unsafe avatar storage directory',
-        500,
-        'AVATAR_STORAGE_UNSAFE',
-      );
+      throw new AppError('Unsafe avatar storage directory', 500, 'AVATAR_STORAGE_UNSAFE');
     }
   }
 
@@ -72,20 +61,12 @@ const removeLocalAvatar = async (avatarUrl: string | null): Promise<void> => {
     const entry = await lstat(avatarPath);
 
     if (!entry.isFile() || entry.isSymbolicLink()) {
-      throw new AppError(
-        'Unsafe avatar file',
-        500,
-        'AVATAR_FILE_UNSAFE',
-      );
+      throw new AppError('Unsafe avatar file', 500, 'AVATAR_FILE_UNSAFE');
     }
 
     await unlink(avatarPath);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      error.code === 'ENOENT'
-    ) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return;
     }
 
@@ -154,10 +135,7 @@ export const updateUserAvatar = async (
 
     throw error;
   }
-  if (
-    existingUser.avatarUrl &&
-    existingUser.avatarUrl !== storedAvatar.avatarUrl
-  ) {
+  if (existingUser.avatarUrl && existingUser.avatarUrl !== storedAvatar.avatarUrl) {
     try {
       const references = await prisma.user.count({
         where: {

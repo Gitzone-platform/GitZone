@@ -3,9 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import prisma from '../../../src/config/prisma.js';
 
 import { getGitRepositoryRefs } from '../../../src/services/git/git-ref.service.js';
-import {
-  validatePullRequestDiffAnchor,
-} from '../../../src/services/pull-requests/pull-request-review-git.service.js';
+import { validatePullRequestDiffAnchor } from '../../../src/services/pull-requests/pull-request-review-git.service.js';
 import { authorizeRepositoryAccess } from '../../../src/services/repositories/repository-authorization.service.js';
 
 vi.mock('../../../src/config/prisma.js', () => ({
@@ -42,57 +40,30 @@ vi.mock('../../../src/services/git/git-ref.service.js', () => ({
   getGitRepositoryRefs: vi.fn(),
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-authorization.service.js',
-  () => ({
-    authorizeRepositoryAccess: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
+  authorizeRepositoryAccess: vi.fn(),
+}));
 
-vi.mock(
-  '../../../src/services/pull-requests/pull-request-review-git.service.js',
-  () => ({
-    validatePullRequestDiffAnchor: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/pull-requests/pull-request-review-git.service.js', () => ({
+  validatePullRequestDiffAnchor: vi.fn(),
+}));
 
 const mockedAuthorize = vi.mocked(authorizeRepositoryAccess);
 const mockedRefs = vi.mocked(getGitRepositoryRefs);
-const mockedValidateAnchor = vi.mocked(
-  validatePullRequestDiffAnchor,
-);
+const mockedValidateAnchor = vi.mocked(validatePullRequestDiffAnchor);
 
-
-const mockedPullRequestFindFirst = vi.mocked(
-  prisma.pullRequest.findFirst,
-);
-const mockedReviewCreate = vi.mocked(
-  prisma.pullRequestReview.create,
-);
-const mockedReviewFindMany = vi.mocked(
-  prisma.pullRequestReview.findMany,
-);
-const mockedConversationFindMany = vi.mocked(
-  prisma.pullRequestConversation.findMany,
-);
-const mockedConversationFindFirst = vi.mocked(
-  prisma.pullRequestConversation.findFirst,
-);
-const mockedConversationUpdateMany = vi.mocked(
-  prisma.pullRequestConversation.updateMany,
-);
+const mockedPullRequestFindFirst = vi.mocked(prisma.pullRequest.findFirst);
+const mockedReviewCreate = vi.mocked(prisma.pullRequestReview.create);
+const mockedReviewFindMany = vi.mocked(prisma.pullRequestReview.findMany);
+const mockedConversationFindMany = vi.mocked(prisma.pullRequestConversation.findMany);
+const mockedConversationFindFirst = vi.mocked(prisma.pullRequestConversation.findFirst);
+const mockedConversationUpdateMany = vi.mocked(prisma.pullRequestConversation.updateMany);
 const mockedConversationFindUniqueOrThrow = vi.mocked(
   prisma.pullRequestConversation.findUniqueOrThrow,
 );
-const mockedCommentCreate = vi.mocked(
-  prisma.pullRequestReviewComment.create,
-);
-const mockedCommentFindFirst = vi.mocked(
-  prisma.pullRequestReviewComment.findFirst,
-);
-const mockedCommentUpdate = vi.mocked(
-  prisma.pullRequestReviewComment.update,
-);
+const mockedCommentCreate = vi.mocked(prisma.pullRequestReviewComment.create);
+const mockedCommentFindFirst = vi.mocked(prisma.pullRequestReviewComment.findFirst);
+const mockedCommentUpdate = vi.mocked(prisma.pullRequestReviewComment.update);
 const mockedTransaction = vi.mocked(prisma.$transaction);
 
 const BASE_SHA = '1111111111111111111111111111111111111111';
@@ -197,9 +168,7 @@ const {
   resolvePullRequestConversation,
   submitPullRequestReview,
   updatePullRequestReviewComment,
-} = await import(
-  '../../../src/services/pull-requests/pull-request-review.service.js'
-);
+} = await import('../../../src/services/pull-requests/pull-request-review.service.js');
 
 describe('pull request review service', () => {
   beforeEach(() => {
@@ -226,25 +195,14 @@ describe('pull request review service', () => {
       baseSha: BASE_SHA,
       headSha: HEAD_SHA,
     });
-
   });
 
   it('requires WRITE access for approval', async () => {
-    await submitPullRequestReview(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      {
-        state: 'APPROVED',
-      },
-    );
+    await submitPullRequestReview('reviewer-1', 'asil', 'demo', 1, {
+      state: 'APPROVED',
+    });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'reviewer-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'reviewer-1');
 
     expect(mockedReviewCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -258,54 +216,28 @@ describe('pull request review service', () => {
   });
 
   it('requires WRITE access for request changes', async () => {
-    await submitPullRequestReview(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      {
-        state: 'CHANGES_REQUESTED',
-        body: 'Please fix this',
-      },
-    );
+    await submitPullRequestReview('reviewer-1', 'asil', 'demo', 1, {
+      state: 'CHANGES_REQUESTED',
+      body: 'Please fix this',
+    });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'reviewer-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'reviewer-1');
   });
 
   it('requires only READ access for comment-only review', async () => {
-    await submitPullRequestReview(
-      'reader-1',
-      'asil',
-      'demo',
-      1,
-      {
-        state: 'COMMENTED',
-        body: 'Question',
-      },
-    );
+    await submitPullRequestReview('reader-1', 'asil', 'demo', 1, {
+      state: 'COMMENTED',
+      body: 'Question',
+    });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      'reader-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'READ', 'reader-1');
   });
 
   it('prevents PR author from approving own PR', async () => {
     await expect(
-      submitPullRequestReview(
-        'author-1',
-        'asil',
-        'demo',
-        1,
-        {
-          state: 'APPROVED',
-        },
-      ),
+      submitPullRequestReview('author-1', 'asil', 'demo', 1, {
+        state: 'APPROVED',
+      }),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'PULL_REQUEST_SELF_REVIEW_NOT_ALLOWED',
@@ -316,16 +248,10 @@ describe('pull request review service', () => {
 
   it('prevents PR author from requesting changes on own PR', async () => {
     await expect(
-      submitPullRequestReview(
-        'author-1',
-        'asil',
-        'demo',
-        1,
-        {
-          state: 'CHANGES_REQUESTED',
-          body: 'No',
-        },
-      ),
+      submitPullRequestReview('author-1', 'asil', 'demo', 1, {
+        state: 'CHANGES_REQUESTED',
+        body: 'No',
+      }),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'PULL_REQUEST_SELF_REVIEW_NOT_ALLOWED',
@@ -333,16 +259,10 @@ describe('pull request review service', () => {
   });
 
   it('allows PR author to leave a comment-only review', async () => {
-    await submitPullRequestReview(
-      'author-1',
-      'asil',
-      'demo',
-      1,
-      {
-        state: 'COMMENTED',
-        body: 'Additional context',
-      },
-    );
+    await submitPullRequestReview('author-1', 'asil', 'demo', 1, {
+      state: 'COMMENTED',
+      body: 'Additional context',
+    });
 
     expect(mockedReviewCreate).toHaveBeenCalled();
   });
@@ -354,15 +274,9 @@ describe('pull request review service', () => {
     });
 
     await expect(
-      submitPullRequestReview(
-        'reviewer-1',
-        'asil',
-        'demo',
-        1,
-        {
-          state: 'APPROVED',
-        },
-      ),
+      submitPullRequestReview('reviewer-1', 'asil', 'demo', 1, {
+        state: 'APPROVED',
+      }),
     ).rejects.toMatchObject({
       statusCode: 409,
       code: 'PULL_REQUEST_NOT_OPEN',
@@ -386,25 +300,13 @@ describe('pull request review service', () => {
       },
     };
 
-    mockedTransaction.mockImplementationOnce(async (callback) =>
-      callback(tx as never),
-    );
+    mockedTransaction.mockImplementationOnce(async (callback) => callback(tx as never));
 
-    await createGeneralPullRequestComment(
-      'reader-1',
-      'asil',
-      'demo',
-      1,
-      {
-        body: 'General discussion',
-      },
-    );
+    await createGeneralPullRequestComment('reader-1', 'asil', 'demo', 1, {
+      body: 'General discussion',
+    });
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      'reader-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'READ', 'reader-1');
 
     expect(tx.pullRequestConversation.create).toHaveBeenCalledWith({
       data: {
@@ -446,22 +348,14 @@ describe('pull request review service', () => {
       },
     };
 
-    mockedTransaction.mockImplementationOnce(async (callback) =>
-      callback(tx as never),
-    );
+    mockedTransaction.mockImplementationOnce(async (callback) => callback(tx as never));
 
-    const result = await createInlinePullRequestComment(
-      'reader-1',
-      'asil',
-      'demo',
-      1,
-      {
-        body: 'Check this',
-        path: 'src/demo.ts',
-        line: 2,
-        side: 'RIGHT',
-      },
-    );
+    const result = await createInlinePullRequestComment('reader-1', 'asil', 'demo', 1, {
+      body: 'Check this',
+      path: 'src/demo.ts',
+      line: 2,
+      side: 'RIGHT',
+    });
 
     expect(mockedValidateAnchor).toHaveBeenCalledWith(
       'asil',
@@ -483,18 +377,12 @@ describe('pull request review service', () => {
     });
 
     await expect(
-      createInlinePullRequestComment(
-        'reader-1',
-        'asil',
-        'demo',
-        1,
-        {
-          body: 'No longer current',
-          path: 'src/demo.ts',
-          line: 2,
-          side: 'RIGHT',
-        },
-      ),
+      createInlinePullRequestComment('reader-1', 'asil', 'demo', 1, {
+        body: 'No longer current',
+        path: 'src/demo.ts',
+        line: 2,
+        side: 'RIGHT',
+      }),
     ).rejects.toMatchObject({
       statusCode: 409,
       code: 'PULL_REQUEST_NOT_OPEN',
@@ -525,11 +413,7 @@ describe('pull request review service', () => {
       },
     ] as never);
 
-    const result = await getPullRequestReviewState(
-      'asil',
-      'demo',
-      1,
-    );
+    const result = await getPullRequestReviewState('asil', 'demo', 1);
 
     expect(result).toEqual({
       status: 'CHANGES_REQUESTED',
@@ -560,9 +444,7 @@ describe('pull request review service', () => {
       },
     ] as never);
 
-    await expect(
-      getPullRequestReviewState('asil', 'demo', 1),
-    ).resolves.toEqual({
+    await expect(getPullRequestReviewState('asil', 'demo', 1)).resolves.toEqual({
       status: 'APPROVED',
       approvedBy: ['reviewer-1'],
       changesRequestedBy: [],
@@ -572,9 +454,7 @@ describe('pull request review service', () => {
   it('returns REVIEW_REQUIRED when no current actionable review exists', async () => {
     mockedReviewFindMany.mockResolvedValueOnce([]);
 
-    await expect(
-      getPullRequestReviewState('asil', 'demo', 1),
-    ).resolves.toEqual({
+    await expect(getPullRequestReviewState('asil', 'demo', 1)).resolves.toEqual({
       status: 'REVIEW_REQUIRED',
       approvedBy: [],
       changesRequestedBy: [],
@@ -616,12 +496,7 @@ describe('pull request review service', () => {
       tags: [],
     } as never);
 
-    const result =
-      await listPullRequestConversationsWithOutdatedState(
-        'asil',
-        'demo',
-        1,
-      );
+    const result = await listPullRequestConversationsWithOutdatedState('asil', 'demo', 1);
 
     expect(result[0]?.outdated).toBe(true);
     expect(mockedRefs).toHaveBeenCalledTimes(1);
@@ -636,12 +511,7 @@ describe('pull request review service', () => {
       },
     ] as never);
 
-    const result =
-      await listPullRequestConversationsWithOutdatedState(
-        'asil',
-        'demo',
-        1,
-      );
+    const result = await listPullRequestConversationsWithOutdatedState('asil', 'demo', 1);
 
     expect(result[0]?.outdated).toBe(false);
   });
@@ -677,11 +547,7 @@ describe('pull request review service', () => {
       },
     );
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      'reader-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'READ', 'reader-1');
 
     expect(mockedConversationFindFirst).toHaveBeenCalledWith({
       where: {
@@ -716,19 +582,9 @@ describe('pull request review service', () => {
       resolvedById: 'reviewer-1',
     } as never);
 
-    await resolvePullRequestConversation(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      'conversation-1',
-    );
+    await resolvePullRequestConversation('reviewer-1', 'asil', 'demo', 1, 'conversation-1');
 
-    expect(mockedAuthorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'reviewer-1',
-    );
+    expect(mockedAuthorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'reviewer-1');
 
     expect(mockedConversationUpdateMany).toHaveBeenCalledWith({
       where: {
@@ -742,9 +598,7 @@ describe('pull request review service', () => {
       },
     });
 
-    expect(
-      mockedConversationFindUniqueOrThrow,
-    ).toHaveBeenCalledWith(
+    expect(mockedConversationFindUniqueOrThrow).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
           id: 'conversation-1',
@@ -761,21 +615,13 @@ describe('pull request review service', () => {
     });
 
     await expect(
-      resolvePullRequestConversation(
-        'reviewer-1',
-        'asil',
-        'demo',
-        1,
-        'conversation-1',
-      ),
+      resolvePullRequestConversation('reviewer-1', 'asil', 'demo', 1, 'conversation-1'),
     ).rejects.toMatchObject({
       statusCode: 409,
       code: 'PULL_REQUEST_CONVERSATION_ALREADY_RESOLVED',
     });
 
-    expect(
-      mockedConversationFindUniqueOrThrow,
-    ).not.toHaveBeenCalled();
+    expect(mockedConversationFindUniqueOrThrow).not.toHaveBeenCalled();
   });
 
   it('atomically reopens a resolved conversation', async () => {
@@ -789,17 +635,9 @@ describe('pull request review service', () => {
       count: 1,
     });
 
-    mockedConversationFindUniqueOrThrow.mockResolvedValueOnce(
-      conversation as never,
-    );
+    mockedConversationFindUniqueOrThrow.mockResolvedValueOnce(conversation as never);
 
-    await reopenPullRequestConversation(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      'conversation-1',
-    );
+    await reopenPullRequestConversation('reviewer-1', 'asil', 'demo', 1, 'conversation-1');
 
     expect(mockedConversationUpdateMany).toHaveBeenCalledWith({
       where: {
@@ -815,9 +653,7 @@ describe('pull request review service', () => {
       },
     });
 
-    expect(
-      mockedConversationFindUniqueOrThrow,
-    ).toHaveBeenCalledWith(
+    expect(mockedConversationFindUniqueOrThrow).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
           id: 'conversation-1',
@@ -838,21 +674,13 @@ describe('pull request review service', () => {
     });
 
     await expect(
-      reopenPullRequestConversation(
-        'reviewer-1',
-        'asil',
-        'demo',
-        1,
-        'conversation-1',
-      ),
+      reopenPullRequestConversation('reviewer-1', 'asil', 'demo', 1, 'conversation-1'),
     ).rejects.toMatchObject({
       statusCode: 409,
       code: 'PULL_REQUEST_CONVERSATION_ALREADY_OPEN',
     });
 
-    expect(
-      mockedConversationFindUniqueOrThrow,
-    ).not.toHaveBeenCalled();
+    expect(mockedConversationFindUniqueOrThrow).not.toHaveBeenCalled();
   });
   it('allows only comment author to edit', async () => {
     mockedCommentFindFirst.mockResolvedValueOnce({
@@ -866,16 +694,9 @@ describe('pull request review service', () => {
     });
 
     await expect(
-      updatePullRequestReviewComment(
-        'reviewer-1',
-        'asil',
-        'demo',
-        1,
-        'comment-1',
-        {
-          body: 'Edited',
-        },
-      ),
+      updatePullRequestReviewComment('reviewer-1', 'asil', 'demo', 1, 'comment-1', {
+        body: 'Edited',
+      }),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'PULL_REQUEST_COMMENT_EDIT_DENIED',
@@ -907,16 +728,9 @@ describe('pull request review service', () => {
       review: null,
     } as never);
 
-    await updatePullRequestReviewComment(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      'comment-1',
-      {
-        body: 'Edited',
-      },
-    );
+    await updatePullRequestReviewComment('reviewer-1', 'asil', 'demo', 1, 'comment-1', {
+      body: 'Edited',
+    });
 
     expect(mockedCommentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -938,13 +752,7 @@ describe('pull request review service', () => {
     } as never);
 
     await expect(
-      deletePullRequestReviewComment(
-        'reviewer-1',
-        'asil',
-        'demo',
-        1,
-        'comment-1',
-      ),
+      deletePullRequestReviewComment('reviewer-1', 'asil', 'demo', 1, 'comment-1'),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'PULL_REQUEST_COMMENT_DELETE_DENIED',
@@ -970,17 +778,9 @@ describe('pull request review service', () => {
       },
     };
 
-    mockedTransaction.mockImplementationOnce(async (callback) =>
-      callback(tx as never),
-    );
+    mockedTransaction.mockImplementationOnce(async (callback) => callback(tx as never));
 
-    await deletePullRequestReviewComment(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      'comment-1',
-    );
+    await deletePullRequestReviewComment('reviewer-1', 'asil', 'demo', 1, 'comment-1');
 
     expect(tx.pullRequestReviewComment.delete).toHaveBeenCalledWith({
       where: {
@@ -1012,17 +812,9 @@ describe('pull request review service', () => {
       },
     };
 
-    mockedTransaction.mockImplementationOnce(async (callback) =>
-      callback(tx as never),
-    );
+    mockedTransaction.mockImplementationOnce(async (callback) => callback(tx as never));
 
-    await deletePullRequestReviewComment(
-      'reviewer-1',
-      'asil',
-      'demo',
-      1,
-      'comment-1',
-    );
+    await deletePullRequestReviewComment('reviewer-1', 'asil', 'demo', 1, 'comment-1');
 
     expect(tx.pullRequestConversation.delete).not.toHaveBeenCalled();
   });
@@ -1036,15 +828,9 @@ describe('pull request review service', () => {
     );
 
     await expect(
-      submitPullRequestReview(
-        'reader-1',
-        'asil',
-        'demo',
-        1,
-        {
-          state: 'APPROVED',
-        },
-      ),
+      submitPullRequestReview('reader-1', 'asil', 'demo', 1, {
+        state: 'APPROVED',
+      }),
     ).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',

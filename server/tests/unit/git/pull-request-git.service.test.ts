@@ -110,9 +110,7 @@ const {
   getPullRequestDiff,
   getPullRequestMergeability,
   mergePullRequestGit,
-} = await import(
-  '../../../src/services/pull-requests/pull-request-git.service.js'
-);
+} = await import('../../../src/services/pull-requests/pull-request-git.service.js');
 
 describe('pull request Git service', () => {
   beforeEach(() => {
@@ -137,21 +135,12 @@ describe('pull request Git service', () => {
       stderr: '',
     });
 
-    const commits = await getPullRequestCommits(
-      'asil',
-      'demo',
-      'feature',
-      'main',
-    );
+    const commits = await getPullRequestCommits('asil', 'demo', 'feature', 'main');
 
     expect(mockedRead).toHaveBeenCalledWith({
       username: 'asil',
       repositoryName: 'demo',
-      args: [
-        'rev-list',
-        '--reverse',
-        `${TARGET_SHA}..${SOURCE_SHA}`,
-      ],
+      args: ['rev-list', '--reverse', `${TARGET_SHA}..${SOURCE_SHA}`],
     });
 
     expect(commits).toEqual([
@@ -166,19 +155,9 @@ describe('pull request Git service', () => {
   });
 
   it('calculates pull request diff using target as base', async () => {
-    const result = await getPullRequestDiff(
-      'asil',
-      'demo',
-      'feature',
-      'main',
-    );
+    const result = await getPullRequestDiff('asil', 'demo', 'feature', 'main');
 
-    expect(mockedCompare).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      'main',
-      'feature',
-    );
+    expect(mockedCompare).toHaveBeenCalledWith('asil', 'demo', 'main', 'feature');
 
     expect(result).toEqual(comparison);
   });
@@ -189,12 +168,7 @@ describe('pull request Git service', () => {
       stderr: '',
     });
 
-    const result = await getPullRequestMergeability(
-      'asil',
-      'demo',
-      'feature',
-      'main',
-    );
+    const result = await getPullRequestMergeability('asil', 'demo', 'feature', 'main');
 
     expect(result).toEqual({
       mergeable: true,
@@ -213,31 +187,16 @@ describe('pull request Git service', () => {
       aheadBy: 0,
     });
 
-    const result = await getPullRequestMergeability(
-      'asil',
-      'demo',
-      'feature',
-      'main',
-    );
+    const result = await getPullRequestMergeability('asil', 'demo', 'feature', 'main');
 
     expect(result.mergeable).toBe(false);
     expect(result.reason).toBe('NO_COMMITS_TO_MERGE');
   });
 
   it('reports merge conflicts', async () => {
-    mockedRead.mockRejectedValueOnce(
-      new GitReadError(
-        'merge conflict',
-        'GIT_READ_COMMAND_FAILED',
-      ),
-    );
+    mockedRead.mockRejectedValueOnce(new GitReadError('merge conflict', 'GIT_READ_COMMAND_FAILED'));
 
-    const result = await getPullRequestMergeability(
-      'asil',
-      'demo',
-      'feature',
-      'main',
-    );
+    const result = await getPullRequestMergeability('asil', 'demo', 'feature', 'main');
 
     expect(result.mergeable).toBe(false);
     expect(result.reason).toBe('MERGE_CONFLICT');
@@ -283,12 +242,7 @@ describe('pull request Git service', () => {
     expect(mockedWrite).toHaveBeenLastCalledWith({
       username: 'asil',
       repositoryName: 'demo',
-      args: [
-        'update-ref',
-        'refs/heads/main',
-        MERGE_SHA,
-        TARGET_SHA,
-      ],
+      args: ['update-ref', 'refs/heads/main', MERGE_SHA, TARGET_SHA],
     });
   });
 
@@ -307,12 +261,7 @@ describe('pull request Git service', () => {
         stdout: `${MERGE_SHA}\n`,
         stderr: '',
       })
-      .mockRejectedValueOnce(
-        new GitWriteError(
-          'conflict',
-          'GIT_WRITE_COMMAND_FAILED',
-        ),
-      );
+      .mockRejectedValueOnce(new GitWriteError('conflict', 'GIT_WRITE_COMMAND_FAILED'));
 
     await expect(
       mergePullRequestGit(
@@ -332,23 +281,12 @@ describe('pull request Git service', () => {
   });
 
   it('rolls back target with compare-and-swap semantics', async () => {
-    await executePullRequestMergeRollback(
-      'asil',
-      'demo',
-      'main',
-      TARGET_SHA,
-      MERGE_SHA,
-    );
+    await executePullRequestMergeRollback('asil', 'demo', 'main', TARGET_SHA, MERGE_SHA);
 
     expect(mockedWrite).toHaveBeenCalledWith({
       username: 'asil',
       repositoryName: 'demo',
-      args: [
-        'update-ref',
-        'refs/heads/main',
-        TARGET_SHA,
-        MERGE_SHA,
-      ],
+      args: ['update-ref', 'refs/heads/main', TARGET_SHA, MERGE_SHA],
     });
   });
 });

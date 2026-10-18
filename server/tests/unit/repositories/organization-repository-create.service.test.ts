@@ -41,9 +41,8 @@ vi.mock('../../../src/services/git/git-user-lock.service.js', () => ({
   withGitNamespaceWriteLock: mocks.writeLock,
 }));
 
-const { createOrganizationRepository } = await import(
-  '../../../src/services/repositories/organization-repository-create.service.js'
-);
+const { createOrganizationRepository } =
+  await import('../../../src/services/repositories/organization-repository-create.service.js');
 
 const repository = {
   id: 'repo-1',
@@ -88,11 +87,7 @@ describe('organization repository creation service', () => {
   });
 
   it('creates an organization repository as OWNER', async () => {
-    const result = await createOrganizationRepository(
-      'gitzone',
-      'user-1',
-      input,
-    );
+    const result = await createOrganizationRepository('gitzone', 'user-1', input);
 
     expect(result).toMatchObject({
       id: 'repo-1',
@@ -132,9 +127,7 @@ describe('organization repository creation service', () => {
   it('rejects an unknown organization', async () => {
     mocks.organizationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      createOrganizationRepository('missing', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('missing', 'user-1', input)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -146,9 +139,7 @@ describe('organization repository creation service', () => {
   it('rejects a MEMBER', async () => {
     mocks.memberFindUnique.mockResolvedValue({ role: 'MEMBER' });
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 403,
       code: 'ORGANIZATION_OWNER_REQUIRED',
     });
@@ -160,9 +151,7 @@ describe('organization repository creation service', () => {
   it('rejects a user without membership', async () => {
     mocks.memberFindUnique.mockResolvedValue(null);
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 403,
       code: 'ORGANIZATION_OWNER_REQUIRED',
     });
@@ -173,9 +162,7 @@ describe('organization repository creation service', () => {
   it('rejects duplicate repository names', async () => {
     mocks.repositoryFindUnique.mockResolvedValue({ id: 'existing' });
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 409,
       code: 'REPOSITORY_ALREADY_EXISTS',
     });
@@ -190,9 +177,7 @@ describe('organization repository creation service', () => {
       }),
     );
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 409,
       code: 'REPOSITORY_ALREADY_EXISTS',
     });
@@ -204,9 +189,7 @@ describe('organization repository creation service', () => {
     const gitError = new Error('Git initialization failed');
     mocks.createGit.mockRejectedValue(gitError);
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toBe(gitError);
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toBe(gitError);
 
     expect(mocks.repositoryDelete).toHaveBeenCalledWith({
       where: { id: 'repo-1' },
@@ -217,9 +200,7 @@ describe('organization repository creation service', () => {
     mocks.createGit.mockRejectedValue(new Error('Git failed'));
     mocks.repositoryDelete.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 500,
       code: 'ORGANIZATION_REPOSITORY_CREATE_ROLLBACK_FAILED',
     });
@@ -228,13 +209,9 @@ describe('organization repository creation service', () => {
   });
 
   it('rejects organization deletion while waiting for the lock', async () => {
-    mocks.organizationFindUnique
-      .mockResolvedValueOnce({ id: 'org-1' })
-      .mockResolvedValueOnce(null);
+    mocks.organizationFindUnique.mockResolvedValueOnce({ id: 'org-1' }).mockResolvedValueOnce(null);
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -247,9 +224,7 @@ describe('organization repository creation service', () => {
       .mockResolvedValueOnce({ id: 'org-1' })
       .mockResolvedValueOnce({ id: 'org-1', slug: 'renamed' });
 
-    await expect(
-      createOrganizationRepository('gitzone', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(createOrganizationRepository('gitzone', 'user-1', input)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });

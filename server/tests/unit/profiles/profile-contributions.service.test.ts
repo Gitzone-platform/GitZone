@@ -29,12 +29,7 @@ const publicUser = {
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
-const row = (
-  date: string,
-  repositories = 0n,
-  issues = 0n,
-  pullRequests = 0n,
-) => ({
+const row = (date: string, repositories = 0n, issues = 0n, pullRequests = 0n) => ({
   date: new Date(date),
   repositories,
   issues,
@@ -59,12 +54,8 @@ describe('getUserPublicContributions with aggregation', () => {
     expect(result.days[364]?.date).toBe(result.to);
 
     for (let index = 1; index < result.days.length; index += 1) {
-      const previous = Date.parse(
-        `${result.days[index - 1]?.date}T00:00:00.000Z`,
-      );
-      const current = Date.parse(
-        `${result.days[index]?.date}T00:00:00.000Z`,
-      );
+      const previous = Date.parse(`${result.days[index - 1]?.date}T00:00:00.000Z`);
+      const current = Date.parse(`${result.days[index]?.date}T00:00:00.000Z`);
 
       expect(current - previous).toBe(86400000);
     }
@@ -116,13 +107,9 @@ describe('getUserPublicContributions with aggregation', () => {
       pullRequests: 1,
     });
 
-    expect(result.days.find(
-      (day) => day.date === '2026-10-08',
-    )?.count).toBe(2);
+    expect(result.days.find((day) => day.date === '2026-10-08')?.count).toBe(2);
 
-    expect(result.days.find(
-      (day) => day.date === '2026-10-09',
-    )?.count).toBe(2);
+    expect(result.days.find((day) => day.date === '2026-10-09')?.count).toBe(2);
   });
 
   it('calculates the longest consecutive contribution streak', async () => {
@@ -179,49 +166,33 @@ describe('getUserPublicContributions with aggregation', () => {
   });
 
   it('rejects negative aggregate counts', async () => {
-    mockedGetAggregates.mockResolvedValue([
-      row('2026-10-09T00:00:00.000Z', -1n),
-    ]);
+    mockedGetAggregates.mockResolvedValue([row('2026-10-09T00:00:00.000Z', -1n)]);
 
-    await expect(
-      getUserPublicContributions('asil', NOW),
-    ).rejects.toThrow('Invalid contribution aggregate count');
+    await expect(getUserPublicContributions('asil', NOW)).rejects.toThrow(
+      'Invalid contribution aggregate count',
+    );
   });
 
   it('rejects aggregate counts outside the safe integer range', async () => {
-    mockedGetAggregates.mockResolvedValue([
-      row('2026-10-09T00:00:00.000Z', 9007199254740992n),
-    ]);
+    mockedGetAggregates.mockResolvedValue([row('2026-10-09T00:00:00.000Z', 9007199254740992n)]);
 
-    await expect(
-      getUserPublicContributions('asil', NOW),
-    ).rejects.toThrow('Invalid contribution aggregate count');
+    await expect(getUserPublicContributions('asil', NOW)).rejects.toThrow(
+      'Invalid contribution aggregate count',
+    );
   });
 
   it('rejects daily totals outside the safe integer range', async () => {
-    mockedGetAggregates.mockResolvedValue([
-      row(
-        '2026-10-09T00:00:00.000Z',
-        9007199254740991n,
-        1n,
-      ),
-    ]);
+    mockedGetAggregates.mockResolvedValue([row('2026-10-09T00:00:00.000Z', 9007199254740991n, 1n)]);
 
-    await expect(
-      getUserPublicContributions('asil', NOW),
-    ).rejects.toThrow(
+    await expect(getUserPublicContributions('asil', NOW)).rejects.toThrow(
       'Contribution daily total exceeds safe integer range',
     );
   });
 
   it('does not query aggregates for a nonexistent user', async () => {
-    mockedGetProfile.mockRejectedValue(
-      new AppError('User not found', 404, 'USER_NOT_FOUND'),
-    );
+    mockedGetProfile.mockRejectedValue(new AppError('User not found', 404, 'USER_NOT_FOUND'));
 
-    await expect(
-      getUserPublicContributions('missinguser', NOW),
-    ).rejects.toMatchObject({
+    await expect(getUserPublicContributions('missinguser', NOW)).rejects.toMatchObject({
       statusCode: 404,
       code: 'USER_NOT_FOUND',
     });
@@ -230,12 +201,8 @@ describe('getUserPublicContributions with aggregation', () => {
   });
 
   it('propagates aggregation database errors', async () => {
-    mockedGetAggregates.mockRejectedValue(
-      new Error('Database unavailable'),
-    );
+    mockedGetAggregates.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      getUserPublicContributions('asil', NOW),
-    ).rejects.toThrow('Database unavailable');
+    await expect(getUserPublicContributions('asil', NOW)).rejects.toThrow('Database unavailable');
   });
 });

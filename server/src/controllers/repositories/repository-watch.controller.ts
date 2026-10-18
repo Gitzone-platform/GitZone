@@ -10,10 +10,7 @@ import {
 import { getRepositoryWatcherCount } from '../../services/repositories/repository-watch.service.js';
 import { updateRepositoryWatchPreferencesSchema } from '../../validations/repositories/repository-watch-preferences.validation.js';
 
-export const watch = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const watch = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = req.params;
 
@@ -25,11 +22,7 @@ export const watch = async (
     );
   }
 
-  const result = await watchRepository(
-    authenticatedReq.userId,
-    username,
-    name,
-  );
+  const result = await watchRepository(authenticatedReq.userId, username, name);
 
   res.status(200).json({
     success: true,
@@ -37,10 +30,7 @@ export const watch = async (
   });
 };
 
-export const unwatch = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const unwatch = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = req.params;
 
@@ -52,11 +42,7 @@ export const unwatch = async (
     );
   }
 
-  const result = await unwatchRepository(
-    authenticatedReq.userId,
-    username,
-    name,
-  );
+  const result = await unwatchRepository(authenticatedReq.userId, username, name);
 
   res.status(200).json({
     success: true,
@@ -64,10 +50,7 @@ export const unwatch = async (
   });
 };
 
-export const updateWatchPreference = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const updateWatchPreference = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   const { username, name } = req.params;
 
@@ -82,11 +65,7 @@ export const updateWatchPreference = async (
   const parsed = updateRepositoryWatchPreferencesSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid watch preference',
-      400,
-      'INVALID_WATCH_PREFERENCE',
-    );
+    throw new AppError('Invalid watch preference', 400, 'INVALID_WATCH_PREFERENCE');
   }
 
   const result = await updateRepositoryWatchPreference(
@@ -102,10 +81,7 @@ export const updateWatchPreference = async (
   });
 };
 
-export const getWatcherCount = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const getWatcherCount = async (req: Request, res: Response): Promise<void> => {
   const { username, name } = req.params;
 
   if (typeof username !== 'string' || typeof name !== 'string') {

@@ -4,8 +4,18 @@ import { AppError } from '../../errors/app.error.js';
 import type { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
 import type { OptionalAuthenticatedRequest } from '../../middleware/optional-auth.middleware.js';
 
-import { createIssue, listIssues, getIssue, updateIssue } from '../../services/issues/issue.service.js';
-import { createIssueSchema, listIssuesQuerySchema, issueNumberSchema, updateIssueSchema } from '../../validations/issues/issue.validation.js';
+import {
+  createIssue,
+  listIssues,
+  getIssue,
+  updateIssue,
+} from '../../services/issues/issue.service.js';
+import {
+  createIssueSchema,
+  listIssuesQuerySchema,
+  issueNumberSchema,
+  updateIssueSchema,
+} from '../../validations/issues/issue.validation.js';
 
 export const create = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;

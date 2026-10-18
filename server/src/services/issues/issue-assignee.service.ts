@@ -35,11 +35,7 @@ const resolveIssue = async (
   });
 
   if (!repository) {
-    throw new AppError(
-      'Repository not found',
-      404,
-      'REPOSITORY_NOT_FOUND',
-    );
+    throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
   }
 
   await authorizeRepositoryAccess(repository.id, access, userId);
@@ -55,11 +51,7 @@ const resolveIssue = async (
   });
 
   if (!issue) {
-    throw new AppError(
-      'Issue not found',
-      404,
-      'ISSUE_NOT_FOUND',
-    );
+    throw new AppError('Issue not found', 404, 'ISSUE_NOT_FOUND');
   }
 
   return { repository, issue };
@@ -86,11 +78,7 @@ export const addIssueAssignee = async (
   });
 
   if (!assignee) {
-    throw new AppError(
-      'Assignee user not found',
-      404,
-      'ISSUE_ASSIGNEE_USER_NOT_FOUND',
-    );
+    throw new AppError('Assignee user not found', 404, 'ISSUE_ASSIGNEE_USER_NOT_FOUND');
   }
 
   if (assignee.id !== repository.ownerId) {
@@ -140,21 +128,12 @@ export const listIssueAssignees = async (
   number: number,
   userId?: string,
 ) => {
-  const { issue } = await resolveIssue(
-    username,
-    repositoryName,
-    number,
-    userId,
-    'READ',
-  );
+  const { issue } = await resolveIssue(username, repositoryName, number, userId, 'READ');
 
   return prisma.issueAssignee.findMany({
     where: { issueId: issue.id },
     include: assigneeInclude,
-    orderBy: [
-      { assignedAt: 'asc' },
-      { userId: 'asc' },
-    ],
+    orderBy: [{ assignedAt: 'asc' }, { userId: 'asc' }],
   });
 };
 
@@ -165,13 +144,7 @@ export const removeIssueAssignee = async (
   number: number,
   assigneeUsername: string,
 ) => {
-  const { issue } = await resolveIssue(
-    username,
-    repositoryName,
-    number,
-    userId,
-    'WRITE',
-  );
+  const { issue } = await resolveIssue(username, repositoryName, number, userId, 'WRITE');
 
   const assignee = await prisma.user.findUnique({
     where: { username: assigneeUsername },
@@ -179,11 +152,7 @@ export const removeIssueAssignee = async (
   });
 
   if (!assignee) {
-    throw new AppError(
-      'Issue assignee not found',
-      404,
-      'ISSUE_ASSIGNEE_NOT_FOUND',
-    );
+    throw new AppError('Issue assignee not found', 404, 'ISSUE_ASSIGNEE_NOT_FOUND');
   }
 
   const result = await prisma.issueAssignee.deleteMany({
@@ -194,10 +163,6 @@ export const removeIssueAssignee = async (
   });
 
   if (result.count === 0) {
-    throw new AppError(
-      'Issue assignee not found',
-      404,
-      'ISSUE_ASSIGNEE_NOT_FOUND',
-    );
+    throw new AppError('Issue assignee not found', 404, 'ISSUE_ASSIGNEE_NOT_FOUND');
   }
 };

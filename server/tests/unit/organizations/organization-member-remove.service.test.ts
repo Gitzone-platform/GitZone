@@ -41,9 +41,7 @@ describe('Remove organization member service', () => {
   });
 
   it('removes a MEMBER when requested by an OWNER', async () => {
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).resolves.toEqual({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).resolves.toEqual({
       organizationId: 'org-1',
       removedUserId: targetUserId,
     });
@@ -85,9 +83,7 @@ describe('Remove organization member service', () => {
   it('returns 404 when organization does not exist', async () => {
     mocks.organizationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toMatchObject({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -100,9 +96,7 @@ describe('Remove organization member service', () => {
     mocks.memberFindUnique.mockReset();
     mocks.memberFindUnique.mockResolvedValue(null);
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toMatchObject({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toMatchObject({
       statusCode: 403,
       code: 'ORGANIZATION_OWNER_REQUIRED',
     });
@@ -114,9 +108,7 @@ describe('Remove organization member service', () => {
     mocks.memberFindUnique.mockReset();
     mocks.memberFindUnique.mockResolvedValue({ role: 'MEMBER' });
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toMatchObject({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toMatchObject({
       statusCode: 403,
       code: 'ORGANIZATION_OWNER_REQUIRED',
     });
@@ -126,13 +118,9 @@ describe('Remove organization member service', () => {
 
   it('returns 404 when target membership does not exist', async () => {
     mocks.memberFindUnique.mockReset();
-    mocks.memberFindUnique
-      .mockResolvedValueOnce({ role: 'OWNER' })
-      .mockResolvedValueOnce(null);
+    mocks.memberFindUnique.mockResolvedValueOnce({ role: 'OWNER' }).mockResolvedValueOnce(null);
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toMatchObject({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_MEMBER_NOT_FOUND',
     });
@@ -146,9 +134,7 @@ describe('Remove organization member service', () => {
       .mockResolvedValueOnce({ role: 'OWNER' })
       .mockResolvedValueOnce({ role: 'OWNER' });
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toMatchObject({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_OWNER_REMOVAL_FORBIDDEN',
     });
@@ -159,9 +145,7 @@ describe('Remove organization member service', () => {
   it('detects membership changes before deletion', async () => {
     mocks.memberDeleteMany.mockResolvedValue({ count: 0 });
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toMatchObject({
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_MEMBERSHIP_CHANGED',
     });
@@ -179,8 +163,6 @@ describe('Remove organization member service', () => {
     const error = new Error('Database unavailable');
     mocks.memberDeleteMany.mockRejectedValue(error);
 
-    await expect(
-      removeOrganizationMember(slug, actorId, targetUserId),
-    ).rejects.toBe(error);
+    await expect(removeOrganizationMember(slug, actorId, targetUserId)).rejects.toBe(error);
   });
 });

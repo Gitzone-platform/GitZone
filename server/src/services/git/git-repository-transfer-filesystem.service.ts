@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { AppError } from '../../errors/app.error.js';
 
-
 import {
   resolveGitRepositoryPath,
   resolveOwnedGitRepositoryPath,
@@ -22,12 +21,7 @@ const pathExists = async (target: string): Promise<boolean> => {
     await fs.lstat(target);
     return true;
   } catch (error) {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 'ENOENT'
-    ) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') {
       return false;
     }
 
@@ -39,11 +33,7 @@ const assertRealDirectory = async (target: string): Promise<void> => {
   const stats = await fs.lstat(target);
 
   if (!stats.isDirectory() || stats.isSymbolicLink()) {
-    throw new AppError(
-      'Unsafe Git repository directory',
-      409,
-      'GIT_TRANSFER_UNSAFE_DIRECTORY',
-    );
+    throw new AppError('Unsafe Git repository directory', 409, 'GIT_TRANSFER_UNSAFE_DIRECTORY');
   }
 };
 
@@ -71,9 +61,7 @@ const assertNoSymbolicLinks = async (directory: string): Promise<void> => {
  * Prepare each storage directory independently.
  * Existing symbolic links and non-directory entries are rejected.
  */
-const ensureTransferStorageDirectory = async (
-  directoryPath: string,
-): Promise<void> => {
+const ensureTransferStorageDirectory = async (directoryPath: string): Promise<void> => {
   try {
     await fs.mkdir(directoryPath, { recursive: false });
   } catch (error) {
@@ -124,10 +112,7 @@ export const prepareGitRepositoryTransfer = async (
   await ensureTransferStorageDirectory(namespaceDirectory);
   await ensureTransferStorageDirectory(organizationDirectory);
 
-  const stagingPath = path.join(
-    path.dirname(destinationPath),
-    `.transfer-${transferId}`,
-  );
+  const stagingPath = path.join(path.dirname(destinationPath), `.transfer-${transferId}`);
 
   // An existing destination must never be overwritten.
   if (await pathExists(destinationPath)) {
@@ -144,23 +129,15 @@ export const prepareGitRepositoryTransfer = async (
     const sourceEntries = await fs.readdir(sourcePath);
 
     for (const entry of sourceEntries) {
-      await fs.cp(
-        path.join(sourcePath, entry),
-        path.join(stagingPath, entry),
-        {
-          recursive: true,
-          force: false,
-          errorOnExist: true,
-          dereference: false,
-        },
-      );
+      await fs.cp(path.join(sourcePath, entry), path.join(stagingPath, entry), {
+        recursive: true,
+        force: false,
+        errorOnExist: true,
+        dereference: false,
+      });
     }
 
-    await fs.writeFile(
-      path.join(stagingPath, markerName),
-      transferId,
-      { flag: 'wx' },
-    );
+    await fs.writeFile(path.join(stagingPath, markerName), transferId, { flag: 'wx' });
 
     // Reserve the destination exclusively. Never replace an existing path.
     // Publication is deliberately non-atomic and must remain guarded by
@@ -192,10 +169,7 @@ export const prepareGitRepositoryTransfer = async (
       const entries = await fs.readdir(stagingPath);
 
       for (const entry of entries) {
-        await fs.rename(
-          path.join(stagingPath, entry),
-          path.join(destinationPath, entry),
-        );
+        await fs.rename(path.join(stagingPath, entry), path.join(destinationPath, entry));
       }
 
       await fs.rmdir(stagingPath);

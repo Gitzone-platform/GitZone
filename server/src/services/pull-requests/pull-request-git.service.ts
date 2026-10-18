@@ -359,18 +359,10 @@ export const executePullRequestMergeRollback = async (
     await executeGitWriteCommand({
       username,
       repositoryName,
-      args: [
-        'update-ref',
-        `refs/heads/${targetBranch}`,
-        previousTargetSha,
-        mergeSha,
-      ],
+      args: ['update-ref', `refs/heads/${targetBranch}`, previousTargetSha, mergeSha],
     });
   } catch (error) {
-    if (
-      error instanceof GitWriteError &&
-      error.code === 'GIT_WRITE_COMMAND_FAILED'
-    ) {
+    if (error instanceof GitWriteError && error.code === 'GIT_WRITE_COMMAND_FAILED') {
       throw new AppError(
         'Git merge rollback conflict',
         409,

@@ -58,8 +58,7 @@ export const resolveGitRepositoryPath = (username: string, repositoryName: strin
  * independently before any filesystem operation.
  */
 export type GitRepositoryOwner =
-  | { type: 'USER'; username: string }
-  | { type: 'ORGANIZATION'; slug: string };
+  { type: 'USER'; username: string } | { type: 'ORGANIZATION'; slug: string };
 
 export const resolveOwnedGitRepositoryPath = (
   owner: GitRepositoryOwner,

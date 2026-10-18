@@ -48,146 +48,143 @@ export const gitHttpController = async (req: Request, res: Response): Promise<vo
       type: initialRepository.owner.type,
       id: initialRepository.owner.id,
     },
-    async () => withGitDistributedLock(
-      {
-        type: initialRepository.owner.type,
-        id: initialRepository.owner.id,
-      },
-      'read',
-      async ({ signal }) => {
-      const gitRepository = await lookupGitRepository(username, repository);
-
-      assertGitRepositoryIdentity(initialRepository, gitRepository);
-
-      const repositoryOwner = gitRepository.owner.name;
-      const repositoryName = gitRepository.name;
-
-      const pathInfo = buildOwnedGitHttpPathInfo(
-        gitRepository.owner.type === 'USER'
-          ? { type: 'USER', username: repositoryOwner }
-          : { type: 'ORGANIZATION', slug: repositoryOwner },
-        repositoryName,
-        req.path,
-      );
-
-      const authenticationRequired =
-        gitRepository.isPrivate || requestInfo.accessType === 'WRITE';
-
-      logger.info(
+    async () =>
+      withGitDistributedLock(
         {
-          method: req.method,
-          path: req.path,
-          username: repositoryOwner,
-          repository: repositoryName,
-          service: requestInfo.service,
-          accessType: requestInfo.accessType,
-          isPrivate: gitRepository.isPrivate,
-          authenticationRequired,
-          ownerType: gitRepository.owner.type,
+          type: initialRepository.owner.type,
+          id: initialRepository.owner.id,
         },
-        'Git HTTP request received',
-      );
+        'read',
+        async ({ signal }) => {
+          const gitRepository = await lookupGitRepository(username, repository);
 
-      let remoteUser: string | null;
+          assertGitRepositoryIdentity(initialRepository, gitRepository);
 
-      try {
-        const authenticatedUser = authenticationRequired
-          ? await authenticateGitRequest(req)
-          : null;
+          const repositoryOwner = gitRepository.owner.name;
+          const repositoryName = gitRepository.name;
 
-        const userId = authenticatedUser?.userId;
+          const pathInfo = buildOwnedGitHttpPathInfo(
+            gitRepository.owner.type === 'USER'
+              ? { type: 'USER', username: repositoryOwner }
+              : { type: 'ORGANIZATION', slug: repositoryOwner },
+            repositoryName,
+            req.path,
+          );
 
-        const access =
-          gitRepository.owner.type === 'ORGANIZATION'
-            ? await authorizeOrganizationRepositoryAccess(
-                gitRepository.id,
-                requestInfo.accessType,
-                userId,
-              )
-            : await authorizeRepositoryAccess(
-                gitRepository.id,
-                requestInfo.accessType,
-                userId,
-              );
+          const authenticationRequired =
+            gitRepository.isPrivate || requestInfo.accessType === 'WRITE';
 
-        // Authorization must refer to the repository resolved under the lock.
-        if (access.repositoryId !== gitRepository.id) {
-          throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
-        }
+          logger.info(
+            {
+              method: req.method,
+              path: req.path,
+              username: repositoryOwner,
+              repository: repositoryName,
+              service: requestInfo.service,
+              accessType: requestInfo.accessType,
+              isPrivate: gitRepository.isPrivate,
+              authenticationRequired,
+              ownerType: gitRepository.owner.type,
+            },
+            'Git HTTP request received',
+          );
 
-        if (gitRepository.owner.type === 'ORGANIZATION') {
-          if (
-            !('organizationId' in access) ||
-            access.organizationId !== gitRepository.owner.id ||
-            access.organizationSlug !== gitRepository.owner.name
-          ) {
-            throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+          let remoteUser: string | null;
+
+          try {
+            const authenticatedUser = authenticationRequired
+              ? await authenticateGitRequest(req)
+              : null;
+
+            const userId = authenticatedUser?.userId;
+
+            const access =
+              gitRepository.owner.type === 'ORGANIZATION'
+                ? await authorizeOrganizationRepositoryAccess(
+                    gitRepository.id,
+                    requestInfo.accessType,
+                    userId,
+                  )
+                : await authorizeRepositoryAccess(gitRepository.id, requestInfo.accessType, userId);
+
+            // Authorization must refer to the repository resolved under the lock.
+            if (access.repositoryId !== gitRepository.id) {
+              throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+            }
+
+            if (gitRepository.owner.type === 'ORGANIZATION') {
+              if (
+                !('organizationId' in access) ||
+                access.organizationId !== gitRepository.owner.id ||
+                access.organizationSlug !== gitRepository.owner.name
+              ) {
+                throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+              }
+            } else if (
+              !('repositoryOwnerId' in access) ||
+              access.repositoryOwnerId !== gitRepository.owner.id ||
+              access.repositoryOwnerUsername !== gitRepository.owner.name
+            ) {
+              throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
+            }
+
+            remoteUser = authenticatedUser?.username ?? null;
+
+            logger.info(
+              {
+                permission: access.permission,
+                repository: repositoryName,
+                username: repositoryOwner,
+                ownerType: gitRepository.owner.type,
+                authenticatedUsername: remoteUser,
+              },
+              'Git HTTP access authorized',
+            );
+          } catch (error) {
+            if (error instanceof AppError) {
+              if (error.statusCode === 401) {
+                res.setHeader('WWW-Authenticate', 'Basic realm="GitZone"');
+              }
+
+              res.status(error.statusCode).json({
+                success: false,
+                message: error.message,
+                code: error.code,
+              });
+
+              return;
+            }
+
+            throw error;
           }
-        } else if (
-          !('repositoryOwnerId' in access) ||
-          access.repositoryOwnerId !== gitRepository.owner.id ||
-          access.repositoryOwnerUsername !== gitRepository.owner.name
-        ) {
-          throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
-        }
 
-        remoteUser = authenticatedUser?.username ?? null;
+          if (requestInfo.accessType === 'WRITE') {
+            try {
+              await assertRepositoryTransferAllowsGitWrite(gitRepository.id);
+            } catch (error) {
+              if (error instanceof AppError) {
+                res.status(error.statusCode).json({
+                  success: false,
+                  message: error.message,
+                  code: error.code,
+                });
+                return;
+              }
 
-        logger.info(
-          {
-            permission: access.permission,
-            repository: repositoryName,
-            username: repositoryOwner,
-            ownerType: gitRepository.owner.type,
-            authenticatedUsername: remoteUser,
-          },
-          'Git HTTP access authorized',
-        );
-      } catch (error) {
-        if (error instanceof AppError) {
-          if (error.statusCode === 401) {
-            res.setHeader('WWW-Authenticate', 'Basic realm="GitZone"');
+              throw error;
+            }
           }
 
-          res.status(error.statusCode).json({
-            success: false,
-            message: error.message,
-            code: error.code,
+          await executeGitHttpBackend({
+            req,
+            res,
+            pathInfo,
+            remoteUser,
+            repositoryOwner,
+            repositoryName,
+            signal,
           });
-
-          return;
-        }
-
-        throw error;
-      }
-
-      if (requestInfo.accessType === 'WRITE') {
-        try {
-          await assertRepositoryTransferAllowsGitWrite(gitRepository.id);
-        } catch (error) {
-          if (error instanceof AppError) {
-            res.status(error.statusCode).json({
-              success: false,
-              message: error.message,
-              code: error.code,
-            });
-            return;
-          }
-
-          throw error;
-        }
-      }
-
-      await executeGitHttpBackend({
-        req,
-        res,
-        pathInfo,
-        remoteUser,
-        repositoryOwner,
-        repositoryName,
-        signal,
-      });
-      },
-    ),
+        },
+      ),
   );
 };

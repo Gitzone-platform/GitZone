@@ -160,13 +160,11 @@ describe('profile update service', () => {
   });
 
   it('delegates username and profile fields to the username change service', async () => {
-    mockedFindUnique
-      .mockResolvedValueOnce({ id: 'user-1' } as never)
-      .mockResolvedValueOnce({
-        ...publicUser,
-        username: 'newuser',
-        name: 'New Name',
-      } as never);
+    mockedFindUnique.mockResolvedValueOnce({ id: 'user-1' } as never).mockResolvedValueOnce({
+      ...publicUser,
+      username: 'newuser',
+      name: 'New Name',
+    } as never);
 
     const result = await updateUserProfile('user-1', {
       username: 'newuser',
@@ -175,14 +173,10 @@ describe('profile update service', () => {
     });
 
     expect(mockedChangeUsername).toHaveBeenCalledOnce();
-    expect(mockedChangeUsername).toHaveBeenCalledWith(
-      'user-1',
-      'newuser',
-      {
-        name: 'New Name',
-        bio: null,
-      },
-    );
+    expect(mockedChangeUsername).toHaveBeenCalledWith('user-1', 'newuser', {
+      name: 'New Name',
+      bio: null,
+    });
 
     expect(mockedUpdate).not.toHaveBeenCalled();
     expect(result.username).toBe('newuser');
@@ -190,22 +184,16 @@ describe('profile update service', () => {
   });
 
   it('supports username-only profile updates', async () => {
-    mockedFindUnique
-      .mockResolvedValueOnce({ id: 'user-1' } as never)
-      .mockResolvedValueOnce({
-        ...publicUser,
-        username: 'newuser',
-      } as never);
+    mockedFindUnique.mockResolvedValueOnce({ id: 'user-1' } as never).mockResolvedValueOnce({
+      ...publicUser,
+      username: 'newuser',
+    } as never);
 
     const result = await updateUserProfile('user-1', {
       username: 'newuser',
     });
 
-    expect(mockedChangeUsername).toHaveBeenCalledWith(
-      'user-1',
-      'newuser',
-      {},
-    );
+    expect(mockedChangeUsername).toHaveBeenCalledWith('user-1', 'newuser', {});
 
     expect(mockedUpdate).not.toHaveBeenCalled();
     expect(result.username).toBe('newuser');

@@ -59,12 +59,7 @@ describe('repository watch preferences HTTP integration', () => {
         },
       });
 
-      expect(mockedUpdate).toHaveBeenCalledExactlyOnceWith(
-        'user-1',
-        'asil',
-        'demo',
-        preference,
-      );
+      expect(mockedUpdate).toHaveBeenCalledExactlyOnceWith('user-1', 'asil', 'demo', preference);
     },
   );
 
@@ -76,10 +71,7 @@ describe('repository watch preferences HTTP integration', () => {
     { preference: 123 },
     { preference: 'ALL', unexpected: true },
   ])('rejects invalid body %#', async (body) => {
-    const response = await request(app)
-      .patch(url)
-      .set('Authorization', token)
-      .send(body);
+    const response = await request(app).patch(url).set('Authorization', token).send(body);
 
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
@@ -91,9 +83,7 @@ describe('repository watch preferences HTTP integration', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .patch(url)
-      .send({ preference: 'ALL' });
+    const response = await request(app).patch(url).send({ preference: 'ALL' });
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({

@@ -49,22 +49,17 @@ describe('Git distributed advisory lock', () => {
     );
 
     expect(result).toBe('ok');
-    expect(mocks.query).toHaveBeenCalledWith(
-      'SELECT pg_advisory_lock_shared($1::bigint)',
-      [expect.any(String)],
-    );
+    expect(mocks.query).toHaveBeenCalledWith('SELECT pg_advisory_lock_shared($1::bigint)', [
+      expect.any(String),
+    ]);
     expect(mocks.end).toHaveBeenCalledOnce();
   });
 
   it('closes the session when operation fails', async () => {
     await expect(
-      withGitDistributedLock(
-        { type: 'ORGANIZATION', id: 'org-id' },
-        'write',
-        async () => {
-          throw new Error('operation failed');
-        },
-      ),
+      withGitDistributedLock({ type: 'ORGANIZATION', id: 'org-id' }, 'write', async () => {
+        throw new Error('operation failed');
+      }),
     ).rejects.toThrow('operation failed');
 
     expect(mocks.end).toHaveBeenCalledOnce();
@@ -86,17 +81,13 @@ describe('Git distributed advisory lock', () => {
 
   it('aborts an operation when the database connection is lost', async () => {
     await expect(
-      withGitDistributedLock(
-        { type: 'USER', id: 'alice-id' },
-        'read',
-        async ({ signal }) => {
-          mocks.instances[0]?.emit('error', new Error('connection lost'));
+      withGitDistributedLock({ type: 'USER', id: 'alice-id' }, 'read', async ({ signal }) => {
+        mocks.instances[0]?.emit('error', new Error('connection lost'));
 
-          expect(signal.aborted).toBe(true);
+        expect(signal.aborted).toBe(true);
 
-          return 'unsafe-result';
-        },
-      ),
+        return 'unsafe-result';
+      }),
     ).rejects.toThrow('Git distributed lock connection lost');
   });
 
@@ -106,11 +97,7 @@ describe('Git distributed advisory lock', () => {
     const operation = vi.fn(async () => 'ok');
 
     await expect(
-      withGitDistributedLock(
-        { type: 'USER', id: 'alice-id' },
-        'write',
-        operation,
-      ),
+      withGitDistributedLock({ type: 'USER', id: 'alice-id' }, 'write', operation),
     ).rejects.toThrow('lock failed');
 
     expect(operation).not.toHaveBeenCalled();

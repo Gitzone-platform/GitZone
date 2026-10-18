@@ -22,17 +22,8 @@ import {
 const getRepositoryParams = (req: Request) => {
   const { username, name } = req.params;
 
-  if (
-    typeof username !== 'string' ||
-    typeof name !== 'string' ||
-    !username ||
-    !name
-  ) {
-    throw new AppError(
-      'Invalid repository parameters',
-      400,
-      'INVALID_REPOSITORY_PARAMS',
-    );
+  if (typeof username !== 'string' || typeof name !== 'string' || !username || !name) {
+    throw new AppError('Invalid repository parameters', 400, 'INVALID_REPOSITORY_PARAMS');
   }
 
   return { username, repositoryName: name };
@@ -40,16 +31,10 @@ const getRepositoryParams = (req: Request) => {
 
 const getMilestoneParams = (req: Request) => {
   const repository = getRepositoryParams(req);
-  const parsed = milestoneIdSchema.safeParse(
-    req.params.milestoneId,
-  );
+  const parsed = milestoneIdSchema.safeParse(req.params.milestoneId);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid milestone ID',
-      400,
-      'INVALID_MILESTONE_ID',
-    );
+    throw new AppError('Invalid milestone ID', 400, 'INVALID_MILESTONE_ID');
   }
 
   return {
@@ -58,19 +43,12 @@ const getMilestoneParams = (req: Request) => {
   };
 };
 
-export const create = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
   const params = getRepositoryParams(req);
   const parsed = createMilestoneSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid milestone data',
-      400,
-      'INVALID_MILESTONE_DATA',
-    );
+    throw new AppError('Invalid milestone data', 400, 'INVALID_MILESTONE_DATA');
   }
 
   const userId = (req as AuthenticatedRequest).userId;
@@ -88,31 +66,17 @@ export const create = async (
   });
 };
 
-export const list = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const list = async (req: Request, res: Response): Promise<void> => {
   const params = getRepositoryParams(req);
-  const parsed = listMilestonesQuerySchema.safeParse(
-    req.query,
-  );
+  const parsed = listMilestonesQuerySchema.safeParse(req.query);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid milestone query',
-      400,
-      'INVALID_MILESTONE_QUERY',
-    );
+    throw new AppError('Invalid milestone query', 400, 'INVALID_MILESTONE_QUERY');
   }
 
   const userId = (req as OptionalAuthenticatedRequest).userId;
 
-  const result = await listMilestones(
-    params.username,
-    params.repositoryName,
-    parsed.data,
-    userId,
-  );
+  const result = await listMilestones(params.username, params.repositoryName, parsed.data, userId);
 
   res.status(200).json({
     success: true,
@@ -120,10 +84,7 @@ export const list = async (
   });
 };
 
-export const getOne = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const getOne = async (req: Request, res: Response): Promise<void> => {
   const params = getMilestoneParams(req);
   const userId = (req as OptionalAuthenticatedRequest).userId;
 
@@ -140,19 +101,12 @@ export const getOne = async (
   });
 };
 
-export const update = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const update = async (req: Request, res: Response): Promise<void> => {
   const params = getMilestoneParams(req);
   const parsed = updateMilestoneSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid milestone update',
-      400,
-      'INVALID_MILESTONE_UPDATE',
-    );
+    throw new AppError('Invalid milestone update', 400, 'INVALID_MILESTONE_UPDATE');
   }
 
   const userId = (req as AuthenticatedRequest).userId;
@@ -171,19 +125,11 @@ export const update = async (
   });
 };
 
-export const remove = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const remove = async (req: Request, res: Response): Promise<void> => {
   const params = getMilestoneParams(req);
   const userId = (req as AuthenticatedRequest).userId;
 
-  await deleteMilestone(
-    userId,
-    params.username,
-    params.repositoryName,
-    params.milestoneId,
-  );
+  await deleteMilestone(userId, params.username, params.repositoryName, params.milestoneId);
 
   res.status(204).send();
 };

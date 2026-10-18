@@ -49,11 +49,7 @@ describe('repository star HTTP integration', () => {
       },
     });
 
-    expect(mockedStarRepository).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-    );
+    expect(mockedStarRepository).toHaveBeenCalledWith('user-1', 'asil', 'demo');
   });
 
   it('returns the same successful result for repeated requests', async () => {
@@ -77,8 +73,7 @@ describe('repository star HTTP integration', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .post('/api/repositories/asil/demo/star');
+    const response = await request(app).post('/api/repositories/asil/demo/star');
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({

@@ -3,25 +3,15 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  verifyGitRepositoryIntegrity,
-} from '../../../src/services/git/git-repository-transfer-integrity.service.js';
+import { verifyGitRepositoryIntegrity } from '../../../src/services/git/git-repository-transfer-integrity.service.js';
 
 let root: string;
 let repository: string;
 
 beforeEach(async () => {
-  root = await fs.mkdtemp(
-    path.join(os.tmpdir(), 'gitzone-integrity-'),
-  );
+  root = await fs.mkdtemp(path.join(os.tmpdir(), 'gitzone-integrity-'));
 
   repository = path.join(root, 'project.git');
 
@@ -48,9 +38,7 @@ describe('Git repository integrity verification', () => {
   });
 
   it('rejects a missing repository', async () => {
-    const result = await verifyGitRepositoryIntegrity(
-      path.join(root, 'missing.git'),
-    );
+    const result = await verifyGitRepositoryIntegrity(path.join(root, 'missing.git'));
 
     expect(result.valid).toBe(false);
     expect(result.reason).toBe('REPOSITORY_NOT_ACCESSIBLE');
@@ -80,10 +68,7 @@ describe('Git repository integrity verification', () => {
   });
 
   it('rejects a corrupted bare Git repository', async () => {
-    await fs.writeFile(
-      path.join(repository, 'HEAD'),
-      'invalid-head-content',
-    );
+    await fs.writeFile(path.join(repository, 'HEAD'), 'invalid-head-content');
 
     const result = await verifyGitRepositoryIntegrity(repository);
 

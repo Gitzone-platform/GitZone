@@ -45,11 +45,7 @@ beforeEach(() => {
 describe('Repository transfer authorization', () => {
   it('allows a personal repository owner who owns the organization', async () => {
     await expect(
-      authorizeRepositoryTransfer(
-        'repo-id',
-        'alice-id',
-        'org-id',
-      ),
+      authorizeRepositoryTransfer('repo-id', 'alice-id', 'org-id'),
     ).resolves.toBeUndefined();
 
     expect(mocks.findRepository).toHaveBeenCalledWith({
@@ -78,11 +74,7 @@ describe('Repository transfer authorization', () => {
     });
 
     await expect(
-      authorizeRepositoryTransfer(
-        'repo-id',
-        'alice-id',
-        'org-id',
-      ),
+      authorizeRepositoryTransfer('repo-id', 'alice-id', 'org-id'),
     ).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_NOT_OWNER',
     });
@@ -94,11 +86,7 @@ describe('Repository transfer authorization', () => {
     });
 
     await expect(
-      authorizeRepositoryTransfer(
-        'repo-id',
-        'alice-id',
-        'org-id',
-      ),
+      authorizeRepositoryTransfer('repo-id', 'alice-id', 'org-id'),
     ).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_ORG_OWNER_REQUIRED',
     });
@@ -111,11 +99,7 @@ describe('Repository transfer authorization', () => {
     });
 
     await expect(
-      authorizeRepositoryTransfer(
-        'repo-id',
-        'alice-id',
-        'org-id',
-      ),
+      authorizeRepositoryTransfer('repo-id', 'alice-id', 'org-id'),
     ).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_NOT_OWNER',
     });
@@ -124,11 +108,7 @@ describe('Repository transfer authorization', () => {
 
 describe('Repository transfer state transitions', () => {
   it('allows PENDING to MOVING', async () => {
-    await advanceRepositoryTransferState(
-      'transfer-id',
-      'PENDING',
-      'MOVING',
-    );
+    await advanceRepositoryTransferState('transfer-id', 'PENDING', 'MOVING');
 
     expect(mocks.updateTransfer).toHaveBeenCalledWith({
       where: {
@@ -144,21 +124,13 @@ describe('Repository transfer state transitions', () => {
 
   it('allows MOVING to MOVED', async () => {
     await expect(
-      advanceRepositoryTransferState(
-        'transfer-id',
-        'MOVING',
-        'MOVED',
-      ),
+      advanceRepositoryTransferState('transfer-id', 'MOVING', 'MOVED'),
     ).resolves.toBeUndefined();
   });
 
   it('rejects invalid state transitions', async () => {
     await expect(
-      advanceRepositoryTransferState(
-        'transfer-id',
-        'PENDING',
-        'COMPLETED',
-      ),
+      advanceRepositoryTransferState('transfer-id', 'PENDING', 'COMPLETED'),
     ).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_INVALID_TRANSITION',
     });
@@ -172,11 +144,7 @@ describe('Repository transfer state transitions', () => {
     });
 
     await expect(
-      advanceRepositoryTransferState(
-        'transfer-id',
-        'MOVING',
-        'MOVED',
-      ),
+      advanceRepositoryTransferState('transfer-id', 'MOVING', 'MOVED'),
     ).rejects.toMatchObject({
       code: 'REPOSITORY_TRANSFER_STATE_CONFLICT',
     });

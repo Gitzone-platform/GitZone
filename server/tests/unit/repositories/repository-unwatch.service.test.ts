@@ -69,9 +69,7 @@ describe('unwatchRepository', () => {
   it('returns 404 when the repository does not exist', async () => {
     mocks.findFirst.mockResolvedValue(null);
 
-    await expect(
-      unwatchRepository('user-1', 'owner', 'missing'),
-    ).rejects.toMatchObject({
+    await expect(unwatchRepository('user-1', 'owner', 'missing')).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -88,12 +86,12 @@ describe('unwatchRepository', () => {
       }),
     );
 
-    await expect(
-      unwatchRepository('stranger-1', 'owner', 'private-project'),
-    ).rejects.toMatchObject({
-      statusCode: 403,
-      code: 'REPOSITORY_ACCESS_DENIED',
-    });
+    await expect(unwatchRepository('stranger-1', 'owner', 'private-project')).rejects.toMatchObject(
+      {
+        statusCode: 403,
+        code: 'REPOSITORY_ACCESS_DENIED',
+      },
+    );
 
     expect(mocks.deleteMany).not.toHaveBeenCalled();
   });
@@ -101,8 +99,7 @@ describe('unwatchRepository', () => {
   it('authorizes before deleting the watch record', async () => {
     await unwatchRepository('user-1', 'owner', 'project');
 
-    const authOrder =
-      mocks.authorizeRepositoryAccess.mock.invocationCallOrder[0];
+    const authOrder = mocks.authorizeRepositoryAccess.mock.invocationCallOrder[0];
     const deleteOrder = mocks.deleteMany.mock.invocationCallOrder[0];
 
     expect(authOrder).toBeDefined();
@@ -142,8 +139,8 @@ describe('unwatchRepository', () => {
   it('propagates database errors without reporting success', async () => {
     mocks.deleteMany.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      unwatchRepository('user-1', 'owner', 'project'),
-    ).rejects.toThrow('Database unavailable');
+    await expect(unwatchRepository('user-1', 'owner', 'project')).rejects.toThrow(
+      'Database unavailable',
+    );
   });
 });

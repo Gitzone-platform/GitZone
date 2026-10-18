@@ -85,9 +85,7 @@ describe('avatar profile replacement service', () => {
   it('rejects a missing user without storing an avatar', async () => {
     mockedFindUnique.mockResolvedValue(null);
 
-    await expect(
-      updateUserAvatar('missing-user', buffer, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(updateUserAvatar('missing-user', buffer, 'image/png')).rejects.toMatchObject({
       statusCode: 404,
       code: 'USER_NOT_FOUND',
     });
@@ -97,11 +95,7 @@ describe('avatar profile replacement service', () => {
   });
 
   it('updates the avatar using compare-and-swap', async () => {
-    const result = await updateUserAvatar(
-      'user-1',
-      buffer,
-      'image/png',
-    );
+    const result = await updateUserAvatar('user-1', buffer, 'image/png');
 
     expect(result).toEqual(publicUser);
 
@@ -131,17 +125,13 @@ describe('avatar profile replacement service', () => {
   it('removes the new file when a concurrent update causes a conflict', async () => {
     mockedUpdate.mockResolvedValue([]);
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toMatchObject({
       statusCode: 409,
       code: 'AVATAR_UPDATE_CONFLICT',
     });
 
     expect(mockedUnlink).toHaveBeenCalledOnce();
-    expect(mockedUnlink.mock.calls[0]?.[0]).toEqual(
-      expect.stringContaining(newFilename),
-    );
+    expect(mockedUnlink.mock.calls[0]?.[0]).toEqual(expect.stringContaining(newFilename));
   });
 
   it('preserves the database error after cleaning up the new file', async () => {
@@ -149,9 +139,7 @@ describe('avatar profile replacement service', () => {
 
     mockedUpdate.mockRejectedValue(databaseError);
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toBe(databaseError);
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toBe(databaseError);
 
     expect(mockedUnlink).toHaveBeenCalledOnce();
   });
@@ -162,9 +150,7 @@ describe('avatar profile replacement service', () => {
     mockedUpdate.mockRejectedValue(databaseError);
     mockedUnlink.mockRejectedValue(new Error('File locked'));
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toBe(databaseError);
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toBe(databaseError);
   });
 
   it('deletes the old avatar when it has no remaining references', async () => {
@@ -177,9 +163,7 @@ describe('avatar profile replacement service', () => {
     });
 
     expect(mockedUnlink).toHaveBeenCalledOnce();
-    expect(mockedUnlink.mock.calls[0]?.[0]).toEqual(
-      expect.stringContaining(oldFilename),
-    );
+    expect(mockedUnlink.mock.calls[0]?.[0]).toEqual(expect.stringContaining(oldFilename));
   });
 
   it('keeps an old avatar that another user still references', async () => {
@@ -203,9 +187,7 @@ describe('avatar profile replacement service', () => {
       } as Awaited<ReturnType<typeof lstat>>;
     });
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toMatchObject({
       code: 'AVATAR_UPDATE_CONFLICT',
     });
 
@@ -225,9 +207,7 @@ describe('avatar profile replacement service', () => {
       } as Awaited<ReturnType<typeof lstat>>;
     });
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toMatchObject({
       code: 'AVATAR_UPDATE_CONFLICT',
     });
 
@@ -243,9 +223,7 @@ describe('avatar profile replacement service', () => {
       }),
     );
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toMatchObject({
       code: 'AVATAR_UPDATE_CONFLICT',
     });
 
@@ -265,9 +243,7 @@ describe('avatar profile replacement service', () => {
       } as Awaited<ReturnType<typeof lstat>>;
     });
 
-    await expect(
-      updateUserAvatar('user-1', buffer, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(updateUserAvatar('user-1', buffer, 'image/png')).rejects.toMatchObject({
       code: 'AVATAR_UPDATE_CONFLICT',
     });
 
@@ -276,11 +252,7 @@ describe('avatar profile replacement service', () => {
   it('returns the updated profile when old-avatar cleanup fails', async () => {
     mockedUnlink.mockRejectedValue(new Error('File locked'));
 
-    const result = await updateUserAvatar(
-      'user-1',
-      buffer,
-      'image/png',
-    );
+    const result = await updateUserAvatar('user-1', buffer, 'image/png');
 
     expect(result).toEqual(publicUser);
   });

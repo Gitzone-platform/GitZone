@@ -2,11 +2,7 @@ import prisma from '../../config/prisma.js';
 import { AppError } from '../../errors/app.error.js';
 import { authorizeRepositoryAccess } from './repository-authorization.service.js';
 
-export const getRepositoryForkNetwork = async (
-  username: string,
-  name: string,
-  userId?: string,
-) => {
+export const getRepositoryForkNetwork = async (username: string, name: string, userId?: string) => {
   const repository = await prisma.repository.findFirst({
     where: { name, organizationId: null, owner: { username } },
     select: {
@@ -47,10 +43,7 @@ export const getRepositoryForkNetwork = async (
         owner: parent.owner.username,
       };
     } catch (error) {
-      if (
-        !(error instanceof AppError) ||
-        (error.statusCode !== 403 && error.statusCode !== 404)
-      ) {
+      if (!(error instanceof AppError) || (error.statusCode !== 403 && error.statusCode !== 404)) {
         throw error;
       }
     }
@@ -99,15 +92,11 @@ export const getRepositoryForkNetwork = async (
     repositoryId: repository.id,
     isFork: repository.forkedFromId !== null,
     parent: visibleParent,
-    parentAccessible: repository.forkedFromId === null
-      ? null
-      : visibleParent !== null,
+    parentAccessible: repository.forkedFromId === null ? null : visibleParent !== null,
     forkCount: children.length,
     totalForkCount: visibleForkCount,
     forks: children.flatMap((child) =>
-      child.owner
-        ? [{ id: child.id, name: child.name, owner: child.owner.username }]
-        : [],
+      child.owner ? [{ id: child.id, name: child.name, owner: child.owner.username }] : [],
     ),
     hasMore: visibleForkCount > children.length,
   };

@@ -45,10 +45,7 @@ describe('POST /api/organizations/:slug/ownership/transfer', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .post(endpoint)
-      .send(validBody)
-      .expect(401);
+    const response = await request(app).post(endpoint).send(validBody).expect(401);
 
     expect(response.body.error.code).toBe('UNAUTHORIZED');
     expect(mocks.transferOrganizationOwnership).not.toHaveBeenCalled();
@@ -78,9 +75,7 @@ describe('POST /api/organizations/:slug/ownership/transfer', () => {
       .send(body)
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_OWNERSHIP_TRANSFER',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_OWNERSHIP_TRANSFER');
 
     expect(mocks.transferOrganizationOwnership).not.toHaveBeenCalled();
   });
@@ -107,9 +102,7 @@ describe('POST /api/organizations/:slug/ownership/transfer', () => {
       },
     });
 
-    expect(
-      mocks.transferOrganizationOwnership,
-    ).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.transferOrganizationOwnership).toHaveBeenCalledExactlyOnceWith(
       'gitzone-team',
       'owner-1',
       'member-1',
@@ -122,40 +115,14 @@ describe('POST /api/organizations/:slug/ownership/transfer', () => {
       'ORGANIZATION_OWNERSHIP_SELF_TRANSFER',
       'Cannot transfer organization ownership to yourself',
     ],
-    [
-      404,
-      'ORGANIZATION_NOT_FOUND',
-      'Organization not found',
-    ],
-    [
-      403,
-      'ORGANIZATION_OWNER_REQUIRED',
-      'Organization owner permission required',
-    ],
-    [
-      404,
-      'ORGANIZATION_MEMBER_NOT_FOUND',
-      'Organization member not found',
-    ],
-    [
-      409,
-      'ORGANIZATION_OWNERSHIP_TARGET_NOT_MEMBER',
-      'Target user must be an organization member',
-    ],
-    [
-      409,
-      'ORGANIZATION_MEMBERSHIP_CHANGED',
-      'Organization membership changed during transfer',
-    ],
-    [
-      409,
-      'ORGANIZATION_OWNERSHIP_CONFLICT',
-      'Concurrent organization ownership change detected',
-    ],
+    [404, 'ORGANIZATION_NOT_FOUND', 'Organization not found'],
+    [403, 'ORGANIZATION_OWNER_REQUIRED', 'Organization owner permission required'],
+    [404, 'ORGANIZATION_MEMBER_NOT_FOUND', 'Organization member not found'],
+    [409, 'ORGANIZATION_OWNERSHIP_TARGET_NOT_MEMBER', 'Target user must be an organization member'],
+    [409, 'ORGANIZATION_MEMBERSHIP_CHANGED', 'Organization membership changed during transfer'],
+    [409, 'ORGANIZATION_OWNERSHIP_CONFLICT', 'Concurrent organization ownership change detected'],
   ])('returns HTTP %i for %s', async (status, code, message) => {
-    mocks.transferOrganizationOwnership.mockRejectedValue(
-      new AppError(message, status, code),
-    );
+    mocks.transferOrganizationOwnership.mockRejectedValue(new AppError(message, status, code));
 
     const response = await request(app)
       .post(endpoint)
@@ -165,9 +132,7 @@ describe('POST /api/organizations/:slug/ownership/transfer', () => {
 
     expect(response.body.error.code).toBe(code);
 
-    expect(
-      mocks.transferOrganizationOwnership,
-    ).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.transferOrganizationOwnership).toHaveBeenCalledExactlyOnceWith(
       'gitzone-team',
       'owner-1',
       'member-1',

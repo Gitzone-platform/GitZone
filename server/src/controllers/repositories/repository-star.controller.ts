@@ -2,7 +2,11 @@ import type { Request, Response } from 'express';
 
 import { AppError } from '../../errors/app.error.js';
 import type { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
-import { getRepositoryStarCount, starRepository, unstarRepository } from '../../services/repositories/repository-star.service.js';
+import {
+  getRepositoryStarCount,
+  starRepository,
+  unstarRepository,
+} from '../../services/repositories/repository-star.service.js';
 
 export const star = async (req: Request, res: Response): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
@@ -36,11 +40,7 @@ export const unstar = async (req: Request, res: Response): Promise<void> => {
     );
   }
 
-  const result = await unstarRepository(
-    authenticatedReq.userId,
-    username,
-    name,
-  );
+  const result = await unstarRepository(authenticatedReq.userId, username, name);
 
   res.status(200).json({
     success: true,
@@ -48,10 +48,7 @@ export const unstar = async (req: Request, res: Response): Promise<void> => {
   });
 };
 
-export const getStarCount = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const getStarCount = async (req: Request, res: Response): Promise<void> => {
   const { username, name } = req.params;
 
   if (typeof username !== 'string' || typeof name !== 'string') {
@@ -64,11 +61,7 @@ export const getStarCount = async (
 
   const userId = (req as Request & { userId?: string }).userId;
 
-  const result = await getRepositoryStarCount(
-    username,
-    name,
-    userId,
-  );
+  const result = await getRepositoryStarCount(username, name, userId);
 
   res.status(200).json({
     success: true,

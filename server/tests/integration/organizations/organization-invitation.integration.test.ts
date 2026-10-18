@@ -42,10 +42,7 @@ describe('POST /api/organizations/:slug/invitations', () => {
   });
 
   it('requires authentication', async () => {
-    const response = await request(app)
-      .post(endpoint)
-      .send({ username: 'developer' })
-      .expect(401);
+    const response = await request(app).post(endpoint).send({ username: 'developer' }).expect(401);
 
     expect(response.body.error.code).toBe('UNAUTHORIZED');
     expect(mockedInviteOrganizationMember).not.toHaveBeenCalled();
@@ -69,9 +66,7 @@ describe('POST /api/organizations/:slug/invitations', () => {
       .send({ username: 'a!' })
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_INVITATION_DATA',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_INVITATION_DATA');
     expect(mockedInviteOrganizationMember).not.toHaveBeenCalled();
   });
 
@@ -85,9 +80,7 @@ describe('POST /api/organizations/:slug/invitations', () => {
       })
       .expect(400);
 
-    expect(response.body.error.code).toBe(
-      'INVALID_ORGANIZATION_INVITATION_DATA',
-    );
+    expect(response.body.error.code).toBe('INVALID_ORGANIZATION_INVITATION_DATA');
     expect(mockedInviteOrganizationMember).not.toHaveBeenCalled();
   });
 
@@ -122,22 +115,16 @@ describe('POST /api/organizations/:slug/invitations', () => {
       },
     });
 
-    expect(mockedInviteOrganizationMember).toHaveBeenCalledWith(
-      'gitzone-team',
-      'owner-1',
-      { username: 'developer' },
-    );
+    expect(mockedInviteOrganizationMember).toHaveBeenCalledWith('gitzone-team', 'owner-1', {
+      username: 'developer',
+    });
   });
 
   it('returns HTTP 403 when the user is not an owner', async () => {
     const { AppError } = await import('../../../src/errors/app.error.js');
 
     mockedInviteOrganizationMember.mockRejectedValue(
-      new AppError(
-        'Organization owner permission required',
-        403,
-        'ORGANIZATION_OWNER_REQUIRED',
-      ),
+      new AppError('Organization owner permission required', 403, 'ORGANIZATION_OWNER_REQUIRED'),
     );
 
     const response = await request(app)
@@ -166,20 +153,14 @@ describe('POST /api/organizations/:slug/invitations', () => {
       .send({ username: 'developer' })
       .expect(409);
 
-    expect(response.body.error.code).toBe(
-      'ORGANIZATION_INVITATION_ALREADY_EXISTS',
-    );
+    expect(response.body.error.code).toBe('ORGANIZATION_INVITATION_ALREADY_EXISTS');
   });
 
   it('returns HTTP 404 for a missing organization', async () => {
     const { AppError } = await import('../../../src/errors/app.error.js');
 
     mockedInviteOrganizationMember.mockRejectedValue(
-      new AppError(
-        'Organization not found',
-        404,
-        'ORGANIZATION_NOT_FOUND',
-      ),
+      new AppError('Organization not found', 404, 'ORGANIZATION_NOT_FOUND'),
     );
 
     const response = await request(app)

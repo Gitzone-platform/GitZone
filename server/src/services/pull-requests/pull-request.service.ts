@@ -357,21 +357,11 @@ export const getPullRequestCommits = async (
   number: number,
   userId?: string,
 ) => {
-  const repository = await findRepository(
-    username,
-    repositoryName,
-  );
+  const repository = await findRepository(username, repositoryName);
 
-  await authorizeRepositoryAccess(
-    repository.id,
-    'READ',
-    userId,
-  );
+  await authorizeRepositoryAccess(repository.id, 'READ', userId);
 
-  const pullRequest = await getPullRequestRecord(
-    repository.id,
-    number,
-  );
+  const pullRequest = await getPullRequestRecord(repository.id, number);
 
   return calculatePullRequestCommits(
     username,
@@ -387,21 +377,11 @@ export const getPullRequestDiff = async (
   number: number,
   userId?: string,
 ) => {
-  const repository = await findRepository(
-    username,
-    repositoryName,
-  );
+  const repository = await findRepository(username, repositoryName);
 
-  await authorizeRepositoryAccess(
-    repository.id,
-    'READ',
-    userId,
-  );
+  await authorizeRepositoryAccess(repository.id, 'READ', userId);
 
-  const pullRequest = await getPullRequestRecord(
-    repository.id,
-    number,
-  );
+  const pullRequest = await getPullRequestRecord(repository.id, number);
 
   return calculatePullRequestDiff(
     username,
@@ -417,29 +397,17 @@ export const getPullRequestMergeability = async (
   number: number,
   userId?: string,
 ) => {
-  const repository = await findRepository(
-    username,
-    repositoryName,
-  );
+  const repository = await findRepository(username, repositoryName);
 
-  await authorizeRepositoryAccess(
-    repository.id,
-    'READ',
-    userId,
-  );
+  await authorizeRepositoryAccess(repository.id, 'READ', userId);
 
-  const pullRequest = await getPullRequestRecord(
-    repository.id,
-    number,
-  );
+  const pullRequest = await getPullRequestRecord(repository.id, number);
 
   if (pullRequest.state !== 'OPEN') {
     return {
       mergeable: false,
       reason:
-        pullRequest.state === 'MERGED'
-          ? 'PULL_REQUEST_ALREADY_MERGED'
-          : 'PULL_REQUEST_CLOSED',
+        pullRequest.state === 'MERGED' ? 'PULL_REQUEST_ALREADY_MERGED' : 'PULL_REQUEST_CLOSED',
       sourceSha: null,
       targetSha: null,
       mergeBase: null,
@@ -462,36 +430,18 @@ export const mergePullRequest = async (
   repositoryName: string,
   number: number,
 ) => {
-  const repository = await findRepository(
-    username,
-    repositoryName,
-  );
+  const repository = await findRepository(username, repositoryName);
 
-  await authorizeRepositoryAccess(
-    repository.id,
-    'WRITE',
-    userId,
-  );
+  await authorizeRepositoryAccess(repository.id, 'WRITE', userId);
 
-  const pullRequest = await getPullRequestRecord(
-    repository.id,
-    number,
-  );
+  const pullRequest = await getPullRequestRecord(repository.id, number);
 
   if (pullRequest.state === 'MERGED') {
-    throw new AppError(
-      'Pull request is already merged',
-      409,
-      'PULL_REQUEST_ALREADY_MERGED',
-    );
+    throw new AppError('Pull request is already merged', 409, 'PULL_REQUEST_ALREADY_MERGED');
   }
 
   if (pullRequest.state !== 'OPEN') {
-    throw new AppError(
-      'Closed pull request cannot be merged',
-      409,
-      'PULL_REQUEST_CLOSED',
-    );
+    throw new AppError('Closed pull request cannot be merged', 409, 'PULL_REQUEST_CLOSED');
   }
 
   const merger = await prisma.user.findUnique({
@@ -505,11 +455,7 @@ export const mergePullRequest = async (
   });
 
   if (!merger) {
-    throw new AppError(
-      'User not found',
-      404,
-      'USER_NOT_FOUND',
-    );
+    throw new AppError('User not found', 404, 'USER_NOT_FOUND');
   }
 
   /*
@@ -524,38 +470,25 @@ export const mergePullRequest = async (
       SELECT pg_advisory_xact_lock(hashtext(${repository.id}))
     `;
 
-    const currentPullRequest =
-      await tx.pullRequest.findUnique({
-        where: {
-          repositoryId_number: {
-            repositoryId: repository.id,
-            number,
-          },
+    const currentPullRequest = await tx.pullRequest.findUnique({
+      where: {
+        repositoryId_number: {
+          repositoryId: repository.id,
+          number,
         },
-      });
+      },
+    });
 
     if (!currentPullRequest) {
-      throw new AppError(
-        'Pull request not found',
-        404,
-        'PULL_REQUEST_NOT_FOUND',
-      );
+      throw new AppError('Pull request not found', 404, 'PULL_REQUEST_NOT_FOUND');
     }
 
     if (currentPullRequest.state === 'MERGED') {
-      throw new AppError(
-        'Pull request is already merged',
-        409,
-        'PULL_REQUEST_ALREADY_MERGED',
-      );
+      throw new AppError('Pull request is already merged', 409, 'PULL_REQUEST_ALREADY_MERGED');
     }
 
     if (currentPullRequest.state !== 'OPEN') {
-      throw new AppError(
-        'Closed pull request cannot be merged',
-        409,
-        'PULL_REQUEST_CLOSED',
-      );
+      throw new AppError('Closed pull request cannot be merged', 409, 'PULL_REQUEST_CLOSED');
     }
 
     const gitResult = await mergePullRequestGit(

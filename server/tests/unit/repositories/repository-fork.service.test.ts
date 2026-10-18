@@ -81,9 +81,7 @@ describe('forkRepository service', () => {
   it('returns 404 when source repository is missing', async () => {
     findSource.mockResolvedValue(null);
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'missing', {}),
-    ).rejects.toMatchObject({
+    await expect(forkRepository('forker-1', 'sourceowner', 'missing', {})).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -95,23 +93,15 @@ describe('forkRepository service', () => {
   it('authorizes READ access before creating a fork', async () => {
     await forkRepository('forker-1', 'sourceowner', 'project', {});
 
-    expect(authorize).toHaveBeenCalledExactlyOnceWith(
-      'source-1',
-      'READ',
-      'forker-1',
-    );
+    expect(authorize).toHaveBeenCalledExactlyOnceWith('source-1', 'READ', 'forker-1');
 
     expect(createRepository).toHaveBeenCalledTimes(1);
   });
 
   it('denies unauthorized private source access', async () => {
-    authorize.mockRejectedValue(
-      new AppError('Access denied', 403, 'REPOSITORY_ACCESS_DENIED'),
-    );
+    authorize.mockRejectedValue(new AppError('Access denied', 403, 'REPOSITORY_ACCESS_DENIED'));
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'project', {}),
-    ).rejects.toMatchObject({
+    await expect(forkRepository('forker-1', 'sourceowner', 'project', {})).rejects.toMatchObject({
       statusCode: 403,
       code: 'REPOSITORY_ACCESS_DENIED',
     });
@@ -123,9 +113,7 @@ describe('forkRepository service', () => {
   it('returns 404 when target owner is missing', async () => {
     findOwner.mockResolvedValue(null);
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'project', {}),
-    ).rejects.toMatchObject({
+    await expect(forkRepository('forker-1', 'sourceowner', 'project', {})).rejects.toMatchObject({
       statusCode: 404,
       code: 'USER_NOT_FOUND',
     });
@@ -136,9 +124,7 @@ describe('forkRepository service', () => {
   it('rejects self-collision', async () => {
     findOwner.mockResolvedValue({ username: 'sourceowner' } as never);
 
-    await expect(
-      forkRepository('owner-1', 'sourceowner', 'project', {}),
-    ).rejects.toMatchObject({
+    await expect(forkRepository('owner-1', 'sourceowner', 'project', {})).rejects.toMatchObject({
       statusCode: 409,
       code: 'FORK_SELF_COLLISION',
     });
@@ -177,9 +163,7 @@ describe('forkRepository service', () => {
   it('rejects an existing target repository', async () => {
     findTarget.mockResolvedValue(fork as never);
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'project', {}),
-    ).rejects.toMatchObject({
+    await expect(forkRepository('forker-1', 'sourceowner', 'project', {})).rejects.toMatchObject({
       statusCode: 409,
       code: 'REPOSITORY_ALREADY_EXISTS',
     });
@@ -189,12 +173,7 @@ describe('forkRepository service', () => {
   });
 
   it('creates a fork with source metadata and relationship', async () => {
-    const result = await forkRepository(
-      'forker-1',
-      'sourceowner',
-      'project',
-      {},
-    );
+    const result = await forkRepository('forker-1', 'sourceowner', 'project', {});
 
     expect(createRepository).toHaveBeenCalledWith({
       data: {
@@ -207,12 +186,7 @@ describe('forkRepository service', () => {
       },
     });
 
-    expect(cloneGit).toHaveBeenCalledExactlyOnceWith(
-      'sourceowner',
-      'project',
-      'forker',
-      'project',
-    );
+    expect(cloneGit).toHaveBeenCalledExactlyOnceWith('sourceowner', 'project', 'forker', 'project');
 
     expect(result).toMatchObject({
       id: 'fork-1',
@@ -238,17 +212,11 @@ describe('forkRepository service', () => {
   });
 
   it('rolls back database row when Git clone fails', async () => {
-    const gitError = new AppError(
-      'Git clone failed',
-      500,
-      'GIT_FORK_CLONE_FAILED',
-    );
+    const gitError = new AppError('Git clone failed', 500, 'GIT_FORK_CLONE_FAILED');
 
     cloneGit.mockRejectedValue(gitError);
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'project', {}),
-    ).rejects.toBe(gitError);
+    await expect(forkRepository('forker-1', 'sourceowner', 'project', {})).rejects.toBe(gitError);
 
     expect(deleteRepository).toHaveBeenCalledExactlyOnceWith({
       where: { id: 'fork-1' },
@@ -259,9 +227,7 @@ describe('forkRepository service', () => {
     cloneGit.mockRejectedValue(new Error('Git clone failed'));
     deleteRepository.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'project', {}),
-    ).rejects.toMatchObject({
+    await expect(forkRepository('forker-1', 'sourceowner', 'project', {})).rejects.toMatchObject({
       statusCode: 500,
       code: 'FORK_ROLLBACK_FAILED',
     });
@@ -274,9 +240,9 @@ describe('forkRepository service', () => {
   it('propagates database creation failures without cloning', async () => {
     createRepository.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      forkRepository('forker-1', 'sourceowner', 'project', {}),
-    ).rejects.toThrow('Database unavailable');
+    await expect(forkRepository('forker-1', 'sourceowner', 'project', {})).rejects.toThrow(
+      'Database unavailable',
+    );
 
     expect(cloneGit).not.toHaveBeenCalled();
     expect(deleteRepository).not.toHaveBeenCalled();

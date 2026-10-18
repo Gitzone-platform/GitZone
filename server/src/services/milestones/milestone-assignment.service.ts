@@ -2,11 +2,7 @@ import prisma from '../../config/prisma.js';
 import { AppError } from '../../errors/app.error.js';
 import { authorizeRepositoryAccess } from '../repositories/repository-authorization.service.js';
 
-const resolveRepository = async (
-  userId: string,
-  username: string,
-  repositoryName: string,
-) => {
+const resolveRepository = async (userId: string, username: string, repositoryName: string) => {
   const repository = await prisma.repository.findFirst({
     where: {
       name: repositoryName,
@@ -16,26 +12,15 @@ const resolveRepository = async (
   });
 
   if (!repository) {
-    throw new AppError(
-      'Repository not found',
-      404,
-      'REPOSITORY_NOT_FOUND',
-    );
+    throw new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND');
   }
 
-  await authorizeRepositoryAccess(
-    repository.id,
-    'WRITE',
-    userId,
-  );
+  await authorizeRepositoryAccess(repository.id, 'WRITE', userId);
 
   return repository;
 };
 
-const resolveMilestone = async (
-  repositoryId: string,
-  milestoneId: string,
-) => {
+const resolveMilestone = async (repositoryId: string, milestoneId: string) => {
   const milestone = await prisma.milestone.findFirst({
     where: {
       id: milestoneId,
@@ -45,20 +30,13 @@ const resolveMilestone = async (
   });
 
   if (!milestone) {
-    throw new AppError(
-      'Milestone not found',
-      404,
-      'MILESTONE_NOT_FOUND',
-    );
+    throw new AppError('Milestone not found', 404, 'MILESTONE_NOT_FOUND');
   }
 
   return milestone;
 };
 
-const resolveIssue = async (
-  repositoryId: string,
-  number: number,
-) => {
+const resolveIssue = async (repositoryId: string, number: number) => {
   const issue = await prisma.issue.findUnique({
     where: {
       repositoryId_number: {
@@ -70,20 +48,13 @@ const resolveIssue = async (
   });
 
   if (!issue) {
-    throw new AppError(
-      'Issue not found',
-      404,
-      'ISSUE_NOT_FOUND',
-    );
+    throw new AppError('Issue not found', 404, 'ISSUE_NOT_FOUND');
   }
 
   return issue;
 };
 
-const resolvePullRequest = async (
-  repositoryId: string,
-  number: number,
-) => {
+const resolvePullRequest = async (repositoryId: string, number: number) => {
   const pullRequest = await prisma.pullRequest.findUnique({
     where: {
       repositoryId_number: {
@@ -95,11 +66,7 @@ const resolvePullRequest = async (
   });
 
   if (!pullRequest) {
-    throw new AppError(
-      'Pull request not found',
-      404,
-      'PULL_REQUEST_NOT_FOUND',
-    );
+    throw new AppError('Pull request not found', 404, 'PULL_REQUEST_NOT_FOUND');
   }
 
   return pullRequest;
@@ -112,22 +79,12 @@ export const assignIssueMilestone = async (
   number: number,
   milestoneId: string | null,
 ) => {
-  const repository = await resolveRepository(
-    userId,
-    username,
-    repositoryName,
-  );
+  const repository = await resolveRepository(userId, username, repositoryName);
 
-  const issue = await resolveIssue(
-    repository.id,
-    number,
-  );
+  const issue = await resolveIssue(repository.id, number);
 
   if (milestoneId !== null) {
-    await resolveMilestone(
-      repository.id,
-      milestoneId,
-    );
+    await resolveMilestone(repository.id, milestoneId);
   }
 
   const result = await prisma.issue.updateMany({
@@ -141,11 +98,7 @@ export const assignIssueMilestone = async (
   });
 
   if (result.count !== 1) {
-    throw new AppError(
-      'Issue not found',
-      404,
-      'ISSUE_NOT_FOUND',
-    );
+    throw new AppError('Issue not found', 404, 'ISSUE_NOT_FOUND');
   }
 
   return prisma.issue.findUniqueOrThrow({
@@ -166,22 +119,12 @@ export const assignPullRequestMilestone = async (
   number: number,
   milestoneId: string | null,
 ) => {
-  const repository = await resolveRepository(
-    userId,
-    username,
-    repositoryName,
-  );
+  const repository = await resolveRepository(userId, username, repositoryName);
 
-  const pullRequest = await resolvePullRequest(
-    repository.id,
-    number,
-  );
+  const pullRequest = await resolvePullRequest(repository.id, number);
 
   if (milestoneId !== null) {
-    await resolveMilestone(
-      repository.id,
-      milestoneId,
-    );
+    await resolveMilestone(repository.id, milestoneId);
   }
 
   const result = await prisma.pullRequest.updateMany({
@@ -195,11 +138,7 @@ export const assignPullRequestMilestone = async (
   });
 
   if (result.count !== 1) {
-    throw new AppError(
-      'Pull request not found',
-      404,
-      'PULL_REQUEST_NOT_FOUND',
-    );
+    throw new AppError('Pull request not found', 404, 'PULL_REQUEST_NOT_FOUND');
   }
 
   return prisma.pullRequest.findUniqueOrThrow({

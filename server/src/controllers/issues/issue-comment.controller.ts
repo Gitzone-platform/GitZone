@@ -24,21 +24,13 @@ const getParams = (req: Request) => {
   const { username, name, number } = req.params;
 
   if (typeof username !== 'string' || typeof name !== 'string') {
-    throw new AppError(
-      'Invalid repository parameters',
-      400,
-      'INVALID_REPOSITORY_PARAMS',
-    );
+    throw new AppError('Invalid repository parameters', 400, 'INVALID_REPOSITORY_PARAMS');
   }
 
   const parsedNumber = issueNumberSchema.safeParse(number);
 
   if (!parsedNumber.success) {
-    throw new AppError(
-      'Invalid issue number',
-      400,
-      'INVALID_ISSUE_NUMBER',
-    );
+    throw new AppError('Invalid issue number', 400, 'INVALID_ISSUE_NUMBER');
   }
 
   return {
@@ -52,29 +44,18 @@ const getCommentId = (req: Request): string => {
   const parsed = issueCommentIdSchema.safeParse(req.params.commentId);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid issue comment ID',
-      400,
-      'INVALID_ISSUE_COMMENT_ID',
-    );
+    throw new AppError('Invalid issue comment ID', 400, 'INVALID_ISSUE_COMMENT_ID');
   }
 
   return parsed.data;
 };
 
-export const create = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const create = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const parsed = createIssueCommentSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid issue comment data',
-      400,
-      'INVALID_ISSUE_COMMENT_DATA',
-    );
+    throw new AppError('Invalid issue comment data', 400, 'INVALID_ISSUE_COMMENT_DATA');
   }
 
   const userId = (req as AuthenticatedRequest).userId;
@@ -93,19 +74,12 @@ export const create = async (
   });
 };
 
-export const list = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const list = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const parsed = listIssueCommentsQuerySchema.safeParse(req.query);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid issue comments query',
-      400,
-      'INVALID_ISSUE_COMMENTS_QUERY',
-    );
+    throw new AppError('Invalid issue comments query', 400, 'INVALID_ISSUE_COMMENTS_QUERY');
   }
 
   const userId = (req as OptionalAuthenticatedRequest).userId;
@@ -124,20 +98,13 @@ export const list = async (
   });
 };
 
-export const update = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const update = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const commentId = getCommentId(req);
   const parsed = updateIssueCommentSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    throw new AppError(
-      'Invalid issue comment update',
-      400,
-      'INVALID_ISSUE_COMMENT_UPDATE',
-    );
+    throw new AppError('Invalid issue comment update', 400, 'INVALID_ISSUE_COMMENT_UPDATE');
   }
 
   const userId = (req as AuthenticatedRequest).userId;
@@ -157,10 +124,7 @@ export const update = async (
   });
 };
 
-export const remove = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const remove = async (req: Request, res: Response): Promise<void> => {
   const params = getParams(req);
   const commentId = getCommentId(req);
   const userId = (req as AuthenticatedRequest).userId;

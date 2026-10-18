@@ -15,11 +15,7 @@ const issueGroupBy = vi.mocked(prisma.issue.groupBy);
 const pullRequestGroupBy = vi.mocked(prisma.pullRequest.groupBy);
 const transaction = vi.mocked(prisma.$transaction);
 
-const group = (
-  milestoneId: string | null,
-  state: string,
-  count: unknown,
-) => ({
+const group = (milestoneId: string | null, state: string, count: unknown) => ({
   milestoneId,
   state,
   _count: { _all: count },
@@ -33,8 +29,7 @@ describe('Milestone batch progress service', () => {
     pullRequestGroupBy.mockResolvedValue([] as never);
 
     transaction.mockImplementation(
-      async (operations: unknown) =>
-        Promise.all(operations as Promise<unknown>[]) as never,
+      async (operations: unknown) => Promise.all(operations as Promise<unknown>[]) as never,
     );
   });
 
@@ -62,10 +57,7 @@ describe('Milestone batch progress service', () => {
   });
 
   it('calculates mixed issue and pull request progress', async () => {
-    issueGroupBy.mockResolvedValue([
-      group('m1', 'OPEN', 3),
-      group('m1', 'CLOSED', 2),
-    ] as never);
+    issueGroupBy.mockResolvedValue([group('m1', 'OPEN', 3), group('m1', 'CLOSED', 2)] as never);
 
     pullRequestGroupBy.mockResolvedValue([
       group('m1', 'OPEN', 1),
@@ -88,15 +80,9 @@ describe('Milestone batch progress service', () => {
   });
 
   it('calculates separate progress for multiple milestones', async () => {
-    issueGroupBy.mockResolvedValue([
-      group('m1', 'CLOSED', 2),
-      group('m2', 'OPEN', 3),
-    ] as never);
+    issueGroupBy.mockResolvedValue([group('m1', 'CLOSED', 2), group('m2', 'OPEN', 3)] as never);
 
-    const result = await calculateMilestonesProgress(
-      'repo-1',
-      ['m1', 'm2'],
-    );
+    const result = await calculateMilestonesProgress('repo-1', ['m1', 'm2']);
 
     expect(result.get('m1')?.percentage).toBe(100);
     expect(result.get('m2')?.percentage).toBe(0);
@@ -104,10 +90,7 @@ describe('Milestone batch progress service', () => {
   });
 
   it('deduplicates milestone IDs', async () => {
-    const result = await calculateMilestonesProgress(
-      'repo-1',
-      ['m1', 'm1', 'm2'],
-    );
+    const result = await calculateMilestonesProgress('repo-1', ['m1', 'm1', 'm2']);
 
     expect(result.size).toBe(2);
 
@@ -151,33 +134,23 @@ describe('Milestone batch progress service', () => {
   });
 
   it('rejects missing count data', async () => {
-    issueGroupBy.mockResolvedValue([
-      { milestoneId: 'm1', state: 'CLOSED' },
-    ] as never);
+    issueGroupBy.mockResolvedValue([{ milestoneId: 'm1', state: 'CLOSED' }] as never);
 
-    await expect(
-      calculateMilestonesProgress('repo-1', ['m1']),
-    ).rejects.toThrow('Invalid Prisma groupBy count result');
+    await expect(calculateMilestonesProgress('repo-1', ['m1'])).rejects.toThrow(
+      'Invalid Prisma groupBy count result',
+    );
   });
 
-  it.each([NaN, Infinity, -1, 1.5, '5', null])(
-    'rejects invalid count value %s',
-    async (count) => {
-      issueGroupBy.mockResolvedValue([
-        group('m1', 'CLOSED', count),
-      ] as never);
+  it.each([NaN, Infinity, -1, 1.5, '5', null])('rejects invalid count value %s', async (count) => {
+    issueGroupBy.mockResolvedValue([group('m1', 'CLOSED', count)] as never);
 
-      await expect(
-        calculateMilestonesProgress('repo-1', ['m1']),
-      ).rejects.toThrow('Invalid Prisma groupBy count value');
-    },
-  );
+    await expect(calculateMilestonesProgress('repo-1', ['m1'])).rejects.toThrow(
+      'Invalid Prisma groupBy count value',
+    );
+  });
 
   it('uses two grouped queries regardless of milestone count', async () => {
-    await calculateMilestonesProgress(
-      'repo-1',
-      ['m1', 'm2', 'm3', 'm4'],
-    );
+    await calculateMilestonesProgress('repo-1', ['m1', 'm2', 'm3', 'm4']);
 
     expect(issueGroupBy).toHaveBeenCalledTimes(1);
     expect(pullRequestGroupBy).toHaveBeenCalledTimes(1);

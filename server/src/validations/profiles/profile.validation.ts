@@ -39,9 +39,6 @@ export const updateProfileSchema = z
     location: nullableProfileText(100),
     website: websiteSchema,
   })
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    'At least one profile field is required',
-  );
+  .refine((data) => Object.keys(data).length > 0, 'At least one profile field is required');
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

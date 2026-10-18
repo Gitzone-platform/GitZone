@@ -5,7 +5,10 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { assertAvatarStorageIsolated, processAndStoreAvatar } from '../../../src/services/profiles/avatar-upload.service.js';
+import {
+  assertAvatarStorageIsolated,
+  processAndStoreAvatar,
+} from '../../../src/services/profiles/avatar-upload.service.js';
 import { readStoredAvatar } from '../../../src/services/profiles/avatar-read.service.js';
 
 describe('avatar storage with real image processing', () => {
@@ -13,9 +16,7 @@ describe('avatar storage with real image processing', () => {
   let cwdSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
-    temporaryRoot = await mkdtemp(
-      path.join(tmpdir(), 'gitzone-avatar-test-'),
-    );
+    temporaryRoot = await mkdtemp(path.join(tmpdir(), 'gitzone-avatar-test-'));
 
     cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue(temporaryRoot);
   });
@@ -33,56 +34,42 @@ describe('avatar storage with real image processing', () => {
     ['JPEG', 'jpeg', 'image/jpeg'],
     ['PNG', 'png', 'image/png'],
     ['WebP', 'webp', 'image/webp'],
-  ])(
-    'accepts a real %s image and stores WebP',
-    async (_label, format, mimeType) => {
-      const input = sharp({
-        create: {
-          width: 900,
-          height: 600,
-          channels: 3,
-          background: '#2563eb',
-        },
-      });
+  ])('accepts a real %s image and stores WebP', async (_label, format, mimeType) => {
+    const input = sharp({
+      create: {
+        width: 900,
+        height: 600,
+        channels: 3,
+        background: '#2563eb',
+      },
+    });
 
-      const buffer = await input
-        .toFormat(format as 'jpeg' | 'png' | 'webp')
-        .toBuffer();
+    const buffer = await input.toFormat(format as 'jpeg' | 'png' | 'webp').toBuffer();
 
-      const stored = await processAndStoreAvatar(buffer, mimeType);
+    const stored = await processAndStoreAvatar(buffer, mimeType);
 
-      expect(stored.filename).toMatch(
-        /^[0-9a-f-]{36}\.webp$/,
-      );
+    expect(stored.filename).toMatch(/^[0-9a-f-]{36}\.webp$/);
 
-      expect(stored.avatarUrl).toBe(
-        `/api/users/avatars/${stored.filename}`,
-      );
+    expect(stored.avatarUrl).toBe(`/api/users/avatars/${stored.filename}`);
 
-      expect(stored.absolutePath).toBe(
-        path.join(
-          temporaryRoot,
-          'storage',
-          'avatars',
-          stored.filename,
-        ),
-      );
+    expect(stored.absolutePath).toBe(
+      path.join(temporaryRoot, 'storage', 'avatars', stored.filename),
+    );
 
-      const savedBuffer = await readFile(stored.absolutePath);
-      const metadata = await sharp(savedBuffer).metadata();
+    const savedBuffer = await readFile(stored.absolutePath);
+    const metadata = await sharp(savedBuffer).metadata();
 
-      expect(metadata.format).toBe('webp');
-      expect(metadata.width).toBeLessThanOrEqual(512);
-      expect(metadata.height).toBeLessThanOrEqual(512);
-      expect(metadata.width).toBeGreaterThan(0);
-      expect(metadata.height).toBeGreaterThan(0);
+    expect(metadata.format).toBe('webp');
+    expect(metadata.width).toBeLessThanOrEqual(512);
+    expect(metadata.height).toBeLessThanOrEqual(512);
+    expect(metadata.width).toBeGreaterThan(0);
+    expect(metadata.height).toBeGreaterThan(0);
 
-      const fileStats = await stat(stored.absolutePath);
+    const fileStats = await stat(stored.absolutePath);
 
-      expect(fileStats.isFile()).toBe(true);
-      expect(fileStats.size).toBeGreaterThan(0);
-    },
-  );
+    expect(fileStats.isFile()).toBe(true);
+    expect(fileStats.size).toBeGreaterThan(0);
+  });
 
   it('preserves aspect ratio when resizing', async () => {
     const buffer = await sharp({
@@ -96,10 +83,7 @@ describe('avatar storage with real image processing', () => {
       .png()
       .toBuffer();
 
-    const stored = await processAndStoreAvatar(
-      buffer,
-      'image/png',
-    );
+    const stored = await processAndStoreAvatar(buffer, 'image/png');
 
     const metadata = await sharp(await readFile(stored.absolutePath)).metadata();
 
@@ -119,10 +103,7 @@ describe('avatar storage with real image processing', () => {
       .png()
       .toBuffer();
 
-    const stored = await processAndStoreAvatar(
-      buffer,
-      'image/png',
-    );
+    const stored = await processAndStoreAvatar(buffer, 'image/png');
 
     const metadata = await sharp(await readFile(stored.absolutePath)).metadata();
 
@@ -180,25 +161,19 @@ describe('avatar storage with real image processing', () => {
       .png()
       .toBuffer();
 
-    await expect(
-      processAndStoreAvatar(input, 'image/png'),
-    ).rejects.toMatchObject({
+    await expect(processAndStoreAvatar(input, 'image/png')).rejects.toMatchObject({
       code: 'AVATAR_STORAGE_UNSAFE',
     });
 
-    expect(await readFile(
-      path.join(externalRoot, 'sentinel.txt'),
-    ).catch((error: unknown) => {
-      if (
-        error instanceof Error &&
-        'code' in error &&
-        error.code === 'ENOENT'
-      ) {
-        return null;
-      }
+    expect(
+      await readFile(path.join(externalRoot, 'sentinel.txt')).catch((error: unknown) => {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+          return null;
+        }
 
-      throw error;
-    })).toBeNull();
+        throw error;
+      }),
+    ).toBeNull();
   });
 
   it('rejects reading through a symlinked avatar directory', async () => {

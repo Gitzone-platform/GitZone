@@ -2,10 +2,7 @@ import { AppError } from '../../errors/app.error.js';
 import { GitReadError } from '../../errors/git-read.error.js';
 import { assertSafeGitTreePath } from '../../utils/git/tree-path.js';
 import { executeGitReadCommand } from './git-read-command.service.js';
-import {
-  getGitRepositoryRefs,
-  type GitReference,
-} from './git-ref.service.js';
+import { getGitRepositoryRefs, type GitReference } from './git-ref.service.js';
 
 export type GitCommitIdentity = {
   name: string;
@@ -22,14 +19,7 @@ export type GitCommitSummary = {
 };
 
 export type GitCommitFileStatus =
-  | 'added'
-  | 'modified'
-  | 'deleted'
-  | 'renamed'
-  | 'copied'
-  | 'type-changed'
-  | 'unmerged'
-  | 'unknown';
+  'added' | 'modified' | 'deleted' | 'renamed' | 'copied' | 'type-changed' | 'unmerged' | 'unknown';
 
 export type GitCommitChangedFile = {
   path: string;
@@ -54,17 +44,12 @@ export type GitCommitDetail = GitCommitSummary & {
 const FIELD_SEPARATOR = '\x1f';
 const RECORD_SEPARATOR = '\x1e';
 
-const commitFormat =
-  `%H${FIELD_SEPARATOR}%an${FIELD_SEPARATOR}%ae${FIELD_SEPARATOR}%aI${FIELD_SEPARATOR}%cn${FIELD_SEPARATOR}%ce${FIELD_SEPARATOR}%cI${FIELD_SEPARATOR}%s${FIELD_SEPARATOR}%P`;
+const commitFormat = `%H${FIELD_SEPARATOR}%an${FIELD_SEPARATOR}%ae${FIELD_SEPARATOR}%aI${FIELD_SEPARATOR}%cn${FIELD_SEPARATOR}%ce${FIELD_SEPARATOR}%cI${FIELD_SEPARATOR}%s${FIELD_SEPARATOR}%P`;
 
 const SHA_PATTERN = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i;
 
 const invalidCommitData = (): AppError =>
-  new AppError(
-    'Git repository contains invalid commit data',
-    500,
-    'GIT_COMMIT_DATA_INVALID',
-  );
+  new AppError('Git repository contains invalid commit data', 500, 'GIT_COMMIT_DATA_INVALID');
 
 const parseCommit = (record: string): GitCommitSummary => {
   const fields = record.replace(/\r?\n$/, '').split(FIELD_SEPARATOR);
@@ -130,19 +115,13 @@ const resolveReference = (
         refs.tags.find((ref) => ref.name === requested));
 
   if (!result) {
-    throw new AppError(
-      'Git reference not found',
-      404,
-      'GIT_REF_NOT_FOUND',
-    );
+    throw new AppError('Git reference not found', 404, 'GIT_REF_NOT_FOUND');
   }
 
   return result;
 };
 
-const mapFileStatus = (
-  statusCode: string,
-): GitCommitFileStatus => {
+const mapFileStatus = (statusCode: string): GitCommitFileStatus => {
   switch (statusCode.charAt(0)) {
     case 'A':
       return 'added';
@@ -169,9 +148,7 @@ type ParsedNameStatus = {
   status: GitCommitFileStatus;
 };
 
-const parseNameStatus = (
-  output: string,
-): ParsedNameStatus[] => {
+const parseNameStatus = (output: string): ParsedNameStatus[] => {
   if (output.length === 0) {
     return [];
   }
@@ -184,7 +161,7 @@ const parseNameStatus = (
 
   const files: ParsedNameStatus[] = [];
 
-  for (let index = 0; index < tokens.length; ) {
+  for (let index = 0; index < tokens.length;) {
     const statusToken = tokens[index];
 
     if (statusToken === undefined || statusToken.length === 0) {
@@ -193,10 +170,7 @@ const parseNameStatus = (
 
     const status = mapFileStatus(statusToken);
 
-    if (
-      status === 'renamed' ||
-      status === 'copied'
-    ) {
+    if (status === 'renamed' || status === 'copied') {
       const previousPath = tokens[index + 1];
       const path = tokens[index + 2];
 
@@ -243,9 +217,7 @@ type ParsedNumstat = {
   binary: boolean;
 };
 
-const parseNumstat = (
-  output: string,
-): Map<string, ParsedNumstat> => {
+const parseNumstat = (output: string): Map<string, ParsedNumstat> => {
   const result = new Map<string, ParsedNumstat>();
 
   if (output.length === 0) {
@@ -266,20 +238,14 @@ const parseNumstat = (
     }
 
     const firstTab = record.indexOf('\t');
-    const secondTab =
-      firstTab === -1
-        ? -1
-        : record.indexOf('\t', firstTab + 1);
+    const secondTab = firstTab === -1 ? -1 : record.indexOf('\t', firstTab + 1);
 
     if (firstTab === -1 || secondTab === -1) {
       throw invalidCommitData();
     }
 
     const additionsRaw = record.slice(0, firstTab);
-    const deletionsRaw = record.slice(
-      firstTab + 1,
-      secondTab,
-    );
+    const deletionsRaw = record.slice(firstTab + 1, secondTab);
     let path = record.slice(secondTab + 1);
 
     if (path.length === 0) {
@@ -299,9 +265,7 @@ const parseNumstat = (
       index += 2;
     }
 
-    const binary =
-      additionsRaw === '-' &&
-      deletionsRaw === '-';
+    const binary = additionsRaw === '-' && deletionsRaw === '-';
 
     if (binary) {
       result.set(path, {
@@ -363,9 +327,7 @@ const buildChangedFiles = (
   });
 };
 
-const buildStatistics = (
-  files: GitCommitChangedFile[],
-): GitCommitStatistics => {
+const buildStatistics = (files: GitCommitChangedFile[]): GitCommitStatistics => {
   let additions = 0;
   let deletions = 0;
 
@@ -394,15 +356,9 @@ export const listGitCommits = async (
   }
 
   try {
-    const refs = await getGitRepositoryRefs(
-      username,
-      repositoryName,
-    );
+    const refs = await getGitRepositoryRefs(username, repositoryName);
 
-    const ref = resolveReference(
-      refs,
-      requestedRef,
-    );
+    const ref = resolveReference(refs, requestedRef);
 
     const args = [
       'log',
@@ -425,20 +381,13 @@ export const listGitCommits = async (
       })
     ).stdout;
 
-    return output
-      .split(RECORD_SEPARATOR)
-      .filter(Boolean)
-      .map(parseCommit);
+    return output.split(RECORD_SEPARATOR).filter(Boolean).map(parseCommit);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
     }
 
-    throw new AppError(
-      'Failed to read Git commit history',
-      500,
-      'GIT_COMMIT_HISTORY_READ_FAILED',
-    );
+    throw new AppError('Failed to read Git commit history', 500, 'GIT_COMMIT_HISTORY_READ_FAILED');
   }
 };
 
@@ -448,29 +397,17 @@ export const getGitCommit = async (
   sha: string,
 ): Promise<GitCommitDetail> => {
   if (!SHA_PATTERN.test(sha)) {
-    throw new AppError(
-      'Invalid commit SHA',
-      400,
-      'INVALID_GIT_COMMIT_SHA',
-    );
+    throw new AppError('Invalid commit SHA', 400, 'INVALID_GIT_COMMIT_SHA');
   }
 
   try {
     const metadata = await executeGitReadCommand({
       username,
       repositoryName,
-      args: [
-        'show',
-        '-s',
-        `--format=${commitFormat}`,
-        '--end-of-options',
-        sha,
-      ],
+      args: ['show', '-s', `--format=${commitFormat}`, '--end-of-options', sha],
     });
 
-    const commit = parseCommit(
-      metadata.stdout.trim(),
-    );
+    const commit = parseCommit(metadata.stdout.trim());
 
     const nameStatus = await executeGitReadCommand({
       username,
@@ -506,10 +443,7 @@ export const getGitCommit = async (
       ],
     });
 
-    const files = buildChangedFiles(
-      nameStatus.stdout,
-      numstat.stdout,
-    );
+    const files = buildChangedFiles(nameStatus.stdout, numstat.stdout);
 
     return {
       ...commit,
@@ -526,17 +460,9 @@ export const getGitCommit = async (
       error.code === 'GIT_READ_COMMAND_FAILED' &&
       error.exitCode === 128
     ) {
-      throw new AppError(
-        'Git commit not found',
-        404,
-        'GIT_COMMIT_NOT_FOUND',
-      );
+      throw new AppError('Git commit not found', 404, 'GIT_COMMIT_NOT_FOUND');
     }
 
-    throw new AppError(
-      'Failed to read Git commit',
-      500,
-      'GIT_COMMIT_READ_FAILED',
-    );
+    throw new AppError('Failed to read Git commit', 500, 'GIT_COMMIT_READ_FAILED');
   }
 };

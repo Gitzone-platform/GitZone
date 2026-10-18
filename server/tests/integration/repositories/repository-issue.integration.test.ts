@@ -23,11 +23,7 @@ vi.mock('../../../src/middleware/auth.middleware.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/optional-auth.middleware.js', () => ({
-  optionalAuthMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
       (req as Request & { userId?: string }).userId = 'user-1';
     }
@@ -90,12 +86,10 @@ describe('Repository issue API integration', () => {
   });
 
   it('creates an issue', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({
-        title: 'Example bug',
-        body: 'Bug description',
-      });
+    const response = await request(app).post(base).send({
+      title: 'Example bug',
+      body: 'Bug description',
+    });
 
     expect(response.status).toBe(201);
     expect(response.body).toMatchObject({
@@ -108,33 +102,24 @@ describe('Repository issue API integration', () => {
       },
     });
 
-    expect(mockedCreate).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      {
-        title: 'Example bug',
-        body: 'Bug description',
-      },
-    );
+    expect(mockedCreate).toHaveBeenCalledWith('user-1', 'asil', 'demo', {
+      title: 'Example bug',
+      body: 'Bug description',
+    });
   });
 
   it('rejects empty issue title', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({ title: '   ' });
+    const response = await request(app).post(base).send({ title: '   ' });
 
     expect(response.status).toBe(400);
     expect(mockedCreate).not.toHaveBeenCalled();
   });
 
   it('rejects unknown issue creation fields', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({
-        title: 'Bug',
-        unexpected: true,
-      });
+    const response = await request(app).post(base).send({
+      title: 'Bug',
+      unexpected: true,
+    });
 
     expect(response.status).toBe(400);
     expect(mockedCreate).not.toHaveBeenCalled();
@@ -146,44 +131,30 @@ describe('Repository issue API integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.data.issues).toHaveLength(1);
 
-    expect(mockedList).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      undefined,
-      {
-        page: 1,
-        limit: 20,
-      },
-    );
+    expect(mockedList).toHaveBeenCalledWith('asil', 'demo', undefined, {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('lists closed issues with pagination', async () => {
-    const response = await request(app)
-      .get(base)
-      .query({
-        state: 'CLOSED',
-        page: '2',
-        limit: '5',
-      });
+    const response = await request(app).get(base).query({
+      state: 'CLOSED',
+      page: '2',
+      limit: '5',
+    });
 
     expect(response.status).toBe(200);
 
-    expect(mockedList).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      undefined,
-      {
-        state: 'CLOSED',
-        page: 2,
-        limit: 5,
-      },
-    );
+    expect(mockedList).toHaveBeenCalledWith('asil', 'demo', undefined, {
+      state: 'CLOSED',
+      page: 2,
+      limit: 5,
+    });
   });
 
   it('rejects invalid issue list query', async () => {
-    const response = await request(app)
-      .get(base)
-      .query({ state: 'INVALID' });
+    const response = await request(app).get(base).query({ state: 'INVALID' });
 
     expect(response.status).toBe(400);
     expect(mockedList).not.toHaveBeenCalled();
@@ -195,12 +166,7 @@ describe('Repository issue API integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.data.issue.number).toBe(1);
 
-    expect(mockedGet).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      1,
-      undefined,
-    );
+    expect(mockedGet).toHaveBeenCalledWith('asil', 'demo', 1, undefined);
   });
 
   it('returns the assigned issue milestone', async () => {
@@ -220,9 +186,7 @@ describe('Repository issue API integration', () => {
       milestone: assignedMilestone,
     });
 
-    const response = await request(app)
-      .get(`${base}/1`)
-      .expect(200);
+    const response = await request(app).get(`${base}/1`).expect(200);
 
     expect(response.body.data.issue).toMatchObject({
       milestoneId: assignedMilestone.id,
@@ -237,9 +201,7 @@ describe('Repository issue API integration', () => {
       },
     });
 
-    expect(response.body.data.issue.milestoneId).toBe(
-      response.body.data.issue.milestone.id,
-    );
+    expect(response.body.data.issue.milestoneId).toBe(response.body.data.issue.milestone.id);
   });
   it('returns assigned issue labels', async () => {
     const assignedLabel = {
@@ -282,31 +244,21 @@ describe('Repository issue API integration', () => {
   });
 
   it('updates an issue', async () => {
-    const response = await request(app)
-      .patch(`${base}/1`)
-      .send({
-        title: 'Updated bug',
-        state: 'CLOSED',
-      });
+    const response = await request(app).patch(`${base}/1`).send({
+      title: 'Updated bug',
+      state: 'CLOSED',
+    });
 
     expect(response.status).toBe(200);
 
-    expect(mockedUpdate).toHaveBeenCalledWith(
-      'user-1',
-      'asil',
-      'demo',
-      1,
-      {
-        title: 'Updated bug',
-        state: 'CLOSED',
-      },
-    );
+    expect(mockedUpdate).toHaveBeenCalledWith('user-1', 'asil', 'demo', 1, {
+      title: 'Updated bug',
+      state: 'CLOSED',
+    });
   });
 
   it('rejects empty issue update', async () => {
-    const response = await request(app)
-      .patch(`${base}/1`)
-      .send({});
+    const response = await request(app).patch(`${base}/1`).send({});
 
     expect(response.status).toBe(400);
     expect(mockedUpdate).not.toHaveBeenCalled();

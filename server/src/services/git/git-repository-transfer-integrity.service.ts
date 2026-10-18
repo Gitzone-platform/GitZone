@@ -14,10 +14,7 @@ export type GitRepositoryIntegrityResult = {
 export const verifyGitRepositoryIntegrity = async (
   repositoryPath: string,
 ): Promise<GitRepositoryIntegrityResult> => {
-  const invalid = (
-    reason: string,
-    bare = false,
-  ): GitRepositoryIntegrityResult => ({
+  const invalid = (reason: string, bare = false): GitRepositoryIntegrityResult => ({
     valid: false,
     bare,
     fsckPassed: false,
@@ -37,12 +34,7 @@ export const verifyGitRepositoryIntegrity = async (
   try {
     const { stdout } = await execFileAsync(
       'git',
-      [
-        '--git-dir',
-        repositoryPath,
-        'rev-parse',
-        '--is-bare-repository',
-      ],
+      ['--git-dir', repositoryPath, 'rev-parse', '--is-bare-repository'],
       {
         timeout: 15000,
         windowsHide: true,
@@ -57,21 +49,11 @@ export const verifyGitRepositoryIntegrity = async (
   }
 
   try {
-    await execFileAsync(
-      'git',
-      [
-        '--git-dir',
-        repositoryPath,
-        'fsck',
-        '--full',
-        '--no-reflogs',
-      ],
-      {
-        timeout: 60000,
-        windowsHide: true,
-        maxBuffer: 4 * 1024 * 1024,
-      },
-    );
+    await execFileAsync('git', ['--git-dir', repositoryPath, 'fsck', '--full', '--no-reflogs'], {
+      timeout: 60000,
+      windowsHide: true,
+      maxBuffer: 4 * 1024 * 1024,
+    });
 
     return {
       valid: true,

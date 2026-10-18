@@ -53,9 +53,7 @@ describe('Issue service', () => {
   it('rejects creating an issue when repository does not exist', async () => {
     findRepository.mockResolvedValue(null as never);
 
-    await expect(
-      createIssue('user-1', 'owner', 'demo', { title: 'Bug' }),
-    ).rejects.toMatchObject({
+    await expect(createIssue('user-1', 'owner', 'demo', { title: 'Bug' })).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -70,22 +68,20 @@ describe('Issue service', () => {
       title: 'Bug',
     } as never);
 
-    transaction.mockImplementation(
-      (async (callback: unknown) => {
-        if (typeof callback !== 'function') {
-          throw new Error('Expected interactive transaction');
-        }
+    transaction.mockImplementation((async (callback: unknown) => {
+      if (typeof callback !== 'function') {
+        throw new Error('Expected interactive transaction');
+      }
 
-        return callback({
-          repositoryIssueCounter: {
-            upsert: upsertCounter,
-          },
-          issue: {
-            create: createRecord,
-          },
-        });
-      }) as never,
-    );
+      return callback({
+        repositoryIssueCounter: {
+          upsert: upsertCounter,
+        },
+        issue: {
+          create: createRecord,
+        },
+      });
+    }) as never);
 
     const result = await createIssue('user-1', 'owner', 'demo', {
       title: 'Bug',
@@ -111,10 +107,7 @@ describe('Issue service', () => {
     findRecords.mockResolvedValue([{ id: 'issue-1' }] as never);
     countRecords.mockResolvedValue(21 as never);
 
-    transaction.mockResolvedValue([
-      [{ id: 'issue-1' }],
-      21,
-    ] as never);
+    transaction.mockResolvedValue([[{ id: 'issue-1' }], 21] as never);
 
     const result = await listIssues('owner', 'demo', 'user-1', {
       state: 'OPEN',
@@ -165,9 +158,7 @@ describe('Issue service', () => {
   it('returns 404 when issue does not exist', async () => {
     findRecord.mockResolvedValue(null as never);
 
-    await expect(
-      getIssue('owner', 'demo', 999, 'user-1'),
-    ).rejects.toMatchObject({
+    await expect(getIssue('owner', 'demo', 999, 'user-1')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ISSUE_NOT_FOUND',
     });

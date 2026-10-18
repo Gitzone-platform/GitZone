@@ -30,12 +30,9 @@ describe('Git namespace locks', () => {
 
     let readerStarted = false;
 
-    const reader = withGitNamespaceReadLock(
-      { type: 'USER', id: 'user-1' },
-      async () => {
-        readerStarted = true;
-      },
-    );
+    const reader = withGitNamespaceReadLock({ type: 'USER', id: 'user-1' }, async () => {
+      readerStarted = true;
+    });
 
     expect(readerStarted).toBe(false);
 
@@ -50,24 +47,18 @@ describe('Git namespace locks', () => {
     const started = deferred();
     const unblock = deferred();
 
-    const first = withGitNamespaceWriteLock(
-      { type: 'ORGANIZATION', id: 'org-1' },
-      async () => {
-        started.release();
-        await unblock.promise;
-      },
-    );
+    const first = withGitNamespaceWriteLock({ type: 'ORGANIZATION', id: 'org-1' }, async () => {
+      started.release();
+      await unblock.promise;
+    });
 
     await started.promise;
 
     let secondStarted = false;
 
-    const second = withGitNamespaceWriteLock(
-      { type: 'ORGANIZATION', id: 'org-1' },
-      async () => {
-        secondStarted = true;
-      },
-    );
+    const second = withGitNamespaceWriteLock({ type: 'ORGANIZATION', id: 'org-1' }, async () => {
+      secondStarted = true;
+    });
 
     expect(secondStarted).toBe(false);
 
@@ -91,12 +82,9 @@ describe('Git namespace locks', () => {
 
     let organizationStarted = false;
 
-    await withGitNamespaceReadLock(
-      { type: 'ORGANIZATION', id: 'same-id' },
-      async () => {
-        organizationStarted = true;
-      },
-    );
+    await withGitNamespaceReadLock({ type: 'ORGANIZATION', id: 'same-id' }, async () => {
+      organizationStarted = true;
+    });
 
     expect(organizationStarted).toBe(true);
 
@@ -106,32 +94,23 @@ describe('Git namespace locks', () => {
 
   it('releases organization locks after an exception', async () => {
     await expect(
-      withGitNamespaceWriteLock(
-        { type: 'ORGANIZATION', id: 'org-error' },
-        async () => {
-          throw new Error('expected failure');
-        },
-      ),
+      withGitNamespaceWriteLock({ type: 'ORGANIZATION', id: 'org-error' }, async () => {
+        throw new Error('expected failure');
+      }),
     ).rejects.toThrow('expected failure');
 
     let acquired = false;
 
-    await withGitNamespaceReadLock(
-      { type: 'ORGANIZATION', id: 'org-error' },
-      async () => {
-        acquired = true;
-      },
-    );
+    await withGitNamespaceReadLock({ type: 'ORGANIZATION', id: 'org-error' }, async () => {
+      acquired = true;
+    });
 
     expect(acquired).toBe(true);
   });
 
   it('rejects an empty namespace owner ID', async () => {
     await expect(
-      withGitNamespaceReadLock(
-        { type: 'ORGANIZATION', id: '' },
-        async () => undefined,
-      ),
+      withGitNamespaceReadLock({ type: 'ORGANIZATION', id: '' }, async () => undefined),
     ).rejects.toThrow('Git namespace owner ID is required');
   });
 });

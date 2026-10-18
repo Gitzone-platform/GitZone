@@ -51,11 +51,7 @@ describe('repository watcher count HTTP integration', () => {
       },
     });
 
-    expect(mockedCount).toHaveBeenCalledExactlyOnceWith(
-      'asil',
-      'demo',
-      undefined,
-    );
+    expect(mockedCount).toHaveBeenCalledExactlyOnceWith('asil', 'demo', undefined);
   });
 
   it('passes authenticated viewer identity', async () => {
@@ -64,17 +60,11 @@ describe('repository watcher count HTTP integration', () => {
       watcherCount: 2,
     });
 
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer test-access-token');
+    const response = await request(app).get(url).set('Authorization', 'Bearer test-access-token');
 
     expect(response.status).toBe(200);
 
-    expect(mockedCount).toHaveBeenCalledExactlyOnceWith(
-      'asil',
-      'demo',
-      'viewer-1',
-    );
+    expect(mockedCount).toHaveBeenCalledExactlyOnceWith('asil', 'demo', 'viewer-1');
   });
 
   it('returns zero watcher count', async () => {
@@ -90,9 +80,7 @@ describe('repository watcher count HTTP integration', () => {
   });
 
   it('rejects invalid bearer tokens', async () => {
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer invalid-token');
+    const response = await request(app).get(url).set('Authorization', 'Bearer invalid-token');
 
     expect(response.status).toBe(401);
     expect(response.body.error.code).toBe('INVALID_ACCESS_TOKEN');
@@ -100,14 +88,10 @@ describe('repository watcher count HTTP integration', () => {
   });
 
   it('rejects malformed authorization headers', async () => {
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Basic test-access-token');
+    const response = await request(app).get(url).set('Authorization', 'Basic test-access-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.error.code).toBe(
-      'INVALID_AUTHORIZATION_HEADER',
-    );
+    expect(response.body.error.code).toBe('INVALID_AUTHORIZATION_HEADER');
 
     expect(mockedCount).not.toHaveBeenCalled();
   });
@@ -132,9 +116,7 @@ describe('repository watcher count HTTP integration', () => {
       ),
     );
 
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer test-access-token');
+    const response = await request(app).get(url).set('Authorization', 'Bearer test-access-token');
 
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe('REPOSITORY_ACCESS_DENIED');

@@ -12,30 +12,18 @@ export const createOrganizationRepositoryController = async (
   const slug = organizationSlugSchema.safeParse(req.params.slug);
 
   if (!slug.success) {
-    throw new AppError(
-      'Invalid organization slug',
-      400,
-      'INVALID_ORGANIZATION_SLUG',
-    );
+    throw new AppError('Invalid organization slug', 400, 'INVALID_ORGANIZATION_SLUG');
   }
 
   const input = createRepositorySchema.safeParse(req.body);
 
   if (!input.success) {
-    throw new AppError(
-      'Invalid repository data',
-      400,
-      'INVALID_REPOSITORY_DATA',
-    );
+    throw new AppError('Invalid repository data', 400, 'INVALID_REPOSITORY_DATA');
   }
 
   const actorId = (req as AuthenticatedRequest).userId;
 
-  const repository = await createOrganizationRepository(
-    slug.data,
-    actorId,
-    input.data,
-  );
+  const repository = await createOrganizationRepository(slug.data, actorId, input.data);
 
   res.status(201).json({
     success: true,

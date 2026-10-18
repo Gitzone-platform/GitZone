@@ -97,9 +97,7 @@ describe('Git user directory rename service', () => {
       throw missingEntry();
     });
 
-    await expect(
-      renameGitUserDirectory('olduser', 'newuser'),
-    ).rejects.toMatchObject({
+    await expect(renameGitUserDirectory('olduser', 'newuser')).rejects.toMatchObject({
       statusCode: 409,
       code: 'GIT_USER_DIRECTORY_ALREADY_EXISTS',
     });

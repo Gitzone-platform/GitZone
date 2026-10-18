@@ -51,11 +51,7 @@ describe('repository star count HTTP integration', () => {
       },
     });
 
-    expect(mockedGetStarCount).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      undefined,
-    );
+    expect(mockedGetStarCount).toHaveBeenCalledWith('asil', 'demo', undefined);
   });
 
   it('passes authenticated user ID to the service', async () => {
@@ -71,11 +67,7 @@ describe('repository star count HTTP integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.data.starCount).toBe(3);
 
-    expect(mockedGetStarCount).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      'user-1',
-    );
+    expect(mockedGetStarCount).toHaveBeenCalledWith('asil', 'demo', 'user-1');
   });
 
   it('returns zero when a repository has no stars', async () => {
@@ -97,9 +89,7 @@ describe('repository star count HTTP integration', () => {
   });
 
   it('rejects an invalid bearer token', async () => {
-    const response = await request(app)
-      .get(endpoint)
-      .set('Authorization', 'Bearer invalid-token');
+    const response = await request(app).get(endpoint).set('Authorization', 'Bearer invalid-token');
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({
@@ -113,9 +103,7 @@ describe('repository star count HTTP integration', () => {
   });
 
   it('rejects a malformed authorization header', async () => {
-    const response = await request(app)
-      .get(endpoint)
-      .set('Authorization', 'Basic invalid-token');
+    const response = await request(app).get(endpoint).set('Authorization', 'Basic invalid-token');
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({
@@ -133,8 +121,7 @@ describe('repository star count HTTP integration', () => {
       new AppError('Repository not found', 404, 'REPOSITORY_NOT_FOUND'),
     );
 
-    const response = await request(app)
-      .get('/api/repositories/asil/missing/stars/count');
+    const response = await request(app).get('/api/repositories/asil/missing/stars/count');
 
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
@@ -154,8 +141,7 @@ describe('repository star count HTTP integration', () => {
       ),
     );
 
-    const response = await request(app)
-      .get('/api/repositories/asil/private/stars/count');
+    const response = await request(app).get('/api/repositories/asil/private/stars/count');
 
     expect(response.status).toBe(403);
     expect(response.body).toMatchObject({
@@ -167,9 +153,7 @@ describe('repository star count HTTP integration', () => {
   });
 
   it('returns 500 when the database operation fails', async () => {
-    mockedGetStarCount.mockRejectedValue(
-      new Error('Database unavailable'),
-    );
+    mockedGetStarCount.mockRejectedValue(new Error('Database unavailable'));
 
     const response = await request(app).get(endpoint);
 

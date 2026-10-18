@@ -380,9 +380,7 @@
         {
           "listen": "test",
           "script": {
-            "exec": [
-              "pm.test('Delete returns 204', () => pm.response.to.have.status(204));"
-            ]
+            "exec": ["pm.test('Delete returns 204', () => pm.response.to.have.status(204));"]
           }
         }
       ]

@@ -32,9 +32,7 @@ const buildContributions = () => {
   const start = Date.parse('2025-10-10T00:00:00.000Z');
 
   const days = Array.from({ length: 365 }, (_, index) => ({
-    date: new Date(start + index * 86400000)
-      .toISOString()
-      .slice(0, 10),
+    date: new Date(start + index * 86400000).toISOString().slice(0, 10),
     count: index === 364 ? 2 : 0,
   }));
 
@@ -62,8 +60,7 @@ describe('public profile contributions API integration', () => {
   it('returns contributions for an existing user', async () => {
     mockedGetContributions.mockResolvedValue(buildContributions());
 
-    const response = await request(app)
-      .get('/api/users/asil/contributions');
+    const response = await request(app).get('/api/users/asil/contributions');
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -89,8 +86,7 @@ describe('public profile contributions API integration', () => {
   it('returns 365 daily contribution entries', async () => {
     mockedGetContributions.mockResolvedValue(buildContributions());
 
-    const response = await request(app)
-      .get('/api/users/asil/contributions');
+    const response = await request(app).get('/api/users/asil/contributions');
 
     expect(response.status).toBe(200);
     expect(response.body.data.days).toHaveLength(365);
@@ -124,27 +120,19 @@ describe('public profile contributions API integration', () => {
       })),
     });
 
-    const response = await request(app)
-      .get('/api/users/asil/contributions');
+    const response = await request(app).get('/api/users/asil/contributions');
 
     expect(response.status).toBe(200);
     expect(response.body.data.total).toBe(0);
     expect(response.body.data.activeDays).toBe(0);
     expect(response.body.data.days).toHaveLength(365);
-    expect(
-      response.body.data.days.every(
-        (day: { count: number }) => day.count === 0,
-      ),
-    ).toBe(true);
+    expect(response.body.data.days.every((day: { count: number }) => day.count === 0)).toBe(true);
   });
 
   it('returns 404 for a nonexistent user', async () => {
-    mockedGetContributions.mockRejectedValue(
-      new AppError('User not found', 404, 'USER_NOT_FOUND'),
-    );
+    mockedGetContributions.mockRejectedValue(new AppError('User not found', 404, 'USER_NOT_FOUND'));
 
-    const response = await request(app)
-      .get('/api/users/missinguser/contributions');
+    const response = await request(app).get('/api/users/missinguser/contributions');
 
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({
@@ -156,8 +144,7 @@ describe('public profile contributions API integration', () => {
   });
 
   it('rejects invalid usernames before calling the service', async () => {
-    const response = await request(app)
-      .get('/api/users/invalid.username/contributions');
+    const response = await request(app).get('/api/users/invalid.username/contributions');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_USERNAME');
@@ -167,8 +154,7 @@ describe('public profile contributions API integration', () => {
   it('does not require an authorization header', async () => {
     mockedGetContributions.mockResolvedValue(buildContributions());
 
-    const response = await request(app)
-      .get('/api/users/asil/contributions');
+    const response = await request(app).get('/api/users/asil/contributions');
 
     expect(response.status).toBe(200);
     expect(mockedGetContributions).toHaveBeenCalledOnce();
@@ -176,15 +162,10 @@ describe('public profile contributions API integration', () => {
 
   it('propagates service errors through error middleware', async () => {
     mockedGetContributions.mockRejectedValue(
-      new AppError(
-        'Contributions query failed',
-        503,
-        'CONTRIBUTIONS_QUERY_FAILED',
-      ),
+      new AppError('Contributions query failed', 503, 'CONTRIBUTIONS_QUERY_FAILED'),
     );
 
-    const response = await request(app)
-      .get('/api/users/asil/contributions');
+    const response = await request(app).get('/api/users/asil/contributions');
 
     expect(response.status).toBe(503);
     expect(response.body).toMatchObject({

@@ -9,8 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../../../src/utils/auth/tokens.js', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('../../../src/utils/auth/tokens.js')>();
+  const original = await importOriginal<typeof import('../../../src/utils/auth/tokens.js')>();
 
   return {
     ...original,
@@ -29,12 +28,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-transfer-orchestrator.service.js',
-  () => ({
-    prepareRepositoryTransferOrchestration: mocks.orchestrate,
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-transfer-orchestrator.service.js', () => ({
+  prepareRepositoryTransferOrchestration: mocks.orchestrate,
+}));
 
 vi.mock('../../../src/controllers/git/git-http.controller.js', () => ({
   gitHttpController: vi.fn(),
@@ -71,9 +67,7 @@ beforeEach(() => {
 
 describe('Repository transfer HTTP API', () => {
   it('returns 401 when authorization header is missing', async () => {
-    const response = await request(app)
-      .post(endpoint)
-      .send({ organizationSlug: 'team' });
+    const response = await request(app).post(endpoint).send({ organizationSlug: 'team' });
 
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({
@@ -196,9 +190,7 @@ describe('Repository transfer HTTP API', () => {
   });
 
   it('does not return success when transfer orchestration fails', async () => {
-    mocks.orchestrate.mockRejectedValue(
-      new Error('Transfer operation failed'),
-    );
+    mocks.orchestrate.mockRejectedValue(new Error('Transfer operation failed'));
 
     const response = await request(app)
       .post(endpoint)

@@ -11,6 +11,4 @@ export const assignMilestoneSchema = z
 
 export const milestoneAssignmentNumberSchema = issueNumberSchema;
 
-export type AssignMilestoneInput = z.infer<
-  typeof assignMilestoneSchema
->;
+export type AssignMilestoneInput = z.infer<typeof assignMilestoneSchema>;

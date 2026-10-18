@@ -25,9 +25,12 @@ vi.mock('../../../src/services/auth/pat.service.js', () => ({
   verifyPersonalAccessToken: vi.fn(),
 }));
 
-vi.mock('../../../src/services/repositories/organization-repository-authorization.service.js', () => ({
-  authorizeOrganizationRepositoryAccess: vi.fn(),
-}));
+vi.mock(
+  '../../../src/services/repositories/organization-repository-authorization.service.js',
+  () => ({
+    authorizeOrganizationRepositoryAccess: vi.fn(),
+  }),
+);
 
 vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
   authorizeRepositoryAccess: vi.fn(),
@@ -67,9 +70,7 @@ const authenticatedUser = {
 
 const basicAuthorization = `Basic ${Buffer.from('developer:valid-pat').toString('base64')}`;
 
-const grantAccess = (
-  permission: 'OWNER' | 'MEMBER' | 'READ' | 'WRITE' | 'PUBLIC',
-) => {
+const grantAccess = (permission: 'OWNER' | 'MEMBER' | 'READ' | 'WRITE' | 'PUBLIC') => {
   mockedOrganizationAuthorization.mockResolvedValue({
     repositoryId: organizationRepository.id,
     repositoryName: organizationRepository.name,
@@ -94,9 +95,7 @@ const mockSuccessfulBackend = () => {
 
     setImmediate(() => {
       child.stdout.write(
-        Buffer.from(
-          'Status: 200 OK\r\nContent-Type: application/octet-stream\r\n\r\n',
-        ),
+        Buffer.from('Status: 200 OK\r\nContent-Type: application/octet-stream\r\n\r\n'),
       );
       child.stdout.write(Buffer.from('git-response'));
       child.stdout.end();
@@ -128,20 +127,14 @@ describe('Organization Git HTTP integration', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith(
-      'org-repo-1',
-      'READ',
-      undefined,
-    );
+    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith('org-repo-1', 'READ', undefined);
     expect(mockedPAT).not.toHaveBeenCalled();
     expect(mockedLegacyAuthorization).not.toHaveBeenCalled();
 
     expect(mockedSpawn).toHaveBeenCalledOnce();
 
     const options = mockedSpawn.mock.calls[0]?.[2];
-    expect(options?.env?.PATH_INFO).toBe(
-      '/.organizations/engineering/platform.git/info/refs',
-    );
+    expect(options?.env?.PATH_INFO).toBe('/.organizations/engineering/platform.git/info/refs');
     expect(options?.env?.REMOTE_USER).toBeUndefined();
   });
 
@@ -172,11 +165,7 @@ describe('Organization Git HTTP integration', () => {
       .set('Authorization', basicAuthorization);
 
     expect(response.status).toBe(200);
-    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith(
-      'org-repo-1',
-      'READ',
-      'user-1',
-    );
+    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith('org-repo-1', 'READ', 'user-1');
     expect(mockedSpawn.mock.calls[0]?.[2]?.env?.REMOTE_USER).toBe('developer');
   });
 
@@ -188,11 +177,7 @@ describe('Organization Git HTTP integration', () => {
       .set('Authorization', basicAuthorization);
 
     expect(response.status).toBe(200);
-    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith(
-      'org-repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith('org-repo-1', 'WRITE', 'user-1');
     expect(mockedSpawn).toHaveBeenCalledOnce();
   });
 
@@ -206,11 +191,7 @@ describe('Organization Git HTTP integration', () => {
       .send(Buffer.from('git-request'));
 
     expect(response.status).toBe(200);
-    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith(
-      'org-repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(mockedOrganizationAuthorization).toHaveBeenCalledWith('org-repo-1', 'WRITE', 'user-1');
     expect(mockedSpawn).toHaveBeenCalledOnce();
   });
 
@@ -266,10 +247,7 @@ describe('Organization Git HTTP integration', () => {
 
     const response = await request(app)
       .get('/engineering/platform.git/info/refs?service=git-receive-pack')
-      .set(
-        'Authorization',
-        `Basic ${Buffer.from('shadow:valid-pat').toString('base64')}`,
-      );
+      .set('Authorization', `Basic ${Buffer.from('shadow:valid-pat').toString('base64')}`);
 
     expect(response.status).toBe(403);
     expect(mockedLegacyAuthorization).not.toHaveBeenCalled();
@@ -277,16 +255,14 @@ describe('Organization Git HTTP integration', () => {
   });
 
   it('rejects namespace identity changes between lookup and lock', async () => {
-    mockedLookup
-      .mockResolvedValueOnce(organizationRepository)
-      .mockResolvedValueOnce({
-        ...organizationRepository,
-        owner: {
-          type: 'ORGANIZATION',
-          id: 'org-2',
-          name: 'engineering',
-        },
-      });
+    mockedLookup.mockResolvedValueOnce(organizationRepository).mockResolvedValueOnce({
+      ...organizationRepository,
+      owner: {
+        type: 'ORGANIZATION',
+        id: 'org-2',
+        name: 'engineering',
+      },
+    });
 
     const response = await request(app).get(
       '/engineering/platform.git/info/refs?service=git-upload-pack',
@@ -325,9 +301,8 @@ describe('Organization Git HTTP integration', () => {
       ),
     );
 
-    const { authorizeOrganizationRepositoryAccess } = await import(
-      '../../../src/services/repositories/organization-repository-authorization.service.js'
-    );
+    const { authorizeOrganizationRepositoryAccess } =
+      await import('../../../src/services/repositories/organization-repository-authorization.service.js');
 
     vi.mocked(authorizeOrganizationRepositoryAccess).mockResolvedValueOnce({
       repositoryId: 'org-repo-1',
@@ -343,9 +318,7 @@ describe('Organization Git HTTP integration', () => {
       .set('Authorization', basicAuthorization);
 
     expect(response.status).toBe(409);
-    expect(response.body.code).toBe(
-      'GIT_REPOSITORY_TRANSFER_WRITE_BLOCKED',
-    );
+    expect(response.body.code).toBe('GIT_REPOSITORY_TRANSFER_WRITE_BLOCKED');
     expect(transferGuardMock).toHaveBeenCalledWith('org-repo-1');
   });
 });

@@ -40,8 +40,7 @@ describe('Git user read/write lock', () => {
 
     await flushMicrotasks();
 
-    const bothStarted = events.includes('first-start') &&
-      events.includes('second-start');
+    const bothStarted = events.includes('first-start') && events.includes('second-start');
 
     gate.resolve();
 
@@ -74,11 +73,7 @@ describe('Git user read/write lock', () => {
 
     await Promise.all([reader, writer]);
 
-    expect(events).toEqual([
-      'reader-start',
-      'reader-end',
-      'writer-start',
-    ]);
+    expect(events).toEqual(['reader-start', 'reader-end', 'writer-start']);
   });
 
   it('does not allow new readers to bypass a queued writer', async () => {
@@ -108,11 +103,7 @@ describe('Git user read/write lock', () => {
 
     await Promise.all([firstReader, writer, secondReader]);
 
-    expect(events).toEqual([
-      'first-reader',
-      'writer',
-      'second-reader',
-    ]);
+    expect(events).toEqual(['first-reader', 'writer', 'second-reader']);
   });
 
   it('does not block operations belonging to different users', async () => {
@@ -155,9 +146,6 @@ describe('Git user read/write lock', () => {
       events.push('subsequent-reader');
     });
 
-    expect(events).toEqual([
-      'failed-operation',
-      'subsequent-reader',
-    ]);
+    expect(events).toEqual(['failed-operation', 'subsequent-reader']);
   });
 });

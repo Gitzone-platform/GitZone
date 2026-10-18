@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  mockedOrganizationFindUnique,
-  mockedMemberFindUnique,
-  mockedMemberFindMany,
-} = vi.hoisted(() => ({
-  mockedOrganizationFindUnique: vi.fn(),
-  mockedMemberFindUnique: vi.fn(),
-  mockedMemberFindMany: vi.fn(),
-}));
+const { mockedOrganizationFindUnique, mockedMemberFindUnique, mockedMemberFindMany } = vi.hoisted(
+  () => ({
+    mockedOrganizationFindUnique: vi.fn(),
+    mockedMemberFindUnique: vi.fn(),
+    mockedMemberFindMany: vi.fn(),
+  }),
+);
 
 vi.mock('../../../src/config/prisma.js', () => ({
   default: {
@@ -100,10 +98,7 @@ describe('Organization members service', () => {
           },
         },
       },
-      orderBy: [
-        { createdAt: 'asc' },
-        { id: 'asc' },
-      ],
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
   });
 
@@ -117,10 +112,7 @@ describe('Organization members service', () => {
       id: 'membership-1',
     });
 
-    const result = await listOrganizationMembers(
-      'private-org',
-      'user-2',
-    );
+    const result = await listOrganizationMembers('private-org', 'user-2');
 
     expect(result).toHaveLength(2);
 
@@ -141,9 +133,7 @@ describe('Organization members service', () => {
       visibility: 'PRIVATE',
     });
 
-    await expect(
-      listOrganizationMembers('private-org'),
-    ).rejects.toMatchObject({
+    await expect(listOrganizationMembers('private-org')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -159,9 +149,7 @@ describe('Organization members service', () => {
 
     mockedMemberFindUnique.mockResolvedValue(null);
 
-    await expect(
-      listOrganizationMembers('private-org', 'outsider'),
-    ).rejects.toMatchObject({
+    await expect(listOrganizationMembers('private-org', 'outsider')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -172,9 +160,7 @@ describe('Organization members service', () => {
   it('returns 404 for a missing organization', async () => {
     mockedOrganizationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      listOrganizationMembers('missing-org'),
-    ).rejects.toMatchObject({
+    await expect(listOrganizationMembers('missing-org')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -185,9 +171,7 @@ describe('Organization members service', () => {
   it('returns an empty array when there are no memberships', async () => {
     mockedMemberFindMany.mockResolvedValue([]);
 
-    await expect(
-      listOrganizationMembers('public-org'),
-    ).resolves.toEqual([]);
+    await expect(listOrganizationMembers('public-org')).resolves.toEqual([]);
   });
 
   it('propagates database errors', async () => {
@@ -195,8 +179,6 @@ describe('Organization members service', () => {
 
     mockedMemberFindMany.mockRejectedValue(error);
 
-    await expect(
-      listOrganizationMembers('public-org'),
-    ).rejects.toBe(error);
+    await expect(listOrganizationMembers('public-org')).rejects.toBe(error);
   });
 });

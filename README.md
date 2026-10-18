@@ -22,18 +22,18 @@ Development is phase-based: each major layer is implemented, tested, security-au
 
 # Development Status
 
-| Phase | Name | Status |
-| --- | --- | --- |
-| Phase 1 | Core Platform Foundation | Complete |
-| Phase 2 | Authentication & Sessions | Complete |
-| Phase 3 | Repository Core & Git Transport | Complete |
-| Phase 4 | Repository Content & Git Data | Complete |
-| Phase 5 | Branch Management | Complete |
-| Phase 6 | Commit History & Diff | Complete |
-| Phase 7 | Pull Requests | Complete |
-| Phase 8 | Code Review | Complete |
-| Phase 9 | Issues | Complete |
-| Phase 10 | Labels & Milestones | Complete |
+| Phase    | Name                            | Status   |
+| -------- | ------------------------------- | -------- |
+| Phase 1  | Core Platform Foundation        | Complete |
+| Phase 2  | Authentication & Sessions       | Complete |
+| Phase 3  | Repository Core & Git Transport | Complete |
+| Phase 4  | Repository Content & Git Data   | Complete |
+| Phase 5  | Branch Management               | Complete |
+| Phase 6  | Commit History & Diff           | Complete |
+| Phase 7  | Pull Requests                   | Complete |
+| Phase 8  | Code Review                     | Complete |
+| Phase 9  | Issues                          | Complete |
+| Phase 10 | Labels & Milestones             | Complete |
 
 ---
 
@@ -745,18 +745,18 @@ Monitoring & Security Hardening
 
 GitZone backend development progress:
 
-| Phase | Feature | Status |
-| --- | --- | --- |
-| 1 | Core Platform Foundation | Complete |
-| 2 | Authentication & Sessions | Complete |
-| 3 | Repository Core & Git Transport | Complete |
-| 4 | Repository Content & Git Data | Complete |
-| 5 | Branch Management | Complete |
-| 6 | Commit History & Diff | Complete |
-| 7 | Pull Requests | Complete |
-| 8 | Code Review | Complete |
-| 9 | Issues | Complete |
-| 10 | Labels & Milestones | Complete |
+| Phase | Feature                         | Status   |
+| ----- | ------------------------------- | -------- |
+| 1     | Core Platform Foundation        | Complete |
+| 2     | Authentication & Sessions       | Complete |
+| 3     | Repository Core & Git Transport | Complete |
+| 4     | Repository Content & Git Data   | Complete |
+| 5     | Branch Management               | Complete |
+| 6     | Commit History & Diff           | Complete |
+| 7     | Pull Requests                   | Complete |
+| 8     | Code Review                     | Complete |
+| 9     | Issues                          | Complete |
+| 10    | Labels & Milestones             | Complete |
 
 Phase 10 implementation commit: `db25989`.
 

@@ -28,14 +28,14 @@ Technology stack: Node.js, Express, TypeScript, Prisma, PostgreSQL, Zod, and Vit
 
 ## Authentication and Authorization
 
-| Operation | Required permission |
-| --- | --- |
-| List or view labels | Repository READ |
-| Create, update, or delete labels | Repository WRITE |
-| Assign or remove issue/PR labels | Repository WRITE |
-| List or view milestones | Repository READ |
-| Create, update, or delete milestones | Repository WRITE |
-| Assign or remove issue/PR milestones | Repository WRITE |
+| Operation                            | Required permission |
+| ------------------------------------ | ------------------- |
+| List or view labels                  | Repository READ     |
+| Create, update, or delete labels     | Repository WRITE    |
+| Assign or remove issue/PR labels     | Repository WRITE    |
+| List or view milestones              | Repository READ     |
+| Create, update, or delete milestones | Repository WRITE    |
+| Assign or remove issue/PR milestones | Repository WRITE    |
 
 Public repository reads support optional authentication.
 Private repository reads require appropriate authorization.
@@ -47,13 +47,13 @@ Repository owners have full access. READ collaborators cannot mutate labels or m
 
 Base path: `/api/repositories/:username/:name/labels`
 
-| Method | Endpoint | Description | Success |
-| --- | --- | --- | --- |
-| POST | `/` | Create label | 201 |
-| GET | `/` | List labels | 200 |
-| GET | `/:labelId` | Retrieve label | 200 |
-| PATCH | `/:labelId` | Update label | 200 |
-| DELETE | `/:labelId` | Delete label | 204 |
+| Method | Endpoint    | Description    | Success |
+| ------ | ----------- | -------------- | ------- |
+| POST   | `/`         | Create label   | 201     |
+| GET    | `/`         | List labels    | 200     |
+| GET    | `/:labelId` | Retrieve label | 200     |
+| PATCH  | `/:labelId` | Update label   | 200     |
+| DELETE | `/:labelId` | Delete label   | 204     |
 
 ### Create Label
 
@@ -96,12 +96,12 @@ DELETE returns HTTP 204 without a response body.
 
 All paths below are relative to `/api/repositories/:username/:name`.
 
-| Method | Endpoint | Success |
-| --- | --- | --- |
-| POST | `/issues/:number/labels` | 201 |
-| DELETE | `/issues/:number/labels/:labelId` | 204 |
-| POST | `/pulls/:number/labels` | 201 |
-| DELETE | `/pulls/:number/labels/:labelId` | 204 |
+| Method | Endpoint                          | Success |
+| ------ | --------------------------------- | ------- |
+| POST   | `/issues/:number/labels`          | 201     |
+| DELETE | `/issues/:number/labels/:labelId` | 204     |
+| POST   | `/pulls/:number/labels`           | 201     |
+| DELETE | `/pulls/:number/labels/:labelId`  | 204     |
 
 Assignment request:
 
@@ -119,13 +119,13 @@ Removing an assignment that does not exist returns HTTP 404.
 
 Base path: `/api/repositories/:username/:name/milestones`
 
-| Method | Endpoint | Description | Success |
-| --- | --- | --- | --- |
-| POST | `/` | Create milestone | 201 |
-| GET | `/` | List milestones | 200 |
-| GET | `/:milestoneId` | Retrieve milestone | 200 |
-| PATCH | `/:milestoneId` | Update milestone | 200 |
-| DELETE | `/:milestoneId` | Delete milestone | 204 |
+| Method | Endpoint        | Description        | Success |
+| ------ | --------------- | ------------------ | ------- |
+| POST   | `/`             | Create milestone   | 201     |
+| GET    | `/`             | List milestones    | 200     |
+| GET    | `/:milestoneId` | Retrieve milestone | 200     |
+| PATCH  | `/:milestoneId` | Update milestone   | 200     |
+| DELETE | `/:milestoneId` | Delete milestone   | 204     |
 
 ### Create Milestone
 
@@ -153,11 +153,11 @@ Successful creation returns HTTP 201 with `data.milestone`.
 
 Supported query parameters:
 
-| Parameter | Allowed values | Default |
-| --- | --- | --- |
-| `state` | OPEN or CLOSED | No filter |
-| `page` | Integer 1-100000 | 1 |
-| `limit` | Integer 1-100 | 20 |
+| Parameter | Allowed values   | Default   |
+| --------- | ---------------- | --------- |
+| `state`   | OPEN or CLOSED   | No filter |
+| `page`    | Integer 1-100000 | 1         |
+| `limit`   | Integer 1-100    | 20        |
 
 Example:
 
@@ -211,10 +211,10 @@ The endpoint returns HTTP 204 without a response body.
 
 All paths below are relative to `/api/repositories/:username/:name`.
 
-| Method | Endpoint | Success |
-| --- | --- | --- |
-| PATCH | `/issues/:number/milestone` | 200 |
-| PATCH | `/pulls/:number/milestone` | 200 |
+| Method | Endpoint                    | Success |
+| ------ | --------------------------- | ------- |
+| PATCH  | `/issues/:number/milestone` | 200     |
+| PATCH  | `/pulls/:number/milestone`  | 200     |
 
 Assignment request:
 

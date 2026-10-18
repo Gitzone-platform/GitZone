@@ -42,25 +42,22 @@ describe('acceptOrganizationInvitation', () => {
     mocks.invitationUpdateMany.mockResolvedValue({ count: 1 });
     mocks.memberCreate.mockResolvedValue(membership);
 
-    mocks.transaction.mockImplementation(
-      async (callback: (tx: unknown) => Promise<unknown>) =>
-        callback({
-          organizationInvitation: {
-            updateMany: mocks.invitationUpdateMany,
-          },
-          organizationMember: {
-            create: mocks.memberCreate,
-          },
-        }),
+    mocks.transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) =>
+      callback({
+        organizationInvitation: {
+          updateMany: mocks.invitationUpdateMany,
+        },
+        organizationMember: {
+          create: mocks.memberCreate,
+        },
+      }),
     );
   });
 
   it('rejects a missing invitation', async () => {
     mocks.invitationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      acceptOrganizationInvitation('missing', 'user-2'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('missing', 'user-2')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_INVITATION_NOT_FOUND',
     });
@@ -69,9 +66,7 @@ describe('acceptOrganizationInvitation', () => {
   });
 
   it('does not expose another user invitation', async () => {
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'other-user'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('invitation-1', 'other-user')).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_INVITATION_NOT_FOUND',
     });
@@ -85,9 +80,7 @@ describe('acceptOrganizationInvitation', () => {
       status: 'ACCEPTED',
     });
 
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'user-2'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('invitation-1', 'user-2')).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_INVITATION_NOT_PENDING',
     });
@@ -101,9 +94,7 @@ describe('acceptOrganizationInvitation', () => {
       status: 'REVOKED',
     });
 
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'user-2'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('invitation-1', 'user-2')).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_INVITATION_NOT_PENDING',
     });
@@ -115,9 +106,7 @@ describe('acceptOrganizationInvitation', () => {
       expiresAt: new Date(Date.now() - 60_000),
     });
 
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'user-2'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('invitation-1', 'user-2')).rejects.toMatchObject({
       statusCode: 410,
       code: 'ORGANIZATION_INVITATION_EXPIRED',
     });
@@ -126,10 +115,7 @@ describe('acceptOrganizationInvitation', () => {
   });
 
   it('accepts the invitation and creates MEMBER membership', async () => {
-    const result = await acceptOrganizationInvitation(
-      'invitation-1',
-      'user-2',
-    );
+    const result = await acceptOrganizationInvitation('invitation-1', 'user-2');
 
     expect(result).toEqual({
       invitationId: 'invitation-1',
@@ -172,9 +158,7 @@ describe('acceptOrganizationInvitation', () => {
   it('rejects an invitation claimed by a concurrent request', async () => {
     mocks.invitationUpdateMany.mockResolvedValue({ count: 0 });
 
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'user-2'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('invitation-1', 'user-2')).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_INVITATION_NOT_PENDING',
     });
@@ -189,21 +173,17 @@ describe('acceptOrganizationInvitation', () => {
       }),
     );
 
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'user-2'),
-    ).rejects.toMatchObject({
+    await expect(acceptOrganizationInvitation('invitation-1', 'user-2')).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_MEMBER_ALREADY_EXISTS',
     });
   });
 
   it('propagates unexpected database errors', async () => {
-    mocks.memberCreate.mockRejectedValue(
-      new Error('Database unavailable'),
-    );
+    mocks.memberCreate.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      acceptOrganizationInvitation('invitation-1', 'user-2'),
-    ).rejects.toThrow('Database unavailable');
+    await expect(acceptOrganizationInvitation('invitation-1', 'user-2')).rejects.toThrow(
+      'Database unavailable',
+    );
   });
 });

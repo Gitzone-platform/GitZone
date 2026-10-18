@@ -77,9 +77,7 @@ describe('public user profile service', () => {
   it('throws 404 when user does not exist', async () => {
     mockedUserFindUnique.mockResolvedValue(null as never);
 
-    await expect(
-      getPublicUserProfile('unknownuser'),
-    ).rejects.toMatchObject({
+    await expect(getPublicUserProfile('unknownuser')).rejects.toMatchObject({
       statusCode: 404,
       code: 'USER_NOT_FOUND',
     });

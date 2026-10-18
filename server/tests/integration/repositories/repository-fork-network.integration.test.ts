@@ -48,30 +48,18 @@ describe('repository fork network HTTP integration', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data.network).toMatchObject(network);
-    expect(mockedNetwork).toHaveBeenCalledWith(
-      'alice',
-      'project',
-      undefined,
-    );
+    expect(mockedNetwork).toHaveBeenCalledWith('alice', 'project', undefined);
   });
 
   it('passes authenticated user to service', async () => {
-    const response = await request(app)
-      .get(url)
-      .set('Authorization', 'Bearer test-access-token');
+    const response = await request(app).get(url).set('Authorization', 'Bearer test-access-token');
 
     expect(response.status).toBe(200);
-    expect(mockedNetwork).toHaveBeenCalledWith(
-      'alice',
-      'project',
-      'user-1',
-    );
+    expect(mockedNetwork).toHaveBeenCalledWith('alice', 'project', 'user-1');
   });
 
   it('returns 404 for missing repository', async () => {
-    mockedNetwork.mockRejectedValue(
-      new AppError('Not found', 404, 'REPOSITORY_NOT_FOUND'),
-    );
+    mockedNetwork.mockRejectedValue(new AppError('Not found', 404, 'REPOSITORY_NOT_FOUND'));
 
     const response = await request(app).get(url);
 
@@ -80,9 +68,7 @@ describe('repository fork network HTTP integration', () => {
   });
 
   it('returns 403 when repository access is denied', async () => {
-    mockedNetwork.mockRejectedValue(
-      new AppError('Forbidden', 403, 'REPOSITORY_ACCESS_DENIED'),
-    );
+    mockedNetwork.mockRejectedValue(new AppError('Forbidden', 403, 'REPOSITORY_ACCESS_DENIED'));
 
     const response = await request(app).get(url);
 

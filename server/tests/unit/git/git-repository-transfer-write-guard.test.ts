@@ -12,9 +12,7 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-import {
-  assertRepositoryTransferAllowsGitWrite,
-} from '../../../src/services/repositories/repository-transfer-write-guard.service.js';
+import { assertRepositoryTransferAllowsGitWrite } from '../../../src/services/repositories/repository-transfer-write-guard.service.js';
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -23,9 +21,7 @@ beforeEach(() => {
 
 describe('Repository transfer Git write guard', () => {
   it('allows writes when no active transfer exists', async () => {
-    await expect(
-      assertRepositoryTransferAllowsGitWrite('repo-id'),
-    ).resolves.toBeUndefined();
+    await expect(assertRepositoryTransferAllowsGitWrite('repo-id')).resolves.toBeUndefined();
 
     expect(mocks.findFirst).toHaveBeenCalledWith({
       where: {
@@ -41,22 +37,18 @@ describe('Repository transfer Git write guard', () => {
   it('blocks writes during an active transfer', async () => {
     mocks.findFirst.mockResolvedValue({ id: 'transfer-id' });
 
-    await expect(
-      assertRepositoryTransferAllowsGitWrite('repo-id'),
-    ).rejects.toMatchObject({
+    await expect(assertRepositoryTransferAllowsGitWrite('repo-id')).rejects.toMatchObject({
       code: 'GIT_REPOSITORY_TRANSFER_WRITE_BLOCKED',
       statusCode: 409,
     });
   });
 
   it('fails closed when the database is unavailable', async () => {
-    mocks.findFirst.mockRejectedValue(
-      new Error('Database unavailable'),
-    );
+    mocks.findFirst.mockRejectedValue(new Error('Database unavailable'));
 
-    await expect(
-      assertRepositoryTransferAllowsGitWrite('repo-id'),
-    ).rejects.toThrow('Database unavailable');
+    await expect(assertRepositoryTransferAllowsGitWrite('repo-id')).rejects.toThrow(
+      'Database unavailable',
+    );
   });
 
   it('allows writes when no unfinished transfer is returned', async () => {

@@ -14,19 +14,13 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-transfer-orchestrator.service.js',
-  () => ({
-    prepareRepositoryTransferOrchestration: mocks.orchestrate,
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-transfer-orchestrator.service.js', () => ({
+  prepareRepositoryTransferOrchestration: mocks.orchestrate,
+}));
 
 import { transferRepositoryToOrganization } from '../../../src/controllers/repositories/repository-transfer.controller.js';
 
-const makeRequest = (
-  body: unknown = { organizationSlug: 'team' },
-  userId = 'user-1',
-): Request =>
+const makeRequest = (body: unknown = { organizationSlug: 'team' }, userId = 'user-1'): Request =>
   ({
     params: { username: 'alice', name: 'project' },
     body,
@@ -70,10 +64,7 @@ describe('Repository transfer API controller', () => {
     const { response } = makeResponse();
 
     await expect(
-      transferRepositoryToOrganization(
-        makeRequest({ organizationSlug: '' }),
-        response,
-      ),
+      transferRepositoryToOrganization(makeRequest({ organizationSlug: '' }), response),
     ).rejects.toMatchObject({
       statusCode: 400,
       code: 'INVALID_REPOSITORY_TRANSFER_DATA',
@@ -121,9 +112,7 @@ describe('Repository transfer API controller', () => {
 
     const { response } = makeResponse();
 
-    await expect(
-      transferRepositoryToOrganization(makeRequest(), response),
-    ).rejects.toMatchObject({
+    await expect(transferRepositoryToOrganization(makeRequest(), response)).rejects.toMatchObject({
       statusCode: 404,
       code: 'REPOSITORY_NOT_FOUND',
     });
@@ -136,9 +125,7 @@ describe('Repository transfer API controller', () => {
 
     const { response } = makeResponse();
 
-    await expect(
-      transferRepositoryToOrganization(makeRequest(), response),
-    ).rejects.toMatchObject({
+    await expect(transferRepositoryToOrganization(makeRequest(), response)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -172,15 +159,13 @@ describe('Repository transfer API controller', () => {
   });
 
   it('does not report success when orchestration fails', async () => {
-    mocks.orchestrate.mockRejectedValue(
-      new Error('Transfer failed'),
-    );
+    mocks.orchestrate.mockRejectedValue(new Error('Transfer failed'));
 
     const { response, status } = makeResponse();
 
-    await expect(
-      transferRepositoryToOrganization(makeRequest(), response),
-    ).rejects.toThrow('Transfer failed');
+    await expect(transferRepositoryToOrganization(makeRequest(), response)).rejects.toThrow(
+      'Transfer failed',
+    );
 
     expect(status).not.toHaveBeenCalled();
   });

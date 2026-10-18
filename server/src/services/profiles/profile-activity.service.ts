@@ -7,9 +7,7 @@ import type {
 
 const ACTIVITY_LIMIT = 30;
 
-export const getUserPublicActivity = async (
-  username: string,
-): Promise<ProfileActivityResponse> => {
+export const getUserPublicActivity = async (username: string): Promise<ProfileActivityResponse> => {
   const user = await getPublicUserProfile(username);
 
   const publicRepositoryFilter = {
@@ -112,9 +110,7 @@ export const getUserPublicActivity = async (
     })),
   ];
 
-  activities.sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-  );
+  activities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return {
     activities: activities.slice(0, ACTIVITY_LIMIT),

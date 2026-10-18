@@ -44,15 +44,8 @@ export const forkRepository = async (
 
   const targetName = input.name ?? source.name;
 
-  if (
-    targetOwner.username === access.repositoryOwnerUsername &&
-    targetName === source.name
-  ) {
-    throw new AppError(
-      'Cannot fork repository into itself',
-      409,
-      'FORK_SELF_COLLISION',
-    );
+  if (targetOwner.username === access.repositoryOwnerUsername && targetName === source.name) {
+    throw new AppError('Cannot fork repository into itself', 409, 'FORK_SELF_COLLISION');
   }
 
   const existing = await prisma.repository.findUnique({

@@ -29,19 +29,19 @@ Phase 8 introduces Git-backed pull request reviews, general and inline comments,
 
 Base path: `/api/repositories/:username/:name/pulls/:number`
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| POST | `/reviews` | Submit a review |
-| GET | `/reviews` | List reviews |
-| GET | `/review-state` | Calculate current review state |
-| POST | `/comments` | Create a general comment |
-| GET | `/conversations` | List conversations and comments |
-| POST | `/inline-comments` | Comment on a changed diff line |
-| PATCH | `/comments/:commentId` | Edit own comment |
-| DELETE | `/comments/:commentId` | Delete own comment |
-| POST | `/conversations/:conversationId/comments` | Reply to a conversation |
-| POST | `/conversations/:conversationId/resolve` | Resolve a conversation |
-| POST | `/conversations/:conversationId/reopen` | Reopen a conversation |
+| Method | Endpoint                                  | Description                     |
+| ------ | ----------------------------------------- | ------------------------------- |
+| POST   | `/reviews`                                | Submit a review                 |
+| GET    | `/reviews`                                | List reviews                    |
+| GET    | `/review-state`                           | Calculate current review state  |
+| POST   | `/comments`                               | Create a general comment        |
+| GET    | `/conversations`                          | List conversations and comments |
+| POST   | `/inline-comments`                        | Comment on a changed diff line  |
+| PATCH  | `/comments/:commentId`                    | Edit own comment                |
+| DELETE | `/comments/:commentId`                    | Delete own comment              |
+| POST   | `/conversations/:conversationId/comments` | Reply to a conversation         |
+| POST   | `/conversations/:conversationId/resolve`  | Resolve a conversation          |
+| POST   | `/conversations/:conversationId/reopen`   | Reopen a conversation           |
 
 ## Example Requests
 

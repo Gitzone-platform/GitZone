@@ -23,11 +23,7 @@ vi.mock('../../../src/middleware/auth.middleware.js', () => ({
 }));
 
 vi.mock('../../../src/middleware/optional-auth.middleware.js', () => ({
-  optionalAuthMiddleware: (
-    req: Request,
-    _res: Response,
-    next: NextFunction,
-  ) => {
+  optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
       (req as Request & { userId?: string }).userId = 'reader-1';
     }
@@ -69,9 +65,7 @@ describe('Repository issue assignees API integration', () => {
   });
 
   it('adds an issue assignee', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({ username: 'alice' });
+    const response = await request(app).post(base).send({ username: 'alice' });
 
     expect(response.status).toBe(201);
 
@@ -85,19 +79,11 @@ describe('Repository issue assignees API integration', () => {
       },
     });
 
-    expect(mockedAdd).toHaveBeenCalledWith(
-      'owner-1',
-      'asil',
-      'demo',
-      1,
-      'alice',
-    );
+    expect(mockedAdd).toHaveBeenCalledWith('owner-1', 'asil', 'demo', 1, 'alice');
   });
 
   it('rejects an empty assignee username', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({ username: '   ' });
+    const response = await request(app).post(base).send({ username: '   ' });
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_ISSUE_ASSIGNEE_DATA');
@@ -105,9 +91,7 @@ describe('Repository issue assignees API integration', () => {
   });
 
   it('rejects unknown assignee creation fields', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({ username: 'alice', unexpected: true });
+    const response = await request(app).post(base).send({ username: 'alice', unexpected: true });
 
     expect(response.status).toBe(400);
     expect(mockedAdd).not.toHaveBeenCalled();
@@ -119,32 +103,19 @@ describe('Repository issue assignees API integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.data.assignees).toHaveLength(1);
 
-    expect(mockedList).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      1,
-      undefined,
-    );
+    expect(mockedList).toHaveBeenCalledWith('asil', 'demo', 1, undefined);
   });
 
   it('passes optional authenticated user to list service', async () => {
-    const response = await request(app)
-      .get(base)
-      .set('Authorization', 'Bearer test');
+    const response = await request(app).get(base).set('Authorization', 'Bearer test');
 
     expect(response.status).toBe(200);
 
-    expect(mockedList).toHaveBeenCalledWith(
-      'asil',
-      'demo',
-      1,
-      'reader-1',
-    );
+    expect(mockedList).toHaveBeenCalledWith('asil', 'demo', 1, 'reader-1');
   });
 
   it('removes an issue assignee', async () => {
-    const response = await request(app)
-      .delete(`${base}/alice`);
+    const response = await request(app).delete(`${base}/alice`);
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -152,18 +123,11 @@ describe('Repository issue assignees API integration', () => {
       data: { deleted: true },
     });
 
-    expect(mockedRemove).toHaveBeenCalledWith(
-      'owner-1',
-      'asil',
-      'demo',
-      1,
-      'alice',
-    );
+    expect(mockedRemove).toHaveBeenCalledWith('owner-1', 'asil', 'demo', 1, 'alice');
   });
 
   it('rejects invalid issue number', async () => {
-    const response = await request(app)
-      .get('/api/repositories/asil/demo/issues/invalid/assignees');
+    const response = await request(app).get('/api/repositories/asil/demo/issues/invalid/assignees');
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_ISSUE_NUMBER');
@@ -171,9 +135,7 @@ describe('Repository issue assignees API integration', () => {
   });
 
   it('rejects missing assignee username in POST body', async () => {
-    const response = await request(app)
-      .post(base)
-      .send({});
+    const response = await request(app).post(base).send({});
 
     expect(response.status).toBe(400);
     expect(mockedAdd).not.toHaveBeenCalled();
@@ -181,21 +143,13 @@ describe('Repository issue assignees API integration', () => {
 
   it('maps duplicate assignment to HTTP 409', async () => {
     mockedAdd.mockRejectedValue(
-      new AppError(
-        'User is already assigned to this issue',
-        409,
-        'ISSUE_ASSIGNEE_ALREADY_EXISTS',
-      ),
+      new AppError('User is already assigned to this issue', 409, 'ISSUE_ASSIGNEE_ALREADY_EXISTS'),
     );
 
-    const response = await request(app)
-      .post(base)
-      .send({ username: 'alice' });
+    const response = await request(app).post(base).send({ username: 'alice' });
 
     expect(response.status).toBe(409);
-    expect(response.body.error.code).toBe(
-      'ISSUE_ASSIGNEE_ALREADY_EXISTS',
-    );
+    expect(response.body.error.code).toBe('ISSUE_ASSIGNEE_ALREADY_EXISTS');
   });
 
   it('maps ineligible assignee to HTTP 403', async () => {
@@ -207,13 +161,9 @@ describe('Repository issue assignees API integration', () => {
       ),
     );
 
-    const response = await request(app)
-      .post(base)
-      .send({ username: 'outsider' });
+    const response = await request(app).post(base).send({ username: 'outsider' });
 
     expect(response.status).toBe(403);
-    expect(response.body.error.code).toBe(
-      'ISSUE_ASSIGNEE_NOT_ELIGIBLE',
-    );
+    expect(response.body.error.code).toBe('ISSUE_ASSIGNEE_NOT_ELIGIBLE');
   });
 });

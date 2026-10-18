@@ -6,18 +6,11 @@ import {
 } from '../../../src/validations/repositories/repository-watch-preferences.validation.js';
 
 describe('repository watch preferences validation', () => {
-  it.each(['ALL', 'PARTICIPATING', 'IGNORE'] as const)(
-    'accepts %s',
-    (preference) => {
-      expect(
-        updateRepositoryWatchPreferencesSchema.parse({ preference }),
-      ).toEqual({ preference });
+  it.each(['ALL', 'PARTICIPATING', 'IGNORE'] as const)('accepts %s', (preference) => {
+    expect(updateRepositoryWatchPreferencesSchema.parse({ preference })).toEqual({ preference });
 
-      expect(repositoryWatchPreferenceSchema.parse(preference)).toBe(
-        preference,
-      );
-    },
-  );
+    expect(repositoryWatchPreferenceSchema.parse(preference)).toBe(preference);
+  });
 
   it.each([
     {},
@@ -30,18 +23,12 @@ describe('repository watch preferences validation', () => {
     { preference: ['ALL'] },
     { preference: 'ALL', unexpected: true },
   ])('rejects invalid request body %#', (body) => {
-    expect(
-      updateRepositoryWatchPreferencesSchema.safeParse(body).success,
-    ).toBe(false);
+    expect(updateRepositoryWatchPreferencesSchema.safeParse(body).success).toBe(false);
   });
 
   it('rejects undefined and null request bodies', () => {
-    expect(
-      updateRepositoryWatchPreferencesSchema.safeParse(undefined).success,
-    ).toBe(false);
+    expect(updateRepositoryWatchPreferencesSchema.safeParse(undefined).success).toBe(false);
 
-    expect(
-      updateRepositoryWatchPreferencesSchema.safeParse(null).success,
-    ).toBe(false);
+    expect(updateRepositoryWatchPreferencesSchema.safeParse(null).success).toBe(false);
   });
 });

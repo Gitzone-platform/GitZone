@@ -1,460 +1,363 @@
 {
-    "variable":  [
-                     {
-                         "key":  "baseUrl",
-                         "value":  "http://localhost:5000/api"
-                     },
-                     {
-                         "key":  "username",
-                         "value":  "example"
-                     },
-                     {
-                         "key":  "accessToken",
-                         "value":  ""
-                     },
-                     {
-                         "key":  "avatarFilename",
-                         "value":  "00000000-0000-4000-8000-000000000000.webp"
-                     }
-                 ],
-    "info":  {
-                 "description":  "Phase 11 profile and avatar API checks. Use a disposable test account for mutations.",
-                 "name":  "GitZone Phase 11 - User Profiles E2E",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-             },
-    "item":  [
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/{{username}}",
-                                                 "path":  [
-                                                              "users",
-                                                              "{{username}}"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Get Public Profile",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/{{username}}/repositories",
-                                                 "path":  [
-                                                              "users",
-                                                              "{{username}}",
-                                                              "repositories"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Get Public Repositories",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/{{username}}/activity",
-                                                 "path":  [
-                                                              "users",
-                                                              "{{username}}",
-                                                              "activity"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Get Public Activity",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/{{username}}/contributions",
-                                                 "path":  [
-                                                              "users",
-                                                              "{{username}}",
-                                                              "contributions"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Get Public Contributions",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/avatars/{{avatarFilename}}",
-                                                 "path":  [
-                                                              "users",
-                                                              "avatars",
-                                                              "{{avatarFilename}}"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Get Profile Avatar",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});",
-                                                                   "",
-                                                                   "pm.test(\u0027Response is WebP\u0027, function () {",
-                                                                   "    pm.expect(pm.response.headers.get(\u0027Content-Type\u0027)).to.include(\u0027image/webp\u0027);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "body":  {
-                                                  "raw":  "{\"bio\":\"GitZone Phase 11 E2E profile test\"}",
-                                                  "options":  {
-                                                                  "raw":  {
-                                                                              "language":  "json"
-                                                                          }
-                                                              },
-                                                  "mode":  "raw"
-                                              },
-                                     "method":  "PATCH",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/me",
-                                                 "path":  [
-                                                              "users",
-                                                              "me"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "bearer":  [
-                                                                 {
-                                                                     "key":  "token",
-                                                                     "type":  "string",
-                                                                     "value":  "{{accessToken}}"
-                                                                 }
-                                                             ],
-                                                  "type":  "bearer"
-                                              }
-                                 },
-                     "name":  "Update My Profile",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "body":  {
-                                                  "formdata":  [
-                                                                   {
-                                                                       "key":  "avatar",
-                                                                       "type":  "file",
-                                                                       "src":  ""
-                                                                   }
-                                                               ],
-                                                  "mode":  "formdata"
-                                              },
-                                     "method":  "PATCH",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/me/avatar",
-                                                 "path":  [
-                                                              "users",
-                                                              "me",
-                                                              "avatar"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "bearer":  [
-                                                                 {
-                                                                     "key":  "token",
-                                                                     "type":  "string",
-                                                                     "value":  "{{accessToken}}"
-                                                                 }
-                                                             ],
-                                                  "type":  "bearer"
-                                              }
-                                 },
-                     "name":  "Upload My Avatar",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 200\u0027, function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "body":  {
-                                                  "raw":  "{\"bio\":\"Unauthorized request\"}",
-                                                  "options":  {
-                                                                  "raw":  {
-                                                                              "language":  "json"
-                                                                          }
-                                                              },
-                                                  "mode":  "raw"
-                                              },
-                                     "method":  "PATCH",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/me",
-                                                 "path":  [
-                                                              "users",
-                                                              "me"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Reject Unauthorized Profile Update",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 401\u0027, function () {",
-                                                                   "    pm.response.to.have.status(401);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/avatars/invalid.webp",
-                                                 "path":  [
-                                                              "users",
-                                                              "avatars",
-                                                              "invalid.webp"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Reject Invalid Avatar Filename",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 400\u0027, function () {",
-                                                                   "    pm.response.to.have.status(400);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 },
-                 {
-                     "request":  {
-                                     "method":  "GET",
-                                     "url":  {
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "raw":  "{{baseUrl}}/users/avatars/00000000-0000-4000-8000-000000000000.webp",
-                                                 "path":  [
-                                                              "users",
-                                                              "avatars",
-                                                              "00000000-0000-4000-8000-000000000000.webp"
-                                                          ]
-                                             },
-                                     "header":  [
-
-                                                ],
-                                     "auth":  {
-                                                  "type":  "noauth"
-                                              }
-                                 },
-                     "name":  "Reject Missing Avatar",
-                     "response":  [
-
-                                  ],
-                     "event":  [
-                                   {
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\u0027HTTP status is 404\u0027, function () {",
-                                                                   "    pm.response.to.have.status(404);",
-                                                                   "});"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  },
-                                       "listen":  "test"
-                                   }
-                               ]
-                 }
-             ]
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "username",
+      "value": "example"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "avatarFilename",
+      "value": "00000000-0000-4000-8000-000000000000.webp"
+    }
+  ],
+  "info": {
+    "description": "Phase 11 profile and avatar API checks. Use a disposable test account for mutations.",
+    "name": "GitZone Phase 11 - User Profiles E2E",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/{{username}}",
+          "path": ["users", "{{username}}"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Get Public Profile",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/{{username}}/repositories",
+          "path": ["users", "{{username}}", "repositories"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Get Public Repositories",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/{{username}}/activity",
+          "path": ["users", "{{username}}", "activity"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Get Public Activity",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/{{username}}/contributions",
+          "path": ["users", "{{username}}", "contributions"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Get Public Contributions",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/avatars/{{avatarFilename}}",
+          "path": ["users", "avatars", "{{avatarFilename}}"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Get Profile Avatar",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\u0027Response is WebP\u0027, function () {",
+              "    pm.expect(pm.response.headers.get(\u0027Content-Type\u0027)).to.include(\u0027image/webp\u0027);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "body": {
+          "raw": "{\"bio\":\"GitZone Phase 11 E2E profile test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "mode": "raw"
+        },
+        "method": "PATCH",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/me",
+          "path": ["users", "me"]
+        },
+        "header": [],
+        "auth": {
+          "bearer": [
+            {
+              "key": "token",
+              "type": "string",
+              "value": "{{accessToken}}"
+            }
+          ],
+          "type": "bearer"
+        }
+      },
+      "name": "Update My Profile",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "body": {
+          "formdata": [
+            {
+              "key": "avatar",
+              "type": "file",
+              "src": ""
+            }
+          ],
+          "mode": "formdata"
+        },
+        "method": "PATCH",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/me/avatar",
+          "path": ["users", "me", "avatar"]
+        },
+        "header": [],
+        "auth": {
+          "bearer": [
+            {
+              "key": "token",
+              "type": "string",
+              "value": "{{accessToken}}"
+            }
+          ],
+          "type": "bearer"
+        }
+      },
+      "name": "Upload My Avatar",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 200\u0027, function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "body": {
+          "raw": "{\"bio\":\"Unauthorized request\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "mode": "raw"
+        },
+        "method": "PATCH",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/me",
+          "path": ["users", "me"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Reject Unauthorized Profile Update",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 401\u0027, function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/avatars/invalid.webp",
+          "path": ["users", "avatars", "invalid.webp"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Reject Invalid Avatar Filename",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 400\u0027, function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": {
+          "host": ["{{baseUrl}}"],
+          "raw": "{{baseUrl}}/users/avatars/00000000-0000-4000-8000-000000000000.webp",
+          "path": ["users", "avatars", "00000000-0000-4000-8000-000000000000.webp"]
+        },
+        "header": [],
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "name": "Reject Missing Avatar",
+      "response": [],
+      "event": [
+        {
+          "script": {
+            "exec": [
+              "pm.test(\u0027HTTP status is 404\u0027, function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          },
+          "listen": "test"
+        }
+      ]
+    }
+  ]
 }

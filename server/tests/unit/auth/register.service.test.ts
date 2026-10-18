@@ -220,8 +220,6 @@ describe('shared namespace registration protection', () => {
 
     mockedUserCreate.mockRejectedValue(databaseError);
 
-    await expect(registerUser(input, sessionMetadata)).rejects.toBe(
-      databaseError,
-    );
+    await expect(registerUser(input, sessionMetadata)).rejects.toBe(databaseError);
   });
 });

@@ -34,12 +34,7 @@ describe.skipIf(!runDatabaseTests)(
     let privateRepositoryId = '';
 
     beforeAll(async () => {
-      for (const username of [
-        ownerUsername,
-        viewerUsername,
-        otherUsername,
-        collaboratorUsername,
-      ]) {
+      for (const username of [ownerUsername, viewerUsername, otherUsername, collaboratorUsername]) {
         const user = await prisma.user.create({
           data: {
             username,
@@ -178,12 +173,7 @@ describe.skipIf(!runDatabaseTests)(
     it('does not change another user preference', async () => {
       await watchRepository(otherId, ownerUsername, publicName);
 
-      await updateRepositoryWatchPreference(
-        viewerId,
-        ownerUsername,
-        publicName,
-        'IGNORE',
-      );
+      await updateRepositoryWatchPreference(viewerId, ownerUsername, publicName, 'IGNORE');
 
       const otherWatch = await prisma.repositoryWatch.findUniqueOrThrow({
         where: {
@@ -207,12 +197,7 @@ describe.skipIf(!runDatabaseTests)(
         },
       });
 
-      await updateRepositoryWatchPreference(
-        viewerId,
-        ownerUsername,
-        publicName,
-        'PARTICIPATING',
-      );
+      await updateRepositoryWatchPreference(viewerId, ownerUsername, publicName, 'PARTICIPATING');
 
       const after = await prisma.repositoryWatch.findUniqueOrThrow({
         where: {
@@ -230,12 +215,7 @@ describe.skipIf(!runDatabaseTests)(
 
     it('returns WATCH_NOT_FOUND without creating a watch', async () => {
       await expect(
-        updateRepositoryWatchPreference(
-          otherId,
-          ownerUsername,
-          privateName,
-          'IGNORE',
-        ),
+        updateRepositoryWatchPreference(otherId, ownerUsername, privateName, 'IGNORE'),
       ).rejects.toMatchObject({
         statusCode: 403,
         code: 'REPOSITORY_ACCESS_DENIED',
@@ -244,12 +224,7 @@ describe.skipIf(!runDatabaseTests)(
       await unwatchRepository(otherId, ownerUsername, publicName);
 
       await expect(
-        updateRepositoryWatchPreference(
-          otherId,
-          ownerUsername,
-          publicName,
-          'IGNORE',
-        ),
+        updateRepositoryWatchPreference(otherId, ownerUsername, publicName, 'IGNORE'),
       ).rejects.toMatchObject({
         statusCode: 404,
         code: 'WATCH_NOT_FOUND',
@@ -293,12 +268,7 @@ describe.skipIf(!runDatabaseTests)(
 
     it('denies inaccessible private repository preferences', async () => {
       await expect(
-        updateRepositoryWatchPreference(
-          viewerId,
-          ownerUsername,
-          privateName,
-          'IGNORE',
-        ),
+        updateRepositoryWatchPreference(viewerId, ownerUsername, privateName, 'IGNORE'),
       ).rejects.toMatchObject({
         statusCode: 403,
         code: 'REPOSITORY_ACCESS_DENIED',
@@ -307,12 +277,7 @@ describe.skipIf(!runDatabaseTests)(
 
     it('returns 404 for a missing repository', async () => {
       await expect(
-        updateRepositoryWatchPreference(
-          viewerId,
-          ownerUsername,
-          `missing_${suffix}`,
-          'ALL',
-        ),
+        updateRepositoryWatchPreference(viewerId, ownerUsername, `missing_${suffix}`, 'ALL'),
       ).rejects.toMatchObject({
         statusCode: 404,
         code: 'REPOSITORY_NOT_FOUND',

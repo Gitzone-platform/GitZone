@@ -13,18 +13,12 @@ import {
   deleteMilestone,
 } from '../../../src/services/milestones/milestone.service.js';
 
-vi.mock(
-  '../../../src/services/milestones/milestone-progress.service.js',
-  () => ({
-    calculateMilestoneProgress: vi.fn(),
-  }),
-);
-vi.mock(
-  '../../../src/services/milestones/milestone-batch-progress.service.js',
-  () => ({
-    calculateMilestonesProgress: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/milestones/milestone-progress.service.js', () => ({
+  calculateMilestoneProgress: vi.fn(),
+}));
+vi.mock('../../../src/services/milestones/milestone-batch-progress.service.js', () => ({
+  calculateMilestonesProgress: vi.fn(),
+}));
 vi.mock('../../../src/config/prisma.js', () => ({
   default: {
     repository: {
@@ -48,12 +42,9 @@ vi.mock('../../../src/config/prisma.js', () => ({
   },
 }));
 
-vi.mock(
-  '../../../src/services/repositories/repository-authorization.service.js',
-  () => ({
-    authorizeRepositoryAccess: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/repositories/repository-authorization.service.js', () => ({
+  authorizeRepositoryAccess: vi.fn(),
+}));
 
 const mockedProgress = vi.mocked(calculateMilestoneProgress);
 const mockedBatchProgress = vi.mocked(calculateMilestonesProgress);
@@ -81,13 +72,10 @@ const milestone = {
 };
 
 const duplicateError = () =>
-  new Prisma.PrismaClientKnownRequestError(
-    'Unique constraint failed',
-    {
-      code: 'P2002',
-      clientVersion: '7.10.0',
-    },
-  );
+  new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+    code: 'P2002',
+    clientVersion: '7.10.0',
+  });
 
 describe('Milestone service', () => {
   beforeEach(() => {
@@ -130,15 +118,13 @@ describe('Milestone service', () => {
     updateRecord.mockResolvedValue(milestone);
     deleteRecord.mockResolvedValue(milestone);
 
-    transaction.mockImplementation(
-      async (operations: unknown) => {
-        if (typeof operations === 'function') {
-          return (await operations(prisma)) as never;
-        }
+    transaction.mockImplementation(async (operations: unknown) => {
+      if (typeof operations === 'function') {
+        return (await operations(prisma)) as never;
+      }
 
-        return Promise.all(operations as Promise<unknown>[]) as never;
-      },
-    );
+      return Promise.all(operations as Promise<unknown>[]) as never;
+    });
   });
 
   it('returns 404 when repository does not exist', async () => {
@@ -158,24 +144,15 @@ describe('Milestone service', () => {
   });
 
   it('creates a milestone with WRITE permission', async () => {
-    const result = await createMilestone(
-      'user-1',
-      'owner',
-      'demo',
-      {
-        title: 'Version 1.0',
-        description: 'First release',
-        dueDate: milestone.dueDate,
-      },
-    );
+    const result = await createMilestone('user-1', 'owner', 'demo', {
+      title: 'Version 1.0',
+      description: 'First release',
+      dueDate: milestone.dueDate,
+    });
 
     expect(result).toEqual(milestone);
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
 
     expect(createRecord).toHaveBeenCalledWith({
       data: {
@@ -233,29 +210,18 @@ describe('Milestone service', () => {
   });
 
   it('lists milestones with READ permission and pagination', async () => {
-    const result = await listMilestones(
-      'owner',
-      'demo',
-      {
-        page: 2,
-        limit: 5,
-      },
-    );
+    const result = await listMilestones('owner', 'demo', {
+      page: 2,
+      limit: 5,
+    });
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      undefined,
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'READ', undefined);
 
     expect(findRecords).toHaveBeenCalledWith({
       where: {
         repositoryId: 'repo-1',
       },
-      orderBy: [
-        { createdAt: 'desc' },
-        { id: 'asc' },
-      ],
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       skip: 5,
       take: 5,
     });
@@ -321,23 +287,11 @@ describe('Milestone service', () => {
   });
 
   it('requests batch progress using the authorized repository and page IDs', async () => {
-    await listMilestones(
-      'owner',
-      'demo',
-      { page: 1, limit: 20 },
-      'user-1',
-    );
+    await listMilestones('owner', 'demo', { page: 1, limit: 20 }, 'user-1');
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'READ',
-      'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'READ', 'user-1');
 
-    expect(mockedBatchProgress).toHaveBeenCalledExactlyOnceWith(
-      'repo-1',
-      ['milestone-1'],
-    );
+    expect(mockedBatchProgress).toHaveBeenCalledExactlyOnceWith('repo-1', ['milestone-1']);
   });
 
   it('returns an empty milestone page without incorrect progress data', async () => {
@@ -345,11 +299,7 @@ describe('Milestone service', () => {
     countRecords.mockResolvedValue(0);
     mockedBatchProgress.mockResolvedValue(new Map());
 
-    const result = await listMilestones(
-      'owner',
-      'demo',
-      { page: 1, limit: 20 },
-    );
+    const result = await listMilestones('owner', 'demo', { page: 1, limit: 20 });
 
     expect(result).toEqual({
       milestones: [],
@@ -361,22 +311,15 @@ describe('Milestone service', () => {
       },
     });
 
-    expect(mockedBatchProgress).toHaveBeenCalledExactlyOnceWith(
-      'repo-1',
-      [],
-    );
+    expect(mockedBatchProgress).toHaveBeenCalledExactlyOnceWith('repo-1', []);
   });
 
   it('rejects a missing batch progress result instead of returning incomplete data', async () => {
     mockedBatchProgress.mockResolvedValue(new Map());
 
-    await expect(
-      listMilestones(
-        'owner',
-        'demo',
-        { page: 1, limit: 20 },
-      ),
-    ).rejects.toThrow('Milestone progress result is missing');
+    await expect(listMilestones('owner', 'demo', { page: 1, limit: 20 })).rejects.toThrow(
+      'Milestone progress result is missing',
+    );
   });
 
   it('assigns independent progress to each milestone', async () => {
@@ -386,10 +329,7 @@ describe('Milestone service', () => {
       title: 'Version 2.0',
     };
 
-    findRecords.mockResolvedValue([
-      milestone,
-      secondMilestone,
-    ]);
+    findRecords.mockResolvedValue([milestone, secondMilestone]);
 
     countRecords.mockResolvedValue(2);
 
@@ -422,30 +362,21 @@ describe('Milestone service', () => {
       ]),
     );
 
-    const result = await listMilestones(
-      'owner',
-      'demo',
-      { page: 1, limit: 20 },
-    );
+    const result = await listMilestones('owner', 'demo', { page: 1, limit: 20 });
 
     expect(result.milestones).toHaveLength(2);
     expect(result.milestones[0]?.progress.percentage).toBe(0);
     expect(result.milestones[1]?.progress.percentage).toBe(50);
 
-    expect(mockedBatchProgress).toHaveBeenCalledExactlyOnceWith(
-      'repo-1',
-      ['milestone-1', 'milestone-2'],
-    );
+    expect(mockedBatchProgress).toHaveBeenCalledExactlyOnceWith('repo-1', [
+      'milestone-1',
+      'milestone-2',
+    ]);
 
     expect(result.pagination.total).toBe(2);
   });
   it('gets a milestone scoped to its repository', async () => {
-    const result = await getMilestone(
-      'owner',
-      'demo',
-      'milestone-1',
-      'user-1',
-    );
+    const result = await getMilestone('owner', 'demo', 'milestone-1', 'user-1');
 
     expect(result).toEqual({
       ...milestone,
@@ -461,10 +392,7 @@ describe('Milestone service', () => {
       },
     });
 
-    expect(mockedProgress).toHaveBeenCalledWith(
-      'repo-1',
-      'milestone-1',
-    );
+    expect(mockedProgress).toHaveBeenCalledWith('repo-1', 'milestone-1');
 
     expect(findRecord).toHaveBeenCalledWith({
       where: {
@@ -477,32 +405,20 @@ describe('Milestone service', () => {
   it('rejects a milestone from another repository', async () => {
     findRecord.mockResolvedValue(null);
 
-    await expect(
-      getMilestone('owner', 'demo', 'foreign-milestone'),
-    ).rejects.toMatchObject({
+    await expect(getMilestone('owner', 'demo', 'foreign-milestone')).rejects.toMatchObject({
       statusCode: 404,
       code: 'MILESTONE_NOT_FOUND',
     });
   });
 
   it('updates milestone fields with WRITE permission', async () => {
-    await updateMilestone(
-      'user-1',
-      'owner',
-      'demo',
-      'milestone-1',
-      {
-        title: 'Version 1.1',
-        description: null,
-        dueDate: null,
-      },
-    );
+    await updateMilestone('user-1', 'owner', 'demo', 'milestone-1', {
+      title: 'Version 1.1',
+      description: null,
+      dueDate: null,
+    });
 
-    expect(authorize).toHaveBeenCalledWith(
-      'repo-1',
-      'WRITE',
-      'user-1',
-    );
+    expect(authorize).toHaveBeenCalledWith('repo-1', 'WRITE', 'user-1');
 
     expect(updateRecord).toHaveBeenCalledWith({
       where: {
@@ -518,13 +434,7 @@ describe('Milestone service', () => {
   });
 
   it('sets closedAt when closing an OPEN milestone', async () => {
-    await updateMilestone(
-      'user-1',
-      'owner',
-      'demo',
-      'milestone-1',
-      { state: 'CLOSED' },
-    );
+    await updateMilestone('user-1', 'owner', 'demo', 'milestone-1', { state: 'CLOSED' });
 
     expect(updateRecord).toHaveBeenCalledWith({
       where: {
@@ -545,13 +455,7 @@ describe('Milestone service', () => {
       closedAt: new Date('2026-10-08T12:00:00Z'),
     });
 
-    await updateMilestone(
-      'user-1',
-      'owner',
-      'demo',
-      'milestone-1',
-      { state: 'OPEN' },
-    );
+    await updateMilestone('user-1', 'owner', 'demo', 'milestone-1', { state: 'OPEN' });
 
     expect(updateRecord).toHaveBeenCalledWith({
       where: {
@@ -566,13 +470,7 @@ describe('Milestone service', () => {
   });
 
   it('preserves closedAt when state is unchanged', async () => {
-    await updateMilestone(
-      'user-1',
-      'owner',
-      'demo',
-      'milestone-1',
-      { state: 'OPEN' },
-    );
+    await updateMilestone('user-1', 'owner', 'demo', 'milestone-1', { state: 'OPEN' });
 
     expect(updateRecord).toHaveBeenCalledWith({
       where: {
@@ -589,13 +487,7 @@ describe('Milestone service', () => {
     updateRecord.mockRejectedValue(duplicateError());
 
     await expect(
-      updateMilestone(
-        'user-1',
-        'owner',
-        'demo',
-        'milestone-1',
-        { title: 'Existing title' },
-      ),
+      updateMilestone('user-1', 'owner', 'demo', 'milestone-1', { title: 'Existing title' }),
     ).rejects.toMatchObject({
       statusCode: 409,
       code: 'MILESTONE_ALREADY_EXISTS',
@@ -648,13 +540,11 @@ describe('Milestone service', () => {
   });
 
   it('does not delete when detaching issues fails', async () => {
-    vi.mocked(prisma.issue.updateMany).mockRejectedValue(
-      new Error('Issue update failed'),
-    );
+    vi.mocked(prisma.issue.updateMany).mockRejectedValue(new Error('Issue update failed'));
 
-    await expect(
-      deleteMilestone('user-1', 'owner', 'demo', 'milestone-1'),
-    ).rejects.toThrow('Issue update failed');
+    await expect(deleteMilestone('user-1', 'owner', 'demo', 'milestone-1')).rejects.toThrow(
+      'Issue update failed',
+    );
 
     expect(prisma.pullRequest.updateMany).not.toHaveBeenCalled();
     expect(deleteRecord).not.toHaveBeenCalled();
@@ -666,9 +556,9 @@ describe('Milestone service', () => {
       new Error('Pull request update failed'),
     );
 
-    await expect(
-      deleteMilestone('user-1', 'owner', 'demo', 'milestone-1'),
-    ).rejects.toThrow('Pull request update failed');
+    await expect(deleteMilestone('user-1', 'owner', 'demo', 'milestone-1')).rejects.toThrow(
+      'Pull request update failed',
+    );
 
     expect(deleteRecord).not.toHaveBeenCalled();
   });
@@ -676,12 +566,7 @@ describe('Milestone service', () => {
     findRecord.mockResolvedValue(null);
 
     await expect(
-      deleteMilestone(
-        'user-1',
-        'owner',
-        'demo',
-        'foreign-milestone',
-      ),
+      deleteMilestone('user-1', 'owner', 'demo', 'foreign-milestone'),
     ).rejects.toMatchObject({
       statusCode: 404,
       code: 'MILESTONE_NOT_FOUND',

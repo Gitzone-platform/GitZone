@@ -55,9 +55,7 @@ describe('inviteOrganizationMember', () => {
     vi.resetAllMocks();
 
     mocks.organizationFindUnique.mockResolvedValue({ id: 'org-1' });
-    mocks.memberFindUnique
-      .mockResolvedValueOnce({ role: 'OWNER' })
-      .mockResolvedValueOnce(null);
+    mocks.memberFindUnique.mockResolvedValueOnce({ role: 'OWNER' }).mockResolvedValueOnce(null);
     mocks.userFindFirst.mockResolvedValue(invitee);
     mocks.invitationFindFirst.mockResolvedValue(null);
     mocks.invitationCreate.mockResolvedValue(invitation);
@@ -67,9 +65,7 @@ describe('inviteOrganizationMember', () => {
   it('rejects a missing organization', async () => {
     mocks.organizationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      inviteOrganizationMember('missing', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(inviteOrganizationMember('missing', 'user-1', input)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -80,9 +76,7 @@ describe('inviteOrganizationMember', () => {
   it('requires OWNER membership', async () => {
     mocks.memberFindUnique.mockReset().mockResolvedValue({ role: 'MEMBER' });
 
-    await expect(
-      inviteOrganizationMember('team', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(inviteOrganizationMember('team', 'user-1', input)).rejects.toMatchObject({
       statusCode: 403,
       code: 'ORGANIZATION_OWNER_REQUIRED',
     });
@@ -93,9 +87,7 @@ describe('inviteOrganizationMember', () => {
   it('rejects an unknown username', async () => {
     mocks.userFindFirst.mockResolvedValue(null);
 
-    await expect(
-      inviteOrganizationMember('team', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(inviteOrganizationMember('team', 'user-1', input)).rejects.toMatchObject({
       statusCode: 404,
       code: 'USER_NOT_FOUND',
     });
@@ -107,9 +99,7 @@ describe('inviteOrganizationMember', () => {
       .mockResolvedValueOnce({ role: 'OWNER' })
       .mockResolvedValueOnce({ id: 'membership-2' });
 
-    await expect(
-      inviteOrganizationMember('team', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(inviteOrganizationMember('team', 'user-1', input)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_MEMBER_ALREADY_EXISTS',
     });
@@ -123,9 +113,7 @@ describe('inviteOrganizationMember', () => {
       expiresAt: new Date(Date.now() + 60_000),
     });
 
-    await expect(
-      inviteOrganizationMember('team', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(inviteOrganizationMember('team', 'user-1', input)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_INVITATION_ALREADY_EXISTS',
     });
@@ -137,11 +125,7 @@ describe('inviteOrganizationMember', () => {
   it('creates a seven-day invitation', async () => {
     const before = Date.now();
 
-    const result = await inviteOrganizationMember(
-      'team',
-      'user-1',
-      input,
-    );
+    const result = await inviteOrganizationMember('team', 'user-1', input);
 
     const after = Date.now();
 
@@ -183,11 +167,7 @@ describe('inviteOrganizationMember', () => {
       expiresAt: new Date(Date.now() - 60_000),
     });
 
-    const result = await inviteOrganizationMember(
-      'team',
-      'user-1',
-      input,
-    );
+    const result = await inviteOrganizationMember('team', 'user-1', input);
 
     expect(result.invitee).toEqual(invitee);
     expect(mocks.invitationUpdate).toHaveBeenCalledWith(
@@ -212,9 +192,7 @@ describe('inviteOrganizationMember', () => {
       }),
     );
 
-    await expect(
-      inviteOrganizationMember('team', 'user-1', input),
-    ).rejects.toMatchObject({
+    await expect(inviteOrganizationMember('team', 'user-1', input)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_INVITATION_ALREADY_EXISTS',
     });

@@ -42,9 +42,7 @@ describe('Leave organization service', () => {
   });
 
   it('allows a MEMBER to leave the organization', async () => {
-    await expect(
-      leaveOrganization(slug, actorId),
-    ).resolves.toEqual({
+    await expect(leaveOrganization(slug, actorId)).resolves.toEqual({
       organizationId: 'org-1',
       leftUserId: actorId,
     });
@@ -76,9 +74,7 @@ describe('Leave organization service', () => {
   it('returns 404 when organization does not exist', async () => {
     mocks.organizationFindUnique.mockResolvedValue(null);
 
-    await expect(
-      leaveOrganization(slug, actorId),
-    ).rejects.toMatchObject({
+    await expect(leaveOrganization(slug, actorId)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_NOT_FOUND',
     });
@@ -90,9 +86,7 @@ describe('Leave organization service', () => {
   it('returns 404 when the actor is not a member', async () => {
     mocks.memberFindUnique.mockResolvedValue(null);
 
-    await expect(
-      leaveOrganization(slug, actorId),
-    ).rejects.toMatchObject({
+    await expect(leaveOrganization(slug, actorId)).rejects.toMatchObject({
       statusCode: 404,
       code: 'ORGANIZATION_MEMBER_NOT_FOUND',
     });
@@ -105,9 +99,7 @@ describe('Leave organization service', () => {
       role: 'OWNER',
     });
 
-    await expect(
-      leaveOrganization(slug, actorId),
-    ).rejects.toMatchObject({
+    await expect(leaveOrganization(slug, actorId)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_OWNER_LEAVE_FORBIDDEN',
     });
@@ -120,9 +112,7 @@ describe('Leave organization service', () => {
       count: 0,
     });
 
-    await expect(
-      leaveOrganization(slug, actorId),
-    ).rejects.toMatchObject({
+    await expect(leaveOrganization(slug, actorId)).rejects.toMatchObject({
       statusCode: 409,
       code: 'ORGANIZATION_MEMBERSHIP_CHANGED',
     });
@@ -141,8 +131,6 @@ describe('Leave organization service', () => {
 
     mocks.memberDeleteMany.mockRejectedValue(error);
 
-    await expect(
-      leaveOrganization(slug, actorId),
-    ).rejects.toBe(error);
+    await expect(leaveOrganization(slug, actorId)).rejects.toBe(error);
   });
 });

@@ -1,46 +1,28 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GitWriteError } from '../../../src/errors/git-write.error.js';
 import { executeGitReadCommand } from '../../../src/services/git/git-read-command.service.js';
-import {
-  deleteGitBranch,
-} from '../../../src/services/git/git-branch-mutation.service.js';
+import { deleteGitBranch } from '../../../src/services/git/git-branch-mutation.service.js';
 import { getGitRepositoryRefs } from '../../../src/services/git/git-ref.service.js';
 import { executeGitWriteCommand } from '../../../src/services/git/git-write-command.service.js';
 
-vi.mock(
-  '../../../src/services/git/git-read-command.service.js',
-  () => ({
-    executeGitReadCommand: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/git/git-read-command.service.js', () => ({
+  executeGitReadCommand: vi.fn(),
+}));
 
-vi.mock(
-  '../../../src/services/git/git-ref.service.js',
-  () => ({
-    getGitRepositoryRefs: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/git/git-ref.service.js', () => ({
+  getGitRepositoryRefs: vi.fn(),
+}));
 
-vi.mock(
-  '../../../src/services/git/git-write-command.service.js',
-  () => ({
-    executeGitWriteCommand: vi.fn(),
-  }),
-);
+vi.mock('../../../src/services/git/git-write-command.service.js', () => ({
+  executeGitWriteCommand: vi.fn(),
+}));
 
 const mockedRead = vi.mocked(executeGitReadCommand);
 const mockedRefs = vi.mocked(getGitRepositoryRefs);
 const mockedWrite = vi.mocked(executeGitWriteCommand);
 
-const oid =
-  '1111111111111111111111111111111111111111';
+const oid = '1111111111111111111111111111111111111111';
 
 const refs = {
   objectFormat: 'sha1' as const,
@@ -93,12 +75,7 @@ describe('deleteGitBranch', () => {
     expect(mockedWrite).toHaveBeenCalledWith({
       username: 'asil',
       repositoryName: 'demo',
-      args: [
-        'update-ref',
-        '-d',
-        'refs/heads/feature/login',
-        oid,
-      ],
+      args: ['update-ref', '-d', 'refs/heads/feature/login', oid],
     });
   });
 
@@ -119,9 +96,7 @@ describe('deleteGitBranch', () => {
   });
 
   it('rejects a branch rejected by Git ref validation', async () => {
-    mockedRead.mockRejectedValueOnce(
-      new Error('invalid ref'),
-    );
+    mockedRead.mockRejectedValueOnce(new Error('invalid ref'));
 
     await expect(
       deleteGitBranch({
@@ -169,13 +144,9 @@ describe('deleteGitBranch', () => {
 
   it('maps concurrent deletion to a conflict', async () => {
     mockedWrite.mockRejectedValueOnce(
-      new GitWriteError(
-        'update-ref failed',
-        'GIT_WRITE_COMMAND_FAILED',
-        {
-          exitCode: 128,
-        },
-      ),
+      new GitWriteError('update-ref failed', 'GIT_WRITE_COMMAND_FAILED', {
+        exitCode: 128,
+      }),
     );
 
     await expect(
@@ -191,10 +162,7 @@ describe('deleteGitBranch', () => {
   });
 
   it('preserves infrastructure write failures', async () => {
-    const error = new GitWriteError(
-      'Git timed out',
-      'GIT_WRITE_TIMEOUT',
-    );
+    const error = new GitWriteError('Git timed out', 'GIT_WRITE_TIMEOUT');
 
     mockedWrite.mockRejectedValueOnce(error);
 

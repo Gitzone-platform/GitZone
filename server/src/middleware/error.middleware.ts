@@ -32,9 +32,7 @@ export const errorMiddleware: ErrorRequestHandler = (error, req, res, _next): vo
       success: false,
       error: {
         code,
-        message: isFileTooLarge
-          ? 'Avatar file exceeds the 5 MB limit'
-          : 'Invalid avatar upload',
+        message: isFileTooLarge ? 'Avatar file exceeds the 5 MB limit' : 'Invalid avatar upload',
       },
     });
 

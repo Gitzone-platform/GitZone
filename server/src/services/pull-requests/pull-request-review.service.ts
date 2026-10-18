@@ -13,10 +13,7 @@ import type {
   UpdatePullRequestReviewCommentInput,
 } from '../../validations/pull-requests/pull-request-review.validation.js';
 
-import {
-
-  validatePullRequestDiffAnchor,
-} from './pull-request-review-git.service.js';
+import { validatePullRequestDiffAnchor } from './pull-request-review-git.service.js';
 
 const publicUserSelect = {
   id: true,
@@ -485,10 +482,7 @@ export const createPullRequestConversationComment = async (
 
   await authorizeRepositoryAccess(pullRequest.repositoryId, 'READ', userId);
 
-  const conversation = await findConversationForPullRequest(
-    pullRequest.id,
-    conversationId,
-  );
+  const conversation = await findConversationForPullRequest(pullRequest.id, conversationId);
 
   return prisma.pullRequestReviewComment.create({
     data: {

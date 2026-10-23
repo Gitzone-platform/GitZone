@@ -17,11 +17,20 @@ import {
   inviteMember,
 } from '../controllers/organizations/organization-invitation.controller.js';
 
+import {
+  createTeamController,
+  updateTeamController,
+  deleteTeamController,
+} from '../controllers/organizations/team.controller.js';
+
 const router = Router();
 router.post('/', authMiddleware, create);
 router.post('/invitations/:invitationId/accept', authMiddleware, acceptInvitation);
 
 router.post('/:slug/repositories', authMiddleware, createOrganizationRepositoryController);
+router.post('/:slug/teams', authMiddleware, createTeamController);
+router.patch('/:slug/teams/:teamId', authMiddleware, updateTeamController);
+router.delete('/:slug/teams/:teamId', authMiddleware, deleteTeamController);
 router.post('/:slug/invitations', authMiddleware, inviteMember);
 router.get('/:slug/owners', optionalAuthMiddleware, getOwners);
 router.post('/:slug/leave', authMiddleware, leave);

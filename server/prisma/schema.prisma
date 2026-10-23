@@ -20,6 +20,7 @@ model User {
   website                     String?
 
   organizationMemberships          OrganizationMember[]
+  teamMemberships TeamMember[]
   organizationInvitationsSent      OrganizationInvitation[]   @relation("OrganizationInvitationInviter")
   organizationInvitationsReceived  OrganizationInvitation[]   @relation("OrganizationInvitationInvitee")
   sessions                         Session[]
@@ -157,6 +158,7 @@ model Repository {
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   collaborators RepositoryCollaborator[]
+  teamRepositories TeamRepository[]
   stars         RepositoryStar[]
   watches       RepositoryWatch[]
   pullRequests  PullRequest[]
@@ -528,6 +530,7 @@ model Organization {
   visibility                  OrganizationVisibility @default(PUBLIC)
 
   members      OrganizationMember[]
+  teams Team[]
   repositories Repository[]
   invitations  OrganizationInvitation[]
 
@@ -603,4 +606,54 @@ model RepositoryTransfer {
 
   @@index([status])
   @@index([targetOrgId])
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  description    String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      TeamMember[]
+  repositories TeamRepository[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, slug])
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model TeamMember {
+  id     String @id @default(cuid())
+  teamId String
+  userId String
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model TeamRepository {
+  id           String               @id @default(cuid())
+  teamId       String
+  repositoryId String
+  permission   RepositoryPermission @default(READ)
+
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, repositoryId])
+  @@index([repositoryId])
 }
